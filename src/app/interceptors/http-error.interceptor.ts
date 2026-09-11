@@ -1,35 +1,31 @@
 import {
-  HttpErrorResponse,
   HttpInterceptorFn
 } from '@angular/common/http';
 
 import {
   catchError,
-  throwError
+  throwError,
+  timeout
 } from 'rxjs';
-
 
 export const httpErrorInterceptor: HttpInterceptorFn =
   (req, next) => {
 
     return next(req).pipe(
 
-      catchError(
-        (error: HttpErrorResponse) => {
+      timeout(10000),
 
-          console.error(
-            'Error HTTP global:',
-            error.status,
-            error.message
-          );
+      catchError(error => {
 
-          return throwError(
-            () => error
-          );
+        console.error(
+          'Error HTTP:',
+          error
+        );
 
-        }
-      )
+        return throwError(
+          () => error
+        );
+      })
 
     );
-
-  };   
+  };
