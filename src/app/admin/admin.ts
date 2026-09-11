@@ -1,52 +1,20 @@
-import {
-  CommonModule,
-} from '@angular/common';
-
+import { CommonModule } from '@angular/common';
 import {
   Component,
-  Inject,
   OnInit,
-  signal,
-  computed
+  computed,
+  signal
 } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
-
-import {
-  HttpErrorResponse
-} from '@angular/common/http'; //servicio
-
+import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
-
-import {
-  catchError,
-  of,
-  timeout
-} from 'rxjs'; //servicio **
 
 import { Usuario } from '../models/usuario.model';
 
-import {
-  PostaliaResponse
-} from '../models/postalia.model';
-
-import {
-  UsuarioService
-} from '../services/usuario.service';
-
-import {
-  PostaliaService
-} from '../services/postalia.service';
-
-import {
-  AuthService
-} from '../services/auth.service';
-
-
-//modelos
-//servicios
-//guard
-//interceptor
+import { UsuarioService } from '../services/usuario.service';
+import { PostaliaService } from '../services/postalia.service';
+import { AuthService } from '../services/auth.service';
 
 
 @Component({
@@ -61,310 +29,170 @@ import {
 })
 export class Admin implements OnInit {
 
-  // ==========================================
-  // SIGNALS DE USUARIOS
-  // ==========================================
-
+  // Datos reactivos de las tablas
   usuarios = signal<Usuario[]>([]);
-
   usuariosEliminados = signal<Usuario[]>([]);
 
+  totalUsuariosActivos =
+    computed(() => this.usuarios().length);
 
-  totalUsuariosActivos = computed(
-    () => this.usuarios().length
-  );
+  totalUsuariosEliminados =
+    computed(() => this.usuariosEliminados().length);
 
-  totalUsuariosEliminados = computed(
-    () => this.usuariosEliminados().length
-  );
-
-
-  // ==========================================
-  // EDICIÓN Y MODAL
-  // ==========================================
 
   editando = false;
-
   modalEditarAbierto = false;
-
   usuarioEditandoId?: number;
-
 
   usuarioFormulario: Usuario =
     this.crearUsuarioVacio();
 
 
-  // ==========================================
-  // CÓDIGO POSTAL
-  // ==========================================
-
   cpLoading = false;
-
   cpError = '';
-
   colonias: string[] = [];
 
 
-  // ==========================================
-  // VALIDACIÓN DE EDAD
-  // ==========================================
-
-  fechaMaximaAdulto: string =
+  // Límite usado para validar mayores de 18 años
+  fechaMaximaAdulto =
     this.obtenerFechaMaximaAdulto();
 
 
+  // Servicios principales del componente
   constructor(
     private router: Router,
     private usuarioService: UsuarioService,
     private postaliaService: PostaliaService,
-    private authService: AuthService,
-
+    private authService: AuthService
   ) {}
 
 
-  // ==========================================
-  // AL INICIAR ADMIN
-  // ==========================================
-
+  // Carga inicial de las tablas
   ngOnInit(): void {
-
     this.cargarUsuarios();
-
     this.cargarUsuariosEliminados();
   }
 
 
-  // ==========================================
-  // CARGAR USUARIOS ACTIVOS
-  // ==========================================
-
   cargarUsuarios(): void {
 
-    // Reinicia tabla y contador
     this.usuarios.set([]);
 
     this.usuarioService
       .listarUsuarios()
-      .pipe(
+      .subscribe({
 
-        timeout(10000),
-
-        catchError(
-          (error: HttpErrorResponse) => {
-
-            console.error(
-              'Error al cargar usuarios:',
-              error
-            );
-
-            return of([]);
-          }
-        )
-
-      )
-      .subscribe(datos => {
-
-        const usuariosOrdenados =
-          [...datos].sort(
-            (a, b) =>
-              (a.id ?? 0) - (b.id ?? 0)
+        next: usuarios => {
+          this.usuarios.set(
+            this.ordenarPorId(usuarios)
           );
+        },
 
-        this.usuarios.set(
-          usuariosOrdenados
-        );
-
-        console.log(
-          'Usuarios activos:',
-          this.usuarios()
-        );
-
-        console.log(
-          'Total activos:',
-          this.totalUsuariosActivos()
-        );
+        error: error => {
+          console.error(
+            'Error al cargar usuarios:',
+            error
+          );
+        }
 
       });
   }
 
 
-  // ==========================================
-  // CARGAR USUARIOS ELIMINADOS
-  // ==========================================
-
   cargarUsuariosEliminados(): void {
 
-    // Reinicia tabla y contador
     this.usuariosEliminados.set([]);
 
     this.usuarioService
       .listarUsuariosEliminados()
+      .subscribe({
 
-      .pipe(
-
-        timeout(10000),
-
-        catchError(
-          (error: HttpErrorResponse) => {
-
-            console.error(
-              'Error al cargar usuarios eliminados:',
-              error
-            );
-
-            return of([]);
-          }
-        )
-
-      )
-      .subscribe(datos => {
-
-        const usuariosOrdenados =
-          [...datos].sort(
-            (a, b) =>
-              (a.id ?? 0) - (b.id ?? 0)
+        next: usuarios => {
+          this.usuariosEliminados.set(
+            this.ordenarPorId(usuarios)
           );
+        },
 
-        this.usuariosEliminados.set(
-          usuariosOrdenados
-        );
-
-        console.log(
-          'Usuarios eliminados:',
-          this.usuariosEliminados()
-        );
-
-        console.log(
-          'Total eliminados:',
-          this.totalUsuariosEliminados()
-        );
+        error: error => {
+          console.error(
+            'Error al cargar usuarios eliminados:',
+            error
+          );
+        }
 
       });
   }
 
 
-  // ==========================================
-  // GUARDAR
-  // ==========================================
-
   guardarUsuario(): void {
 
     if (this.editando) {
-
       this.actualizarUsuario();
-
     } else {
-
       this.crearUsuario();
-
     }
   }
 
 
-  // ==========================================
-  // CREAR USUARIO
-  // ==========================================
+  crearUsuario(): void {
 
-  crearUsuario(): void { //observables - rxjs
-
-    // Validamos la edad antes de enviar a Spring
-    if (!this.esMayorDeEdad(
-      this.usuarioFormulario.fechaNacimiento
-    )) {
-
-      alert(
-        'El usuario debe tener al menos 18 años.'
-      );
-
+    if (!this.validarEdad()) {
       return;
     }
-
 
     this.usuarioService
       .crearUsuario(
         this.usuarioFormulario
       )
-      .pipe(
+      .subscribe({
 
-        timeout(10000), //no
+        next: () => {
 
-        catchError(
-          (error: HttpErrorResponse) => {
+          alert(
+            'Usuario creado correctamente.'
+          );
 
-            console.error(
-              'Error al crear usuario:',
-              error
-            );
+          this.limpiarFormulario();
+          this.cargarUsuarios();
+        },
 
-            alert(
-              'No se pudo crear el usuario.'
-            );
+        error: error => {
 
-            return of(null);
-          }
-        )
+          console.error(
+            'Error al crear usuario:',
+            error
+          );
 
-      )
-      .subscribe(respuesta => {
-
-        if (!respuesta) {
-          return; //personalizar error
+          alert(
+            'No se pudo crear el usuario.'
+          );
         }
-
-        alert(
-          'Usuario creado correctamente.'
-        );
-
-        this.limpiarFormulario();
-
-        this.cargarUsuarios();
 
       });
   }
 
-
-  // ==========================================
-  // ABRIR MODAL PARA EDITAR
-  // ==========================================
 
   editarUsuario(
     usuario: Usuario
   ): void {
 
     this.editando = true;
-
     this.modalEditarAbierto = true;
-
-    this.usuarioEditandoId =
-      usuario.id;
+    this.usuarioEditandoId = usuario.id;
 
     this.usuarioFormulario = {
       ...usuario
     };
 
-    this.cpError = '';
-
-    this.cpLoading = false;
-
-    this.colonias = [];
+    this.limpiarCodigoPostal();
   }
 
 
-  // ==========================================
-  // CERRAR MODAL
-  // ==========================================
-
   cerrarModalEditar(): void {
-
     this.modalEditarAbierto = false;
-
     this.limpiarFormulario();
   }
 
-
-  // ==========================================
-  // ACTUALIZAR USUARIO
-  // ==========================================
 
   actualizarUsuario(): void {
 
@@ -374,70 +202,46 @@ export class Admin implements OnInit {
       return;
     }
 
-
-    // Validamos nuevamente la edad
-    if (!this.esMayorDeEdad(
-      this.usuarioFormulario.fechaNacimiento
-    )) {
-
-      alert(
-        'El usuario debe tener al menos 18 años.'
-      );
-
+    if (!this.validarEdad()) {
       return;
     }
-
 
     this.usuarioService
       .actualizarUsuario(
         this.usuarioEditandoId,
         this.usuarioFormulario
       )
-      .pipe(
+      .subscribe({
 
-        timeout(10000),
+        next: () => {
 
-        catchError(
-          (error: HttpErrorResponse) => {
+          alert(
+            'Usuario actualizado correctamente.'
+          );
 
-            console.error(
-              'Error al actualizar usuario:',
-              error
-            );
+          this.modalEditarAbierto = false;
 
-            alert(
-              'No se pudo actualizar el usuario.'
-            );
+          this.limpiarFormulario();
+          this.cargarUsuarios();
+        },
 
-            return of(null);
-          }
-        )
+        error: error => {
 
-      )
-      .subscribe(respuesta => {
+          console.error(
+            'Error al actualizar usuario:',
+            error
+          );
 
-        if (!respuesta) {
-          return;
+          alert(
+            'No se pudo actualizar el usuario.'
+          );
         }
-
-        alert(
-          'Usuario actualizado correctamente.'
-        );
-
-        this.modalEditarAbierto = false;
-
-        this.limpiarFormulario();
-
-        this.cargarUsuarios();
 
       });
   }
 
 
-  // ==========================================
-  // ELIMINACIÓN LÓGICA
-  // ==========================================
-
+  // Eliminación lógica: el usuario no se borra físicamente
   eliminarUsuario(
     id: number
   ): void {
@@ -453,49 +257,38 @@ export class Admin implements OnInit {
 
     this.usuarioService
       .eliminarUsuario(id)
-      .pipe(
+      .subscribe({
 
-        timeout(10000),
+        next: () => {
 
-        catchError(
-          (error: HttpErrorResponse) => {
+          alert(
+            'Usuario eliminado correctamente.'
+          );
 
-            console.error(
-              'Error al eliminar usuario:',
-              error
-            );
+          this.cargarUsuarios();
+          this.cargarUsuariosEliminados();
+        },
 
-            alert(
-              'No se pudo eliminar el usuario.'
-            );
+        error: error => {
 
-            return of(null);
-          }
-        )
+          console.error(
+            'Error al eliminar usuario:',
+            error
+          );
 
-      )
-      .subscribe(() => {
-
-        alert(
-          'Usuario eliminado correctamente.'
-        );
-
-        this.cargarUsuarios();
-
-        this.cargarUsuariosEliminados();
+          alert(
+            'No se pudo eliminar el usuario.'
+          );
+        }
 
       });
   }
 
 
-  // ==========================================
-  // BUSCAR CÓDIGO POSTAL
-  // ==========================================
-
+  // Consulta Postalia usando un código postal de 5 dígitos
   buscarCodigoPostal(): void {
 
     this.cpError = '';
-
     this.colonias = [];
 
     const cp =
@@ -506,7 +299,6 @@ export class Admin implements OnInit {
     if (!/^\d{5}$/.test(cp)) {
 
       this.usuarioFormulario.estado = '';
-
       this.usuarioFormulario.municipio = '';
 
       return;
@@ -516,194 +308,165 @@ export class Admin implements OnInit {
 
     this.postaliaService
       .buscarCodigoPostal(cp)
-      .pipe(
+      .subscribe({
 
-        timeout(10000),
+        next: respuesta => {
 
-        catchError(
-          (error: HttpErrorResponse) => {
+          this.usuarioFormulario.estado =
+            respuesta.estado;
 
-            console.error(
-              'Error consultando código postal:',
-              error
+          this.usuarioFormulario.municipio =
+            respuesta.municipio;
+
+          this.colonias =
+            respuesta.colonias.map(
+              colonia => colonia.nombre
             );
 
-            if (error.status === 404) {
+          this.cpLoading = false;
+        },
 
-              this.cpError =
-                'Código postal no encontrado.';
+        error: error => {
 
-            } else {
+          if (
+            error instanceof HttpErrorResponse &&
+            error.status === 404
+          ) {
 
-              this.cpError =
-                'No se pudo consultar el código postal.';
+            this.cpError =
+              'Código postal no encontrado.';
 
-            }
+          } else {
 
-            this.usuarioFormulario.estado = '';
-
-            this.usuarioFormulario.municipio = '';
-
-            this.cpLoading = false;
-
-            return of(null);
+            this.cpError =
+              'No se pudo consultar el código postal.';
           }
-        )
 
-      )
-      .subscribe(respuesta => {
+          this.usuarioFormulario.estado = '';
+          this.usuarioFormulario.municipio = '';
 
-        if (!respuesta) {
-          return;
+          this.cpLoading = false;
         }
-
-        console.log(
-          'Respuesta recibida de Spring:',
-          respuesta
-        );
-
-        this.usuarioFormulario.estado =
-          respuesta.estado;
-
-        this.usuarioFormulario.municipio =
-          respuesta.municipio;
-
-        this.colonias =
-          respuesta.colonias.map(
-            colonia => colonia.nombre
-          );
-
-        this.cpLoading = false;
 
       });
   }
 
 
-  // ==========================================
-  // CANCELAR EDICIÓN
-  // ==========================================
-
   cancelarEdicion(): void {
-
     this.cerrarModalEditar();
   }
 
 
-  // ==========================================
-  // LIMPIAR FORMULARIO
-  // ==========================================
-
   limpiarFormulario(): void {
 
     this.editando = false;
-
-    this.usuarioEditandoId =
-      undefined;
+    this.usuarioEditandoId = undefined;
 
     this.usuarioFormulario =
       this.crearUsuarioVacio();
 
-    this.cpError = '';
-
-    this.cpLoading = false;
-
-    this.colonias = [];
+    this.limpiarCodigoPostal();
   }
 
-
-  // ==========================================
-  // CERRAR SESIÓN
-  // ==========================================
 
   cerrarSesion(): void {
 
     this.authService.cerrarSesion();
 
     this.router.navigate(['/']);
-
   }
 
 
-  // ==========================================
-  // CALCULAR FECHA MÁXIMA PARA +18
-  // ==========================================
+  // Validación reutilizada al crear y actualizar
+  private validarEdad(): boolean {
+
+    if (
+      this.esMayorDeEdad(
+        this.usuarioFormulario.fechaNacimiento
+      )
+    ) {
+      return true;
+    }
+
+    alert(
+      'El usuario debe tener al menos 18 años.'
+    );
+
+    return false;
+  }
+
+
+  private ordenarPorId(
+    usuarios: Usuario[]
+  ): Usuario[] {
+
+    return [...usuarios].sort(
+      (a, b) =>
+        (a.id ?? 0) - (b.id ?? 0)
+    );
+  }
+
+
+  private limpiarCodigoPostal(): void {
+
+    this.cpError = '';
+    this.cpLoading = false;
+    this.colonias = [];
+  }
+
 
   private obtenerFechaMaximaAdulto(): string {
 
     const hoy = new Date();
 
-    const fechaLimite = new Date(
+    const fecha = new Date(
       hoy.getFullYear() - 18,
       hoy.getMonth(),
       hoy.getDate()
     );
 
-    const anio =
-      fechaLimite.getFullYear();
+    const anio = fecha.getFullYear();
 
     const mes =
       String(
-        fechaLimite.getMonth() + 1
+        fecha.getMonth() + 1
       ).padStart(2, '0');
 
     const dia =
       String(
-        fechaLimite.getDate()
+        fecha.getDate()
       ).padStart(2, '0');
 
     return `${anio}-${mes}-${dia}`;
   }
 
 
-  // ==========================================
-  // COMPROBAR SI TIENE 18 AÑOS
-  // ==========================================
-
   private esMayorDeEdad(
     fechaNacimiento: string
   ): boolean {
 
-    if (!fechaNacimiento) {
-      return false;
-    }
-
     return (
+      !!fechaNacimiento &&
       fechaNacimiento <=
-      this.fechaMaximaAdulto
+        this.fechaMaximaAdulto
     );
   }
 
 
-  // ==========================================
-  // USUARIO VACÍO
-  // ==========================================
-
   private crearUsuarioVacio(): Usuario {
 
     return {
-
       nombre: '',
-
       primerApellido: '',
-
       segundoApellido: '',
-
       telefono: '',
-
       codigoPostal: '',
-
       estado: '',
-
       municipio: '',
-
       direccion: '',
-
       fechaNacimiento: '',
-
       animalFavorito: '',
-
       activo: true
-
     };
   }
 
