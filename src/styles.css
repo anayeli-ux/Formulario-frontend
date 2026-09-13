@@ -1,1 +1,176 @@
-/* You can add global styles to this file, and also import other style files */
+:host {
+    --color-primary: #4163ad;
+    --color-primary-hover: #35589f;
+    --color-primary-active: #2f4f92;
+    --color-header-start: #4163ad;
+    --color-header-end: #60739b;
+    --color-accent: #f07d68;
+    --color-background: #f7f8fa;
+    --color-surface: #ffffff;
+    --color-border: #d9e0ea;
+    --color-text-primary: #26364f;
+    --color-text-secondary: #98a3b2;
+    --color-text-on-primary: #ffffff;
+    --color-error: #d64545;
+
+    font-family: "Inter", "Segoe UI", Arial, sans-serif;
+}
+
+body {
+    margin: 0;
+    background: var(--color-background);
+}
+
+/* Contenedor general de la página de registro */
+.registration-page {
+    min-height: 100vh;
+    background: var(--color-background);
+    padding: 24px 16px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    box-sizing: border-box;
+}
+
+.registration-form-container {
+    width: 100%;
+    max-width: 620px;
+    background: var(--color-surface);
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+/* Encabezado */
+.form-header {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(90deg, var(--color-header-start) 0%, #526aa2 55%, var(--color-header-end) 100%);
+    border-radius: 10px;
+    padding: 16px 20px;
+    color: var(--color-text-on-primary);
+    margin-bottom: 24px;
+}
+
+.form-title {
+    margin: 0 0 4px;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.form-subtitle {
+    margin: 0;
+    font-size: 13px;
+    opacity: 0.9;
+}
+
+/* Cuadrícula de inputs */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 12px;
+    row-gap: 20px;
+    margin-bottom: 20px;
+}
+
+.field {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.field.full-width {
+    grid-column: 1 / -1;
+}
+
+/* Forzar estilos profesionales en los inputs dentro de los subcomponentes */
+::ng-deep .form-control {
+    width: 100%;
+    height: 44px;
+    padding: 0 12px;
+    border: 1px solid var(--color-border);
+    border-radius: 7px;
+    background: var(--color-surface);
+    color: var(--color-text-primary);
+    font-size: 14px;
+    font-family: inherit;
+    box-sizing: border-box;
+    margin-top: 6px;
+    transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+::ng-deep .form-control::placeholder {
+    color: var(--color-text-secondary);
+}
+
+::ng-deep .form-control:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(65, 99, 173, 0.15);
+}
+
+::ng-deep label {
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--color-text-primary);
+}
+
+/* Botón principal */
+.submit-button {
+    width: 100%;
+    height: 48px;
+    margin-top: 20px;
+    border: none;
+    border-radius: 7px;
+    background: var(--color-primary);
+    color: var(--color-text-on-primary);
+    font-size: 14px;
+    font-family: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 3px 6px rgba(48, 75, 135, 0.2);
+    transition: background-color 160ms ease;
+}
+
+.submit-button:hover:not(:disabled) {
+    background: var(--color-primary-hover);
+}
+
+.submit-button:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+/* Forzar diseño original a todos los inputs y selects de la app */
+input[type="text"],
+input[type="date"],
+input[type="email"],
+input[type="password"],
+select {
+    width: 100%;
+    height: 44px;
+    padding: 0 12px;
+    border: 1px solid #d9e0ea !important;
+    border-radius: 7px !important;
+    background: #ffffff !important;
+    color: #26364f !important;
+    font-size: 14px !important;
+    font-family: inherit !important;
+    box-sizing: border-box !important;
+    margin-top: 6px !important;
+    margin-bottom: 12px !important;
+}
+
+input:focus {
+    outline: none !important;
+    border-color: #4163ad !important;
+    box-shadow: 0 0 0 3px rgba(65, 99, 173, 0.15) !important;
+}
+
+label {
+    font-weight: 600 !important;
+    font-size: 13px !important;
+    color: #26364f !important;
+    display: block !important;
+}

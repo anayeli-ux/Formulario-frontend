@@ -1,0 +1,24 @@
+<div class="registro-container">
+    <h2>Formulario de Registro General</h2>
+
+    <form [formGroup]="registroForm" (ngSubmit)="enviarRegistro()">
+
+        <!-- Componente hijo 1: Datos Personales -->
+        <app-datos-personales formGroupName="datosPersonales"></app-datos-personales>
+
+        <hr>
+
+        <!-- Componente hijo 2: Datos de Contacto -->
+        <app-datos-contacto formGroupName="datosContacto"></app-datos-contacto>
+
+        <hr>
+
+        <!-- Componente hijo 3: Datos Adicionales -->
+        <app-datos-adicionales formGroupName="datosAdicionales"></app-datos-adicionales>
+
+        <button type="submit" [disabled]="registroForm.invalid" class="btn-submit">
+            Registrar Usuario
+        </button>
+
+    </form>
+</div>

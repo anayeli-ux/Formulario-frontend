@@ -3,14 +3,15 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 import { Usuario } from '../models/usuario.model';
+import { environment } from '../../environments/environment'; // 1. Importas el environment
 
 @Injectable({
   providedIn: 'root'
 })
 export class UsuarioService {
 
-  private apiUrl =
-    'http://localhost:8081/api/usuarios';
+  // 2. Usas la URL centralizada y le sumas '/usuarios'
+  private apiUrl = `${environment.apiUrl}/usuarios`;
 
   constructor(
     private http: HttpClient
