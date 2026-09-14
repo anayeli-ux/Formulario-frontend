@@ -51,6 +51,7 @@
         <section class="form-section">
 
           <div class="section-header">
+
             <span class="section-number">
               01
             </span>
@@ -64,6 +65,7 @@
                 Información general del usuario.
               </p>
             </div>
+
           </div>
 
           <app-datos-personales
@@ -78,6 +80,7 @@
         <section class="form-section">
 
           <div class="section-header">
+
             <span class="section-number">
               02
             </span>
@@ -91,6 +94,7 @@
                 Información de contacto y ubicación.
               </p>
             </div>
+
           </div>
 
           <app-datos-contacto
@@ -105,6 +109,7 @@
         <section class="form-section">
 
           <div class="section-header">
+
             <span class="section-number">
               03
             </span>
@@ -118,6 +123,7 @@
                 Información complementaria.
               </p>
             </div>
+
           </div>
 
           <app-datos-adicionales
@@ -151,5 +157,98 @@
         <button type="submit" class="btn-submit">
             Registrar Usuario
         </button>
+
+</div>
+
+
+<!-- =========================================
+     MODAL DE MENSAJES
+     ========================================= -->
+
+<div
+  class="mensaje-overlay"
+  *ngIf="modalVisible"
+  (click)="cerrarModal()"
+>
+
+  <div
+    class="mensaje-modal"
+    [ngClass]="modalTipo"
+    (click)="$event.stopPropagation()"
+  >
+
+    <!-- BOTÓN CERRAR -->
+    <button
+      type="button"
+      class="modal-close"
+      (click)="cerrarModal()"
+      aria-label="Cerrar"
+    >
+      ×
+    </button>
+
+
+    <!-- IDENTIDAD VISUAL -->
+    <div class="modal-brand">
+
+      <div class="modal-logo">
+        H
+      </div>
+
+      <div class="modal-brand-text">
+
+        <span>
+          Sistema de Administración
+        </span>
+
+        <strong>
+          Hidalgo
+        </strong>
+
+      </div>
+
+    </div>
+
+
+    <!-- ICONO SEGÚN EL TIPO -->
+    <div class="modal-icon">
+
+      <span *ngIf="modalTipo === 'exito'">
+        ✓
+      </span>
+
+      <span *ngIf="modalTipo === 'advertencia'">
+        !
+      </span>
+
+      <span *ngIf="modalTipo === 'error'">
+        !
+      </span>
+
+    </div>
+
+
+    <!-- TÍTULO -->
+    <h2>
+      {{ modalTitulo }}
+    </h2>
+
+
+    <!-- MENSAJE -->
+    <p>
+      {{ modalMensaje }}
+    </p>
+
+
+    <!-- BOTÓN -->
+    <button
+      type="button"
+      class="modal-aceptar"
+      (click)="cerrarModal()"
+    >
+      Aceptar
+    </button>
+
+  </div>
 
 </div>

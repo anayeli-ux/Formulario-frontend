@@ -1,724 +1,693 @@
 /* =========================
-   PALETA ESTILO HIDALGO
+   ETIQUETA DEL MODAL DE EDICIÓN
    ========================= */
 
-:host {
-  --vino: #7b1734;
-  --vino-oscuro: #641129;
-  --vino-claro: #96254a;
+.modal-section-label {
+  display: block;
+  margin-bottom: 4px;
 
-  --dorado: #c59a52;
-  --dorado-claro: #d6b77d;
+  color: var(--dorado);
 
-  --fondo: #f7f5f2;
-  --blanco: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
 
-  --texto: #292929;
-  --texto-secundario: #6d6670;
+  letter-spacing: 1.3px;
 
-  --borde: #dfd6ca;
+  text-transform: uppercase;
 }
+
 
 /* =========================
-   CONFIGURACIÓN GENERAL
+   BOTÓN GUARDAR DESHABILITADO
    ========================= */
 
-* {
-  box-sizing: border-box;
+.save:disabled {
+  background: #c9c3c5;
+  color: white;
+
+  cursor: not-allowed;
+
+  transform: none;
 }
 
-.admin-page {
-  min-height: 100vh;
 
-  padding: 35px;
+/* =====================================================
+   MODAL GENERAL DEL CRUD
+   ÉXITO / ERROR / ADVERTENCIA / CONFIRMACIÓN
+   ===================================================== */
+
+.mensaje-overlay {
+  position: fixed;
+  inset: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 20px;
 
   background:
-    linear-gradient(
-      180deg,
-      #ffffff 0%,
-      var(--fondo) 100%
-    );
+    rgba(35, 24, 28, 0.70);
 
-  color: var(--texto);
+  backdrop-filter: blur(4px);
+
+  z-index: 2000;
+}
+
+
+/* =========================
+   TARJETA DEL MENSAJE
+   ========================= */
+
+.mensaje-modal {
+  position: relative;
+
+  width: 100%;
+  max-width: 470px;
+
+  padding:
+    30px 34px 32px;
+
+  background:
+    var(--blanco);
+
+  border:
+    1px solid #eadfd8;
+
+  border-top:
+    5px solid var(--vino);
+
+  border-bottom:
+    4px solid var(--dorado);
+
+  border-radius:
+    14px;
+
+  box-shadow:
+    0 22px 65px
+    rgba(40, 15, 23, 0.32);
+
+  text-align:
+    center;
 
   font-family:
     "Montserrat",
     "Segoe UI",
     Arial,
     sans-serif;
+
+  animation:
+    aparecerMensaje 0.22s ease;
 }
 
+
 /* =========================
-   ENCABEZADO
+   ANIMACIÓN
    ========================= */
 
-.admin-header {
-  max-width: 1250px;
+@keyframes aparecerMensaje {
 
-  margin: 0 auto 30px;
-  padding: 30px;
+  from {
+    opacity: 0;
 
-  background: var(--vino);
+    transform:
+      translateY(10px)
+      scale(0.97);
+  }
 
-  border-bottom:
-    5px solid var(--dorado);
+  to {
+    opacity: 1;
 
-  border-radius: 12px;
+    transform:
+      translateY(0)
+      scale(1);
+  }
 
-  color: white;
+}
+
+
+/* =========================
+   BOTÓN X
+   ========================= */
+
+.mensaje-close {
+  position: absolute;
+
+  top: 12px;
+  right: 16px;
+
+  width: 34px;
+  height: 34px;
 
   display: flex;
   align-items: center;
-  justify-content: space-between;
-
-  box-shadow:
-    0 8px 24px rgba(80, 20, 40, 0.18);
-}
-
-.admin-header h1 {
-  margin: 0;
-
-  font-size: 30px;
-  font-weight: 700;
-
-  letter-spacing: -0.5px;
-}
-
-.admin-header p {
-  margin: 8px 0 0;
-
-  color: #f4e8ec;
-
-  font-size: 14px;
-}
-
-/* =========================
-   CERRAR SESIÓN
-   ========================= */
-
-.logout {
-  padding: 11px 20px;
-
-  border:
-    1px solid var(--dorado);
-
-  border-radius: 6px;
-
-  background: white;
-
-  color: var(--vino);
-
-  font-weight: 700;
-
-  cursor: pointer;
-
-  transition: 0.2s ease;
-}
-
-.logout:hover {
-  background: var(--dorado);
-  color: white;
-
-  transform:
-    translateY(-1px);
-}
-
-/* =========================
-   TARJETAS
-   ========================= */
-
-.form-card,
-.table-card {
-  max-width: 1250px;
-
-  margin: 0 auto 30px;
-  padding: 28px;
-
-  background: var(--blanco);
-
-  border:
-    1px solid #eee7df;
-
-  border-radius: 12px;
-
-  box-shadow:
-    0 5px 18px rgba(70, 50, 40, 0.07);
-}
-
-.form-card h2,
-.table-card h2 {
-  margin-top: 0;
-  margin-bottom: 20px;
-
-  color: var(--vino);
-
-  font-size: 22px;
-  font-weight: 700;
-
-  padding-bottom: 10px;
-
-  border-bottom:
-    2px solid var(--dorado);
-}
-
-/* =========================
-   FORMULARIO
-   ========================= */
-
-.user-form {
-  display: grid;
-
-  grid-template-columns:
-    1fr 1fr;
-
-  gap: 18px;
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-
-  gap: 7px;
-}
-
-.field label {
-  color: var(--vino);
-
-  font-size: 14px;
-  font-weight: 650;
-}
-
-.field input {
-  width: 100%;
-
-  padding: 12px 14px;
-
-  border:
-    1px solid var(--borde);
-
-  border-radius: 6px;
-
-  background: white;
-
-  color: var(--texto);
-
-  outline: none;
-
-  font-size: 15px;
-
-  transition: 0.2s ease;
-}
-
-.field input:hover {
-  border-color:
-    var(--dorado);
-}
-
-.field input:focus {
-  border-color:
-    var(--vino);
-
-  box-shadow:
-    0 0 0 3px
-    rgba(123, 23, 52, 0.09);
-}
-
-.field small {
-  color:
-    var(--texto-secundario);
-
-  font-size: 12px;
-}
-
-.field input[readonly] {
-  background: #f5f2ef;
-
-  color:
-    var(--texto-secundario);
-}
-
-.full {
-  grid-column: 1 / -1;
-}
-
-/* =========================
-   BOTONES
-   ========================= */
-
-.actions {
-  display: flex;
-
-  gap: 12px;
-}
-
-.save {
-  padding: 12px 22px;
+  justify-content: center;
 
   border: none;
-  border-radius: 6px;
+
+  border-radius:
+    50%;
+
+  background:
+    transparent;
+
+  color:
+    #777174;
+
+  font-size:
+    26px;
+
+  cursor:
+    pointer;
+
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+
+.mensaje-close:hover {
+  color:
+    var(--vino);
+
+  background:
+    #f7f1f3;
+}
+
+
+/* =========================
+   MARCA / LOGO
+   ========================= */
+
+.mensaje-brand {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 11px;
+
+  margin-bottom:
+    24px;
+}
+
+.mensaje-logo {
+  width: 44px;
+  height: 44px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border:
+    2px solid var(--dorado);
+
+  border-radius:
+    50%;
 
   background:
     var(--vino);
 
-  color: white;
+  color:
+    white;
 
-  font-weight: 700;
+  font-size:
+    19px;
 
-  cursor: pointer;
-
-  transition: 0.2s ease;
+  font-weight:
+    700;
 }
 
-.save:hover {
+.mensaje-brand-text {
+  text-align:
+    left;
+}
+
+.mensaje-brand-text span {
+  display:
+    block;
+
+  margin-bottom:
+    1px;
+
+  color:
+    var(--dorado);
+
+  font-size:
+    9px;
+
+  font-weight:
+    700;
+
+  letter-spacing:
+    1.2px;
+
+  text-transform:
+    uppercase;
+}
+
+.mensaje-brand-text strong {
+  display:
+    block;
+
+  color:
+    var(--vino);
+
+  font-size:
+    19px;
+
+  font-weight:
+    700;
+}
+
+
+/* =========================
+   ICONO GENERAL
+   ========================= */
+
+.mensaje-icon {
+  width:
+    76px;
+
+  height:
+    76px;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  margin:
+    0 auto 18px;
+
+  border-radius:
+    50%;
+
+  border:
+    1px solid transparent;
+
+  font-size:
+    38px;
+
+  font-weight:
+    700;
+}
+
+
+/* =========================
+   ÉXITO
+   ========================= */
+
+.mensaje-modal.exito
+.mensaje-icon {
+
+  background:
+    #e4f3ed;
+
+  border-color:
+    #cae7dc;
+
+  color:
+    #1f725a;
+}
+
+
+/* =========================
+   ADVERTENCIA
+   ========================= */
+
+.mensaje-modal.advertencia
+.mensaje-icon {
+
+  background:
+    #f8ecd6;
+
+  border-color:
+    #eedbb5;
+
+  color:
+    #a06b1d;
+}
+
+
+/* =========================
+   ERROR
+   ========================= */
+
+.mensaje-modal.error
+.mensaje-icon {
+
+  background:
+    #f5e1e7;
+
+  border-color:
+    #ead0d8;
+
+  color:
+    var(--vino);
+}
+
+
+/* =========================
+   CONFIRMACIÓN
+   ========================= */
+
+.mensaje-modal.confirmacion
+.mensaje-icon {
+
+  background:
+    #f4eee5;
+
+  border-color:
+    var(--dorado-claro);
+
+  color:
+    var(--vino);
+}
+
+
+/* =========================
+   TÍTULO
+   ========================= */
+
+.mensaje-modal h2 {
+  margin:
+    0 0 10px;
+
+  color:
+    var(--vino);
+
+  font-size:
+    25px;
+
+  font-weight:
+    700;
+}
+
+
+/* =========================
+   TEXTO DEL MENSAJE
+   ========================= */
+
+.mensaje-modal p {
+  max-width:
+    375px;
+
+  margin:
+    0 auto 26px;
+
+  color:
+    var(--texto-secundario);
+
+  font-size:
+    14px;
+
+  line-height:
+    1.6;
+}
+
+
+/* =========================
+   ACCIONES DEL MODAL
+   ========================= */
+
+.mensaje-actions {
+  display: flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  gap:
+    12px;
+}
+
+
+/* =========================
+   BOTÓN ACEPTAR
+   ========================= */
+
+.mensaje-aceptar {
+  min-width:
+    190px;
+
+  padding:
+    12px 28px;
+
+  border:
+    none;
+
+  border-radius:
+    7px;
+
+  background:
+    var(--vino);
+
+  color:
+    white;
+
+  font-size:
+    14px;
+
+  font-weight:
+    700;
+
+  cursor:
+    pointer;
+
+  box-shadow:
+    0 6px 14px
+    rgba(123, 23, 52, 0.18);
+
+  transition:
+    background 0.2s,
+    transform 0.2s,
+    box-shadow 0.2s;
+}
+
+.mensaje-aceptar:hover {
   background:
     var(--vino-oscuro);
 
   transform:
     translateY(-1px);
+
+  box-shadow:
+    0 8px 18px
+    rgba(123, 23, 52, 0.24);
 }
 
-.cancel {
-  padding: 12px 22px;
+
+/* =========================
+   CANCELAR CONFIRMACIÓN
+   ========================= */
+
+.mensaje-cancelar {
+  min-width:
+    125px;
+
+  padding:
+    12px 20px;
 
   border:
     1px solid #cec5bb;
 
-  border-radius: 6px;
+  border-radius:
+    7px;
 
-  background: white;
-
-  color:
-    var(--texto-secundario);
-
-  font-weight: 600;
-
-  cursor: pointer;
-
-  transition: 0.2s ease;
-}
-
-.cancel:hover {
-  background: #f1ece7;
-}
-
-/* =========================
-   ENCABEZADO TABLA
-   ========================= */
-
-.table-header {
-  display: flex;
-
-  justify-content:
-    space-between;
-
-  align-items: center;
-
-  margin-bottom: 20px;
-}
-
-.table-header h2 {
-  margin-bottom: 5px;
-}
-
-.table-header p {
-  margin: 0;
+  background:
+    white;
 
   color:
     var(--texto-secundario);
 
-  font-size: 14px;
+  font-size:
+    14px;
+
+  font-weight:
+    700;
+
+  cursor:
+    pointer;
+
+  transition:
+    background 0.2s,
+    border-color 0.2s;
 }
 
+.mensaje-cancelar:hover {
+  background:
+    #f4f0ec;
+
+  border-color:
+    var(--dorado);
+}
+
+
 /* =========================
-   ACTUALIZAR TABLA
+   CONFIRMAR ACCIÓN
    ========================= */
 
-.refresh {
-  padding: 10px 17px;
+.mensaje-confirmar {
+  min-width:
+    125px;
+
+  padding:
+    12px 20px;
+
+  border:
+    none;
+
+  border-radius:
+    7px;
+
+  background:
+    var(--vino);
+
+  color:
+    white;
+
+  font-size:
+    14px;
+
+  font-weight:
+    700;
+
+  cursor:
+    pointer;
+
+  transition:
+    background 0.2s,
+    transform 0.2s;
+}
+
+.mensaje-confirmar:hover {
+  background:
+    var(--vino-oscuro);
+
+  transform:
+    translateY(-1px);
+}
+
+
+/* =========================
+   BOTÓN REACTIVAR
+   ========================= */
+
+.reactivate {
+  padding:
+    8px 13px;
 
   border:
     1px solid var(--dorado);
 
-  border-radius: 6px;
-
-  background: white;
-
-  color: var(--vino);
-
-  font-weight: 650;
-
-  cursor: pointer;
-
-  transition: 0.2s ease;
-}
-
-.refresh:hover {
-  background:
-    var(--dorado);
-
-  color: white;
-}
-
-/* =========================
-   TABLAS
-   ========================= */
-
-.table-container {
-  overflow-x: auto;
-
-  border:
-    1px solid #eee6dc;
-
-  border-radius: 8px;
-}
-
-table {
-  width: 100%;
-
-  border-collapse:
-    collapse;
-
-  background: white;
-}
-
-th {
-  padding: 14px;
+  border-radius:
+    5px;
 
   background:
-    var(--vino);
-
-  color: white;
-
-  text-align: left;
-
-  font-size: 13px;
-  font-weight: 650;
-
-  white-space: nowrap;
-}
-
-td {
-  padding: 13px;
-
-  border-bottom:
-    1px solid #eee8e2;
-
-  color: #3d393b;
-
-  font-size: 14px;
-}
-
-tbody tr {
-  transition:
-    background 0.15s ease;
-}
-
-tbody tr:hover {
-  background:
-    #fbf8f4;
-}
-
-/* Línea dorada bajo encabezado */
-
-thead {
-  border-bottom:
-    3px solid var(--dorado);
-}
-
-/* =========================
-   ACCIONES TABLA
-   ========================= */
-
-.row-actions {
-  white-space: nowrap;
-}
-
-.edit,
-.delete {
-  padding: 8px 13px;
-
-  border: none;
-  border-radius: 5px;
-
-  color: white;
-
-  font-weight: 600;
-
-  cursor: pointer;
-
-  transition: 0.2s ease;
-}
-
-/* Editar */
-.edit {
-  margin-right: 7px;
-
-  background:
-    var(--vino);
-}
-
-.edit:hover {
-  background:
-    var(--vino-oscuro);
-}
-
-/* Eliminar */
-.delete {
-  background: #a52b3f;
-}
-
-.delete:hover {
-  background: #841e31;
-}
-
-.empty {
-  padding: 35px;
-
-  text-align: center;
-
-  color:
-    var(--texto-secundario);
-}
-
-/* =========================
-   MODAL
-   ========================= */
-
-.modal-overlay {
-  position: fixed;
-
-  inset: 0;
-
-  background:
-    rgba(40, 15, 23, 0.65);
-
-  display: flex;
-
-  align-items: center;
-  justify-content: center;
-
-  z-index: 1000;
-
-  padding: 20px;
-
-  backdrop-filter:
-    blur(3px);
-}
-
-/* Caja modal */
-.modal-card {
-  width: 100%;
-  max-width: 900px;
-
-  max-height: 90vh;
-
-  overflow-y: auto;
-
-  background: white;
-
-  border-radius: 12px;
-
-  border-top:
-    6px solid var(--vino);
-
-  border-bottom:
-    4px solid var(--dorado);
-
-  padding: 28px;
-
-  box-shadow:
-    0 20px 60px
-    rgba(40, 15, 23, 0.3);
-}
-
-/* =========================
-   ENCABEZADO MODAL
-   ========================= */
-
-.modal-header {
-  display: flex;
-
-  align-items: center;
-  justify-content: space-between;
-
-  padding-bottom: 15px;
-  margin-bottom: 22px;
-
-  border-bottom:
-    1px solid #e5ddd5;
-}
-
-.modal-header h2 {
-  margin: 0;
+    white;
 
   color:
     var(--vino);
 
-  font-size: 24px;
-}
-
-/* X cerrar */
-.modal-close {
-  width: 40px;
-  height: 40px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border: none;
-  border-radius: 50%;
-
-  background: transparent;
-
-  color:
-    var(--vino);
-
-  font-size: 30px;
-
-  cursor: pointer;
-
-  transition: 0.2s ease;
-}
-
-.modal-close:hover {
-  background:
-    #f5eaed;
-}
-
-/* =========================
-   FORMULARIO MODAL
-   ========================= */
-
-.modal-card .user-form {
-  display: grid;
-
-  grid-template-columns:
-    repeat(
-      2,
-      minmax(0, 1fr)
-    );
-
-  gap: 18px;
-}
-
-.modal-card .field.full,
-.modal-card .actions.full {
-  grid-column: 1 / -1;
-}
-
-.modal-card input {
-  width: 100%;
-}
-
-.modal-card input[readonly] {
-  background:
-    #f5f2ef;
-
-  color:
-    #7a7174;
+  font-weight:
+    700;
 
   cursor:
-    not-allowed;
+    pointer;
+
+  transition:
+    background 0.2s,
+    color 0.2s,
+    transform 0.2s;
 }
 
-/* =========================
-   SCROLL DEL MODAL
-   ========================= */
-
-.modal-card::-webkit-scrollbar {
-  width: 8px;
-}
-
-.modal-card::-webkit-scrollbar-track {
-  background: #f4f0ec;
-}
-
-.modal-card::-webkit-scrollbar-thumb {
+.reactivate:hover {
   background:
     var(--dorado);
 
-  border-radius: 10px;
+  color:
+    white;
+
+  transform:
+    translateY(-1px);
 }
 
-/* =========================
-   RESPONSIVE
-   ========================= */
-
-@media (max-width: 750px) {
-
-  .admin-page {
-    padding: 15px;
-  }
-
-  .admin-header {
-    flex-direction:
-      column;
-
-    align-items:
-      flex-start;
-
-    gap: 20px;
-  }
-
-  .admin-header h1 {
-    font-size: 25px;
-  }
-
-  .user-form {
-    grid-template-columns:
-      1fr;
-  }
-
-  .full {
-    grid-column: auto;
-  }
-
-  .table-header {
-    flex-direction:
-      column;
-
-    align-items:
-      flex-start;
-
-    gap: 15px;
-  }
-
-}
 
 /* =========================
-   MODAL MÓVIL
+   RESPONSIVE DEL MODAL CRUD
    ========================= */
 
-@media (max-width: 700px) {
+@media (max-width: 520px) {
 
-  .modal-overlay {
-    padding: 10px;
+  .mensaje-overlay {
+    padding:
+      15px;
   }
 
-  .modal-card {
-    padding: 18px;
-
-    max-height: 95vh;
+  .mensaje-modal {
+    padding:
+      28px 20px 26px;
   }
 
-  .modal-card .user-form {
-    grid-template-columns:
-      1fr;
+  .mensaje-brand {
+    justify-content:
+      flex-start;
   }
 
-  .modal-card .field.full,
-  .modal-card .actions.full {
-    grid-column: 1;
+  .mensaje-logo {
+    width:
+      40px;
+
+    height:
+      40px;
+
+    font-size:
+      17px;
   }
 
-  .modal-card .actions {
+  .mensaje-brand-text strong {
+    font-size:
+      17px;
+  }
+
+  .mensaje-icon {
+    width:
+      68px;
+
+    height:
+      68px;
+
+    font-size:
+      33px;
+  }
+
+  .mensaje-modal h2 {
+    font-size:
+      22px;
+  }
+
+  .mensaje-actions,
+  .confirmacion-actions {
     flex-direction:
       column;
   }
 
-  .modal-card .actions button {
-    width: 100%;
+  .mensaje-aceptar,
+  .mensaje-cancelar,
+  .mensaje-confirmar {
+    width:
+      100%;
+
+    min-width:
+      0;
   }
 
 }
