@@ -1,430 +1,1062 @@
-* {
-  box-sizing: border-box;
+:host {
+  --vino: #7b1734;
+  --vino-oscuro: #641129;
+  --dorado: #c59a52;
+  --dorado-claro: #d6b77d;
+  --blanco: #ffffff;
+  --texto-secundario: #746d70;
+}
+
+/* =========================
+   ETIQUETA DEL MODAL DE EDICIÓN
+   ========================= */
+
+.modal-section-label {
+  display: block;
+  margin-bottom: 4px;
+
+  color: var(--dorado);
+
+  font-size: 10px;
+  font-weight: 700;
+
+  letter-spacing: 1.3px;
+
+  text-transform: uppercase;
 }
 
 .admin-page {
   min-height: 100vh;
+  padding: 32px 20px 48px;
+  background: #f7f5f2;
+  color: #292929;
+  font-family: "Montserrat", "Segoe UI", Arial, sans-serif;
+}
 
-  background: #f5f7fb;
-
-  padding: 35px;
+.admin-header,
+.admin-card {
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto 24px;
 }
 
 .admin-header {
-  max-width: 1250px;
-
-  margin: 0 auto 30px;
-
-  padding: 28px;
-
-  border-radius: 14px;
-
-  background: #496bb3;
-
-  color: white;
-
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
+  gap: 20px;
+}
+
+.admin-label {
+  display: block;
+  color: #c59a52;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+}
+
+.admin-header h1,
+.admin-card h2 {
+  margin: 6px 0;
+  color: #7b1734;
 }
 
 .admin-header h1 {
-  margin: 0;
-
   font-size: 30px;
 }
 
 .admin-header p {
-  margin: 7px 0 0;
-
-  opacity: 0.9;
+  margin: 0;
+  color: #746d70;
 }
 
-.logout {
-  padding: 11px 18px;
-
-  border: none;
-
-  border-radius: 7px;
-
-  background: white;
-
-  color: #496bb3;
-
-  font-weight: bold;
-
+.logout-button,
+.admin-primary,
+.admin-secondary,
+.table-edit,
+.table-delete {
+  border: 0;
+  border-radius: 6px;
+  padding: 10px 16px;
+  font-weight: 700;
   cursor: pointer;
 }
 
-.form-card,
-.table-card {
-  max-width: 1250px;
-
-  margin: 0 auto 30px;
-
-  padding: 28px;
-
+.logout-button,
+.admin-secondary {
   background: white;
-
-  border-radius: 14px;
-
-  box-shadow:
-    0 5px 20px rgba(0, 0, 0, 0.06);
+  border: 1px solid #d8cec6;
+  color: #7b1734;
 }
 
-.form-card h2,
-.table-card h2 {
-  margin-top: 0;
+.admin-card {
+  padding: 24px;
+  background: white;
+  border: 1px solid #eee7df;
+  border-top: 4px solid #7b1734;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(80, 30, 45, 0.08);
+}
 
-  color: #30384a;
+.admin-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.admin-card h2 {
+  font-size: 21px;
+}
+
+.admin-count {
+  color: #746d70;
+  font-size: 13px;
+}
+
+.create-form {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.admin-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.admin-field label {
+  color: #51494c;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.admin-field input {
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid #ded6ce;
+  border-radius: 5px;
+  font: inherit;
+}
+
+.admin-field input:focus {
+  outline: 2px solid #d6b77d;
+  border-color: #7b1734;
+}
+
+.admin-form-actions {
+  display: flex;
+  align-items: end;
+  gap: 10px;
+}
+
+.admin-primary {
+  background: #7b1734;
+  color: white;
+}
+
+.admin-primary:disabled {
+  background: #c9c3c5;
+  cursor: not-allowed;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow-y: auto;
+  background: rgba(35, 24, 28, .7);
+  backdrop-filter: blur(4px);
+}
+
+.modal-card {
+  position: relative;
+  width: min(760px, 100%);
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  padding: 28px 30px;
+  background: var(--blanco);
+  border: 1px solid #eadfd8;
+  border-top: 5px solid var(--vino);
+  border-radius: 14px;
+  box-shadow: 0 22px 65px rgba(40, 15, 23, .32);
+  animation: aparecerModal .2s ease-out;
+}
+
+@keyframes aparecerModal {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 22px;
+}
+
+.modal-header h2 {
+  margin: 0;
+  color: var(--vino);
+  font-size: 24px;
+}
+
+.modal-close {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--texto-secundario);
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.modal-close:hover {
+  background: #f7f1f3;
+  color: var(--vino);
 }
 
 .user-form {
   display: grid;
-
-  grid-template-columns: 1fr 1fr;
-
-  gap: 18px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
 }
 
-.field {
+.user-form .field {
   display: flex;
-
   flex-direction: column;
-
-  gap: 7px;
+  gap: 6px;
 }
 
-.field label {
-  color: #50586c;
-
-  font-weight: 600;
-}
-
-.field input {
-  padding: 13px;
-
-  border: 1px solid #d4dbea;
-
-  border-radius: 8px;
-
-  outline: none;
-
-  font-size: 15px;
-}
-
-.field input:focus {
-  border-color: #496bb3;
-
-  box-shadow:
-    0 0 0 3px rgba(73, 107, 179, 0.08);
-}
-
-.full {
+.user-form .field.full {
   grid-column: 1 / -1;
 }
 
-.actions {
-  display: flex;
-
-  gap: 12px;
+.user-form .field label {
+  color: #51494c;
+  font-size: 13px;
+  font-weight: 700;
 }
 
-.save {
-  padding: 13px 22px;
-
-  border: none;
-
-  border-radius: 7px;
-
-  background: #496bb3;
-
-  color: white;
-
-  font-weight: bold;
-
-  cursor: pointer;
-}
-
-.cancel {
-  padding: 13px 22px;
-
-  border: none;
-
-  border-radius: 7px;
-
-  background: #e4e7ec;
-
-  color: #3c4350;
-
-  cursor: pointer;
-}
-
-.table-header {
-  display: flex;
-
-  justify-content: space-between;
-  align-items: center;
-
-  margin-bottom: 20px;
-}
-
-.table-header p {
-  color: #7c8496;
-}
-
-.refresh {
-  padding: 10px 16px;
-
-  border: 1px solid #496bb3;
-
-  border-radius: 7px;
-
-  background: white;
-
-  color: #496bb3;
-
-  cursor: pointer;
-}
-
-.table-container {
-  overflow-x: auto;
-}
-
-table {
+.user-form .field input {
   width: 100%;
-
-  border-collapse: collapse;
+  box-sizing: border-box;
+  padding: 10px;
+  border: 1px solid #ded6ce;
+  border-radius: 5px;
+  font: inherit;
 }
 
-th {
-  padding: 13px;
-
-  background: #eef2fb;
-
-  color: #424b60;
-
-  text-align: left;
+.user-form .field input:focus {
+  outline: 2px solid var(--dorado-claro);
+  border-color: var(--vino);
 }
 
-td {
-  padding: 13px;
-
-  border-bottom: 1px solid #e7e9ee;
+.user-form .field small {
+  color: var(--texto-secundario);
+  font-size: 11px;
 }
 
-.row-actions {
-  white-space: nowrap;
+.user-form .actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
 }
 
-.edit,
-.delete {
-  padding: 8px 12px;
-
-  border: none;
-
+.user-form .actions button {
   border-radius: 6px;
-
-  color: white;
-
+  padding: 11px 18px;
+  font-weight: 700;
   cursor: pointer;
 }
 
-.edit {
-  background: #496bb3;
-
-  margin-right: 7px;
+.user-form .actions .save {
+  border: 0;
+  background: var(--vino);
+  color: white;
 }
 
-.delete {
-  background: #e64c4c;
+.user-form .actions .cancel {
+  border: 1px solid #d8cec6;
+  background: white;
+  color: var(--vino);
 }
 
-.empty {
-  padding: 30px;
-
-  text-align: center;
-
-  color: #8a91a0;
-}
-
-@media (max-width: 750px) {
-
-  .admin-page {
-    padding: 15px;
-  }
-
-  .admin-header {
-    flex-direction: column;
-
-    align-items: flex-start;
-
-    gap: 20px;
+@media (max-width: 600px) {
+  .modal-card {
+    padding: 22px 18px;
   }
 
   .user-form {
     grid-template-columns: 1fr;
   }
 
-  .full {
+  .user-form .field.full {
     grid-column: auto;
   }
 
+  .user-form .actions {
+    flex-direction: column-reverse;
+  }
+
+  .user-form .actions button {
+    width: 100%;
+  }
 }
 
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.admin-table th,
+.admin-table td {
+  padding: 12px 10px;
+  border-bottom: 1px solid #eee7df;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.admin-table th {
+  color: #7b1734;
+  font-size: 11px;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+}
+
+.table-actions {
+  white-space: nowrap;
+}
+
+.table-edit {
+  margin-right: 6px;
+  background: #f4eee5;
+  color: #7b1734;
+}
+
+.table-delete {
+  background: #f5e1e7;
+  color: #7b1734;
+}
+
+.empty-row {
+  padding: 24px !important;
+  color: #746d70;
+  text-align: center !important;
+}
+
+@media (max-width: 800px) {
+  .create-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .admin-header,
+  .admin-card-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .create-form {
+    grid-template-columns: 1fr;
+  }
+}
+
+
 /* =========================
-   MODAL DE EDICIÓN
+   BOTÓN GUARDAR DESHABILITADO
    ========================= */
 
-.modal-overlay {
+.save:disabled {
+  background: #c9c3c5;
+  color: white;
+
+  cursor: not-allowed;
+
+  transform: none;
+}
+
+
+/* =====================================================
+   MODAL GENERAL DEL CRUD
+   ÉXITO / ERROR / ADVERTENCIA / CONFIRMACIÓN
+   ===================================================== */
+
+.mensaje-overlay {
   position: fixed;
-
-  top: 0;
-  left: 0;
-
-  width: 100%;
-  height: 100%;
-
-  background: rgba(0, 0, 0, 0.55);
+  inset: 0;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  z-index: 1000;
-
   padding: 20px;
 
-  box-sizing: border-box;
+  background:
+    rgba(35, 24, 28, 0.70);
+
+  backdrop-filter: blur(4px);
+
+  z-index: 2000;
 }
 
 
-.modal-card {
+/* =========================
+   TARJETA DEL MENSAJE
+   ========================= */
+
+.mensaje-modal {
+  position: relative;
+
   width: 100%;
-  max-width: 900px;
+  max-width: 470px;
 
-  max-height: 90vh;
+  padding:
+    30px 34px 32px;
 
-  overflow-y: auto;
+  background:
+    var(--blanco);
 
-  background: white;
+  border:
+    1px solid #eadfd8;
 
-  border-radius: 16px;
+  border-top:
+    5px solid var(--vino);
 
-  padding: 24px;
+  border-bottom:
+    4px solid var(--dorado);
+
+  border-radius:
+    14px;
 
   box-shadow:
-    0 18px 50px rgba(0, 0, 0, 0.25);
+    0 22px 65px
+    rgba(40, 15, 23, 0.32);
+
+  text-align:
+    center;
+
+  font-family:
+    "Montserrat",
+    "Segoe UI",
+    Arial,
+    sans-serif;
+
+  animation:
+    aparecerMensaje 0.22s ease;
 }
 
 
-.modal-header {
+/* =========================
+   ANIMACIÓN
+   ========================= */
+
+@keyframes aparecerMensaje {
+
+  from {
+    opacity: 0;
+
+    transform:
+      translateY(10px)
+      scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateY(0)
+      scale(1);
+  }
+
+}
+
+
+/* =========================
+   BOTÓN X
+   ========================= */
+
+.mensaje-close {
+  position: absolute;
+
+  top: 12px;
+  right: 16px;
+
+  width: 34px;
+  height: 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+
+  border-radius:
+    50%;
+
+  background:
+    transparent;
+
+  color:
+    #777174;
+
+  font-size:
+    26px;
+
+  cursor:
+    pointer;
+
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+
+.mensaje-close:hover {
+  color:
+    var(--vino);
+
+  background:
+    #f7f1f3;
+}
+
+
+/* =========================
+   MARCA / LOGO
+   ========================= */
+
+.mensaje-brand {
   display: flex;
 
   align-items: center;
+  justify-content: center;
 
-  justify-content: space-between;
+  gap: 11px;
 
-  margin-bottom: 20px;
+  margin-bottom:
+    24px;
+}
+
+.mensaje-logo {
+  width: 44px;
+  height: 44px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border:
+    2px solid var(--dorado);
+
+  border-radius:
+    50%;
+
+  background:
+    var(--vino);
+
+  color:
+    white;
+
+  font-size:
+    19px;
+
+  font-weight:
+    700;
+}
+
+.mensaje-brand-text {
+  text-align:
+    left;
+}
+
+.mensaje-brand-text span {
+  display:
+    block;
+
+  margin-bottom:
+    1px;
+
+  color:
+    var(--dorado);
+
+  font-size:
+    9px;
+
+  font-weight:
+    700;
+
+  letter-spacing:
+    1.2px;
+
+  text-transform:
+    uppercase;
+}
+
+.mensaje-brand-text strong {
+  display:
+    block;
+
+  color:
+    var(--vino);
+
+  font-size:
+    19px;
+
+  font-weight:
+    700;
 }
 
 
-.modal-header h2 {
-  margin: 0;
+/* =========================
+   ICONO GENERAL
+   ========================= */
+
+.mensaje-icon {
+  width:
+    76px;
+
+  height:
+    76px;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  margin:
+    0 auto 18px;
+
+  border-radius:
+    50%;
+
+  border:
+    1px solid transparent;
+
+  font-size:
+    38px;
+
+  font-weight:
+    700;
 }
 
 
-.modal-close {
-  border: none;
+/* =========================
+   ÉXITO
+   ========================= */
 
-  background: transparent;
+.mensaje-modal.exito
+.mensaje-icon {
 
-  font-size: 32px;
+  background:
+    #e4f3ed;
 
-  cursor: pointer;
+  border-color:
+    #cae7dc;
 
-  line-height: 1;
-
-  padding: 0;
-
-  width: 40px;
-  height: 40px;
+  color:
+    #1f725a;
 }
 
 
-.modal-close:hover {
-  opacity: 0.6;
+/* =========================
+   ADVERTENCIA
+   ========================= */
+
+.mensaje-modal.advertencia
+.mensaje-icon {
+
+  background:
+    #f8ecd6;
+
+  border-color:
+    #eedbb5;
+
+  color:
+    #a06b1d;
 }
 
 
-/* Hace que el formulario del modal
-   mantenga una buena distribución */
-.modal-card .user-form {
-  display: grid;
+/* =========================
+   ERROR
+   ========================= */
 
-  grid-template-columns:
-    repeat(2, minmax(0, 1fr));
+.mensaje-modal.error
+.mensaje-icon {
 
-  gap: 18px;
+  background:
+    #f5e1e7;
+
+  border-color:
+    #ead0d8;
+
+  color:
+    var(--vino);
 }
 
 
-/* Los campos que tengan la clase full
-   ocupan las dos columnas */
-.modal-card .field.full,
-.modal-card .actions.full {
-  grid-column: 1 / -1;
+/* =========================
+   CONFIRMACIÓN
+   ========================= */
+
+.mensaje-modal.confirmacion
+.mensaje-icon {
+
+  background:
+    #f4eee5;
+
+  border-color:
+    var(--dorado-claro);
+
+  color:
+    var(--vino);
 }
 
 
-/* Inputs dentro del modal */
-.modal-card input {
-  width: 100%;
+/* =========================
+   TÍTULO
+   ========================= */
 
-  box-sizing: border-box;
+.mensaje-modal h2 {
+  margin:
+    0 0 10px;
+
+  color:
+    var(--vino);
+
+  font-size:
+    25px;
+
+  font-weight:
+    700;
 }
 
 
-/* Botones del modal */
-.modal-card .actions {
+/* =========================
+   TEXTO DEL MENSAJE
+   ========================= */
+
+.mensaje-modal p {
+  max-width:
+    375px;
+
+  margin:
+    0 auto 26px;
+
+  color:
+    var(--texto-secundario);
+
+  font-size:
+    14px;
+
+  line-height:
+    1.6;
+}
+
+
+/* =========================
+   ACCIONES DEL MODAL
+   ========================= */
+
+.mensaje-actions {
   display: flex;
 
-  justify-content: flex-end;
+  align-items:
+    center;
 
-  gap: 12px;
+  justify-content:
+    center;
 
-  margin-top: 10px;
+  gap:
+    12px;
 }
 
 
-/* Adaptación para pantallas pequeñas */
-@media (max-width: 700px) {
+/* =========================
+   BOTÓN ACEPTAR
+   ========================= */
 
-  .modal-card {
-    padding: 18px;
+.mensaje-aceptar {
+  min-width:
+    190px;
 
-    max-height: 95vh;
+  padding:
+    12px 28px;
+
+  border:
+    none;
+
+  border-radius:
+    7px;
+
+  background:
+    var(--vino);
+
+  color:
+    white;
+
+  font-size:
+    14px;
+
+  font-weight:
+    700;
+
+  cursor:
+    pointer;
+
+  box-shadow:
+    0 6px 14px
+    rgba(123, 23, 52, 0.18);
+
+  transition:
+    background 0.2s,
+    transform 0.2s,
+    box-shadow 0.2s;
+}
+
+.mensaje-aceptar:hover {
+  background:
+    var(--vino-oscuro);
+
+  transform:
+    translateY(-1px);
+
+  box-shadow:
+    0 8px 18px
+    rgba(123, 23, 52, 0.24);
+}
+
+
+/* =========================
+   CANCELAR CONFIRMACIÓN
+   ========================= */
+
+.mensaje-cancelar {
+  min-width:
+    125px;
+
+  padding:
+    12px 20px;
+
+  border:
+    1px solid #cec5bb;
+
+  border-radius:
+    7px;
+
+  background:
+    white;
+
+  color:
+    var(--texto-secundario);
+
+  font-size:
+    14px;
+
+  font-weight:
+    700;
+
+  cursor:
+    pointer;
+
+  transition:
+    background 0.2s,
+    border-color 0.2s;
+}
+
+.mensaje-cancelar:hover {
+  background:
+    #f4f0ec;
+
+  border-color:
+    var(--dorado);
+}
+
+
+/* =========================
+   CONFIRMAR ACCIÓN
+   ========================= */
+
+.mensaje-confirmar {
+  min-width:
+    125px;
+
+  padding:
+    12px 20px;
+
+  border:
+    none;
+
+  border-radius:
+    7px;
+
+  background:
+    var(--vino);
+
+  color:
+    white;
+
+  font-size:
+    14px;
+
+  font-weight:
+    700;
+
+  cursor:
+    pointer;
+
+  transition:
+    background 0.2s,
+    transform 0.2s;
+}
+
+.mensaje-confirmar:hover {
+  background:
+    var(--vino-oscuro);
+
+  transform:
+    translateY(-1px);
+}
+
+
+/* =========================
+   BOTÓN REACTIVAR
+   ========================= */
+
+.reactivate {
+  padding:
+    8px 13px;
+
+  border:
+    1px solid var(--dorado);
+
+  border-radius:
+    5px;
+
+  background:
+    white;
+
+  color:
+    var(--vino);
+
+  font-weight:
+    700;
+
+  cursor:
+    pointer;
+
+  transition:
+    background 0.2s,
+    color 0.2s,
+    transform 0.2s;
+}
+
+.reactivate:hover {
+  background:
+    var(--dorado);
+
+  color:
+    white;
+
+  transform:
+    translateY(-1px);
+}
+
+
+/* =========================
+   RESPONSIVE DEL MODAL CRUD
+   ========================= */
+
+@media (max-width: 520px) {
+
+  .mensaje-overlay {
+    padding:
+      15px;
   }
 
-
-  .modal-card .user-form {
-    grid-template-columns: 1fr;
+  .mensaje-modal {
+    padding:
+      28px 20px 26px;
   }
 
-
-  .modal-card .field.full,
-  .modal-card .actions.full {
-    grid-column: 1;
+  .mensaje-brand {
+    justify-content:
+      flex-start;
   }
 
+  .mensaje-logo {
+    width:
+      40px;
 
-  .modal-card .actions {
-    flex-direction: column;
+    height:
+      40px;
+
+    font-size:
+      17px;
   }
 
+  .mensaje-brand-text strong {
+    font-size:
+      17px;
+  }
 
-  .modal-card .actions button {
-    width: 100%;
+  .mensaje-icon {
+    width:
+      68px;
+
+    height:
+      68px;
+
+    font-size:
+      33px;
+  }
+
+  .mensaje-modal h2 {
+    font-size:
+      22px;
+  }
+
+  .mensaje-actions,
+  .confirmacion-actions {
+    flex-direction:
+      column;
+  }
+
+  .mensaje-aceptar,
+  .mensaje-cancelar,
+  .mensaje-confirmar {
+    width:
+      100%;
+
+    min-width:
+      0;
   }
 
 }

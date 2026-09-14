@@ -1,29 +1,21 @@
 import { Routes } from '@angular/router';
-
-import { InicioComponent } from './inicio/inicio';
-import { Registro } from './registro/registro';
-import { Admin } from './admin/admin';
+import { LoginComponent } from './pages/login/login.component';
+import { RegistroComponent } from './pages/registro/registro.component';
 import { Exito } from './exito/exito';
+import { Admin } from './admin/admin';
+import { adminGuard } from './guards/admin.guard';
 
 export const routes: Routes = [
-  {
-    path: '',
-    component: InicioComponent
-  },
-  {
-    path: 'registro',
-    component: Registro
-  },
+  { path: 'login', component: LoginComponent },
+  { path: 'registro', component: RegistroComponent },
+
+  { path: 'exito', component: Exito },
   {
     path: 'admin',
-    component: Admin
+    component: Admin,
+    canActivate: [adminGuard]
   },
-  {
-    path: 'exito',
-    component: Exito
-  },
-  {
-    path: '**',
-    redirectTo: ''
-  }
+
+  { path: '', redirectTo: 'login', pathMatch: 'full' },
+  { path: '**', redirectTo: 'login' }
 ];

@@ -43,10 +43,19 @@ export class InicioComponent {
 
     this.mensajeError = '';
 
-    if (!this.usuario || !this.password) {
+    this.usuario = this.usuario.trim();
+    this.password = this.password.trim();
 
-      this.mensajeError =
-        'Ingresa tu usuario y contraseña.';
+    if (this.usuario.length < 3) {
+
+      this.mensajeError = 'El usuario es obligatorio y debe tener al menos 3 caracteres.';
+
+      return;
+    }
+
+    if (this.password.length < 6) {
+
+      this.mensajeError = 'La contraseña es obligatoria y debe tener al menos 6 caracteres.';
 
       return;
     }

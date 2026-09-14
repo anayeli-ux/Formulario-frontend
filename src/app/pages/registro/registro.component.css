@@ -1,0 +1,445 @@
+:host {
+  --vino: #7b1734;
+  --vino-oscuro: #641129;
+  --dorado: #c59a52;
+  --dorado-claro: #d6b77d;
+
+  --fondo: #f7f5f2;
+  --blanco: #ffffff;
+
+  --texto: #292929;
+  --texto-secundario: #746d70;
+
+  --borde: #ded6ce;
+}
+
+/* =========================
+   PÁGINA
+   ========================= */
+
+.registro-page {
+  min-height: 100vh;
+
+  padding: 35px 20px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #ffffff 0%,
+      var(--fondo) 100%
+    );
+
+  font-family:
+    "Montserrat",
+    "Segoe UI",
+    Arial,
+    sans-serif;
+
+  color: var(--texto);
+}
+
+.registro-shell {
+  width: 100%;
+  max-width: 850px;
+
+  margin: 0 auto;
+}
+
+/* =========================
+   ENCABEZADO SUPERIOR
+   ========================= */
+
+.registro-brand {
+  display: flex;
+  align-items: center;
+
+  gap: 16px;
+
+  margin-bottom: 18px;
+}
+
+.brand-mark {
+  width: 55px;
+  height: 55px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border-radius: 50%;
+
+  border:
+    2px solid var(--dorado);
+
+  background:
+    var(--vino);
+
+  color: white;
+
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.brand-label {
+  display: block;
+
+  margin-bottom: 3px;
+
+  color:
+    var(--dorado);
+
+  font-size: 11px;
+  font-weight: 700;
+
+  letter-spacing: 1.3px;
+
+  text-transform: uppercase;
+}
+
+.registro-brand h1 {
+  margin: 0;
+
+  color:
+    var(--vino);
+
+  font-size: 22px;
+  font-weight: 700;
+}
+
+/* Línea dorada */
+.registro-accent {
+  width: 95px;
+  height: 4px;
+
+  margin-bottom: 22px;
+
+  background:
+    var(--dorado);
+
+  border-radius: 10px;
+}
+
+/* =========================
+   TARJETA
+   ========================= */
+
+.registro-container {
+  padding: 34px;
+
+  background:
+    var(--blanco);
+
+  border:
+    1px solid #eee7df;
+
+  border-top:
+    5px solid var(--vino);
+
+  border-radius: 12px;
+
+  box-shadow:
+    0 12px 35px
+    rgba(80, 30, 45, 0.1);
+}
+
+/* =========================
+   CABECERA FORMULARIO
+   ========================= */
+
+.registro-header {
+  margin-bottom: 30px;
+}
+
+.section-label {
+  color:
+    var(--dorado);
+
+  font-size: 11px;
+  font-weight: 700;
+
+  letter-spacing: 1.4px;
+}
+
+.registro-header h2 {
+  margin:
+    5px 0 7px;
+
+  color:
+    var(--vino);
+
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.registro-header p {
+  margin: 0;
+
+  color:
+    var(--texto-secundario);
+
+  font-size: 14px;
+}
+
+/* =========================
+   SECCIONES
+   ========================= */
+
+.form-section {
+  margin-bottom: 30px;
+
+  padding-bottom: 26px;
+
+  border-bottom:
+    1px solid #e9e1da;
+}
+
+.form-section:last-of-type {
+  border-bottom: none;
+}
+
+.section-header {
+  display: flex;
+
+  align-items: flex-start;
+
+  gap: 14px;
+
+  margin-bottom: 18px;
+}
+
+.section-number {
+  width: 38px;
+  height: 38px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border-radius: 50%;
+
+  background:
+    var(--vino);
+
+  color: white;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  border:
+    2px solid var(--dorado);
+}
+
+.section-header h3 {
+  margin: 0;
+
+  color:
+    var(--vino);
+
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.section-header p {
+  margin:
+    4px 0 0;
+
+  color:
+    var(--texto-secundario);
+
+  font-size: 13px;
+}
+
+/* =========================
+   ESTILOS PARA COMPONENTES
+   HIJOS
+   ========================= */
+
+fieldset,
+.section-container {
+  border: none;
+
+  padding: 0;
+
+  margin: 0;
+}
+
+h3 {
+  color:
+    var(--vino);
+}
+
+label {
+  display: block;
+
+  margin-bottom: 6px;
+
+  color:
+    var(--vino);
+
+  font-size: 14px;
+  font-weight: 650;
+}
+
+input,
+select {
+  width: 100%;
+
+  padding: 12px 14px;
+
+  margin-bottom: 16px;
+
+  border:
+    1px solid var(--borde);
+
+  border-radius: 6px;
+
+  background: white;
+
+  color:
+    var(--texto);
+
+  font-size: 15px;
+
+  outline: none;
+
+  box-sizing:
+    border-box;
+
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+
+input:hover,
+select:hover {
+  border-color:
+    var(--dorado);
+}
+
+input:focus,
+select:focus {
+  border-color:
+    var(--vino);
+
+  box-shadow:
+    0 0 0 3px
+    rgba(123, 23, 52, 0.09);
+}
+
+/* Campos deshabilitados */
+input:disabled,
+select:disabled {
+  background:
+    #f4f1ee;
+
+  color:
+    #8a8285;
+
+  cursor:
+    not-allowed;
+}
+
+/* =========================
+   BOTÓN REGISTRAR
+   ========================= */
+
+.registro-actions {
+  margin-top: 10px;
+}
+
+.btn-submit {
+  width: 100%;
+
+  padding: 14px;
+
+  border: none;
+  border-radius: 6px;
+
+  background:
+    var(--vino);
+
+  color: white;
+
+  font-size: 15px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s,
+    transform 0.2s;
+}
+
+.btn-submit:hover:not(:disabled) {
+  background:
+    var(--vino-oscuro);
+
+  transform:
+    translateY(-1px);
+}
+
+.btn-submit:disabled {
+  background:
+    #c9c3c5;
+
+  color: white;
+
+  cursor:
+    not-allowed;
+}
+
+.mensaje-error {
+  color: #d32f2f;
+  font-size: 0.9rem;
+  margin: 12px 0;
+}
+
+/* =========================
+   RESPONSIVE
+   ========================= */
+
+@media (max-width: 650px) {
+
+  .registro-page {
+    padding:
+      20px 14px;
+  }
+
+  .registro-container {
+    padding:
+      25px 20px;
+  }
+
+  .registro-brand {
+    align-items:
+      flex-start;
+  }
+
+  .brand-mark {
+    width: 48px;
+    height: 48px;
+
+    font-size: 20px;
+  }
+
+  .registro-brand h1 {
+    font-size: 19px;
+  }
+
+  .registro-header h2 {
+    font-size: 24px;
+  }
+
+  .section-header {
+    gap: 10px;
+  }
+
+  .section-number {
+    width: 34px;
+    height: 34px;
+  }
+}

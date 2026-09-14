@@ -25,8 +25,15 @@
             [(ngModel)]="usuario"
             placeholder="Ingresa tu usuario"
             required
+            minlength="3"
+            #usuarioControl="ngModel"
+            [class.input-error]="usuarioControl.invalid && (usuarioControl.touched || usuarioControl.dirty)"
           >
         </div>
+        <small class="field-error" *ngIf="usuarioControl.touched || usuarioControl.dirty">
+          <span *ngIf="usuarioControl.hasError('required')">El usuario es obligatorio.</span>
+          <span *ngIf="usuarioControl.hasError('minlength')">El usuario debe tener al menos 3 caracteres.</span>
+        </small>
       </div>
 
       <div class="field">
@@ -43,6 +50,9 @@
             [(ngModel)]="password"
             placeholder="Ingresa tu contraseña"
             required
+            minlength="6"
+            #passwordControl="ngModel"
+            [class.input-error]="passwordControl.invalid && (passwordControl.touched || passwordControl.dirty)"
           >
 
           <button
@@ -54,6 +64,10 @@
           </button>
 
         </div>
+        <small class="field-error" *ngIf="passwordControl.touched || passwordControl.dirty">
+          <span *ngIf="passwordControl.hasError('required')">La contraseña es obligatoria.</span>
+          <span *ngIf="passwordControl.hasError('minlength')">La contraseña debe tener al menos 6 caracteres.</span>
+        </small>
       </div>
 
       <p

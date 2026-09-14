@@ -3,55 +3,127 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 import { Usuario } from '../models/usuario.model';
+import { environment } from '../../environments/environment';
+
+
+/**
+ * Datos que Spring Boot permite recibir
+ * para crear o actualizar un usuario.
+ */
+export interface UsuarioRequest {
+  nombre: string;
+  primerApellido: string;
+  segundoApellido: string;
+  telefono: string;
+  codigoPostal: string;
+  direccion: string;
+  fechaNacimiento: string;
+  animalFavorito: string;
+}
+
 
 @Injectable({
   providedIn: 'root'
 })
 export class UsuarioService {
 
+  // URL base del backend
   private apiUrl =
-    'http://localhost:8081/api/usuarios';
+    `${environment.apiUrl}/usuarios`;
+
 
   constructor(
     private http: HttpClient
   ) {}
 
+
+  // =========================
+  // OBTENER USUARIOS ACTIVOS
+  // =========================
+
   listarUsuarios(): Observable<Usuario[]> {
+
     return this.http.get<Usuario[]>(
       this.apiUrl
     );
+
   }
 
+
+  // =========================
+  // OBTENER USUARIOS ELIMINADOS
+  // =========================
+
   listarUsuariosEliminados(): Observable<Usuario[]> {
+
     return this.http.get<Usuario[]>(
       `${this.apiUrl}/eliminados`
     );
+
   }
 
+
+  // =========================
+  // CREAR USUARIO
+  // =========================
+
   crearUsuario(
-    usuario: Usuario
+    usuario: UsuarioRequest
   ): Observable<Usuario> {
+
     return this.http.post<Usuario>(
       this.apiUrl,
       usuario
     );
+
   }
+
+
+  // =========================
+  // ACTUALIZAR USUARIO
+  // =========================
 
   actualizarUsuario(
     id: number,
-    usuario: Usuario
+    usuario: UsuarioRequest
   ): Observable<Usuario> {
+
     return this.http.put<Usuario>(
       `${this.apiUrl}/${id}`,
       usuario
     );
+
   }
+
+
+  // =========================
+  // ELIMINACIÓN LÓGICA
+  // =========================
 
   eliminarUsuario(
     id: number
   ): Observable<void> {
+
     return this.http.delete<void>(
       `${this.apiUrl}/${id}`
     );
+
   }
+
+
+  // =========================
+  // REACTIVAR USUARIO
+  // =========================
+
+  reactivarUsuario(
+    id: number
+  ): Observable<Usuario> {
+
+    return this.http.put<Usuario>(
+      `${this.apiUrl}/${id}/reactivar`,
+      {}
+    );
+
+  }
+
 }
