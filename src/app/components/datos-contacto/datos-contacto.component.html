@@ -1,11 +1,17 @@
-<!-- Agrupación correspondiente al sub-form 'datosContacto' -->
-
+<!-- Agrupación correspondiente al sub-form datosContacto -->
 <div formGroupName="datosContacto" class="seccion-form">
 
-  <h3>2. Datos de Contacto y Ubicación</h3>
+  <h3>
+    2. Datos de Contacto y Ubicación
+  </h3>
 
+
+  <!-- TELÉFONO -->
   <div class="campo">
-    <label for="telefono">Teléfono:</label>
+
+    <label for="telefono">
+      Teléfono:
+    </label>
 
     <input
       type="text"
@@ -15,11 +21,16 @@
       maxlength="10"
       inputmode="numeric"
     >
+
   </div>
 
 
+  <!-- CÓDIGO POSTAL -->
   <div class="campo">
-    <label for="codigo_postal">Código Postal:</label>
+
+    <label for="codigo_postal">
+      Código Postal:
+    </label>
 
     <input
       type="text"
@@ -29,11 +40,52 @@
       maxlength="5"
       inputmode="numeric"
     >
+
   </div>
 
 
+  <!-- ESTADO -->
   <div class="campo">
-    <label for="direccion">Dirección (Calle y Número):</label>
+
+    <label for="estado">
+      Estado:
+    </label>
+
+    <input
+      type="text"
+      id="estado"
+      formControlName="estado"
+      placeholder="Ej. Querétaro"
+      maxlength="100"
+    >
+
+  </div>
+
+
+  <!-- MUNICIPIO -->
+  <div class="campo">
+
+    <label for="municipio">
+      Municipio:
+    </label>
+
+    <input
+      type="text"
+      id="municipio"
+      formControlName="municipio"
+      placeholder="Ej. Santiago de Querétaro"
+      maxlength="100"
+    >
+
+  </div>
+
+
+  <!-- DIRECCIÓN -->
+  <div class="campo">
+
+    <label for="direccion">
+      Dirección (Calle y Número):
+    </label>
 
     <input
       type="text"
@@ -42,6 +94,7 @@
       placeholder="Calle, número exterior/interior"
       maxlength="150"
     >
+
   </div>
 
 </div>

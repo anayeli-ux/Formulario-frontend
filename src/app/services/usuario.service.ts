@@ -5,7 +5,8 @@ import { Observable } from 'rxjs';
 import { Usuario } from '../models/usuario.model';
 import { environment } from '../../environments/environment';
 
-/*
+
+/**
  * Datos que Spring Boot permite recibir
  * para crear o actualizar un usuario.
  */
@@ -20,6 +21,7 @@ export interface UsuarioRequest {
   animalFavorito: string;
 }
 
+
 @Injectable({
   providedIn: 'root'
 })
@@ -29,11 +31,16 @@ export class UsuarioService {
   private apiUrl =
     `${environment.apiUrl}/usuarios`;
 
+
   constructor(
     private http: HttpClient
   ) {}
 
-  // Obtener usuarios activos
+
+  // =========================
+  // OBTENER USUARIOS ACTIVOS
+  // =========================
+
   listarUsuarios(): Observable<Usuario[]> {
 
     return this.http.get<Usuario[]>(
@@ -42,7 +49,11 @@ export class UsuarioService {
 
   }
 
-  // Obtener usuarios eliminados
+
+  // =========================
+  // OBTENER USUARIOS ELIMINADOS
+  // =========================
+
   listarUsuariosEliminados(): Observable<Usuario[]> {
 
     return this.http.get<Usuario[]>(
@@ -51,7 +62,11 @@ export class UsuarioService {
 
   }
 
-  // Crear usuario
+
+  // =========================
+  // CREAR USUARIO
+  // =========================
+
   crearUsuario(
     usuario: UsuarioRequest
   ): Observable<Usuario> {
@@ -63,7 +78,11 @@ export class UsuarioService {
 
   }
 
-  // Actualizar usuario
+
+  // =========================
+  // ACTUALIZAR USUARIO
+  // =========================
+
   actualizarUsuario(
     id: number,
     usuario: UsuarioRequest
@@ -76,13 +95,33 @@ export class UsuarioService {
 
   }
 
-  // Eliminación lógica
+
+  // =========================
+  // ELIMINACIÓN LÓGICA
+  // =========================
+
   eliminarUsuario(
     id: number
   ): Observable<void> {
 
     return this.http.delete<void>(
       `${this.apiUrl}/${id}`
+    );
+
+  }
+
+
+  // =========================
+  // REACTIVAR USUARIO
+  // =========================
+
+  reactivarUsuario(
+    id: number
+  ): Observable<Usuario> {
+
+    return this.http.put<Usuario>(
+      `${this.apiUrl}/${id}/reactivar`,
+      {}
     );
 
   }

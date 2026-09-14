@@ -1,6 +1,7 @@
-<!-- =========================
+<!-- =====================================================
      MODAL DE EDICIÓN
-     ========================= -->
+     ===================================================== -->
+
 <div
   class="modal-overlay"
   *ngIf="modalEditarAbierto"
@@ -9,20 +10,33 @@
 
     <!-- ENCABEZADO -->
     <div class="modal-header">
-      <h2>Editar usuario</h2>
+
+      <div>
+        <span class="modal-section-label">
+          ADMINISTRACIÓN
+        </span>
+
+        <h2>
+          Editar usuario
+        </h2>
+      </div>
 
       <button
         type="button"
         class="modal-close"
         (click)="cerrarModalEditar()"
+        aria-label="Cerrar"
       >
         ×
       </button>
+
     </div>
+
 
     <!-- FORMULARIO -->
     <form
       class="user-form"
+      #formEditar="ngForm"
       (ngSubmit)="actualizarUsuario()"
     >
 
@@ -40,6 +54,7 @@
         >
       </div>
 
+
       <!-- PRIMER APELLIDO -->
       <div class="field">
         <label>Primer apellido</label>
@@ -53,6 +68,7 @@
         >
       </div>
 
+
       <!-- SEGUNDO APELLIDO -->
       <div class="field">
         <label>Segundo apellido</label>
@@ -64,6 +80,7 @@
           maxlength="50"
         >
       </div>
+
 
       <!-- TELÉFONO -->
       <div class="field">
@@ -85,6 +102,7 @@
         </small>
       </div>
 
+
       <!-- CÓDIGO POSTAL -->
       <div class="field">
         <label>Código postal</label>
@@ -105,42 +123,6 @@
         </small>
       </div>
 
-      <!-- ESTADO -->
-      <div class="field">
-        <label>Estado actual</label>
-
-        <input
-          type="text"
-          name="modalEstado"
-          [(ngModel)]="usuarioFormulario.estado"
-          readonly
-        >
-      </div>
-
-      <!-- MUNICIPIO -->
-      <div class="field">
-        <label>Municipio actual</label>
-
-        <input
-          type="text"
-          name="modalMunicipio"
-          [(ngModel)]="usuarioFormulario.municipio"
-          readonly
-        >
-      </div>
-
-      <!-- DIRECCIÓN -->
-      <div class="field full">
-        <label>Dirección</label>
-
-        <input
-          type="text"
-          name="modalDireccion"
-          [(ngModel)]="usuarioFormulario.direccion"
-          maxlength="150"
-          required
-        >
-      </div>
 
       <!-- FECHA DE NACIMIENTO -->
       <div class="field">
@@ -159,6 +141,55 @@
         </small>
       </div>
 
+
+      <!-- ESTADO -->
+      <div class="field">
+        <label>Estado actual</label>
+
+        <input
+          type="text"
+          name="modalEstado"
+          [(ngModel)]="usuarioFormulario.estado"
+          readonly
+        >
+
+        <small>
+          Se actualizará automáticamente según el código postal.
+        </small>
+      </div>
+
+
+      <!-- MUNICIPIO -->
+      <div class="field">
+        <label>Municipio actual</label>
+
+        <input
+          type="text"
+          name="modalMunicipio"
+          [(ngModel)]="usuarioFormulario.municipio"
+          readonly
+        >
+
+        <small>
+          Se actualizará automáticamente según el código postal.
+        </small>
+      </div>
+
+
+      <!-- DIRECCIÓN -->
+      <div class="field full">
+        <label>Dirección</label>
+
+        <input
+          type="text"
+          name="modalDireccion"
+          [(ngModel)]="usuarioFormulario.direccion"
+          maxlength="150"
+          required
+        >
+      </div>
+
+
       <!-- ANIMAL FAVORITO -->
       <div class="field">
         <label>Animal favorito</label>
@@ -172,12 +203,14 @@
         >
       </div>
 
+
       <!-- BOTONES -->
       <div class="actions full">
 
         <button
           class="save"
           type="submit"
+          [disabled]="formEditar.invalid"
         >
           Actualizar usuario
         </button>
@@ -193,6 +226,176 @@
       </div>
 
     </form>
+
+  </div>
+</div>
+
+
+
+<!-- =====================================================
+     MODAL GENERAL DEL CRUD
+     ÉXITO / ERROR / ADVERTENCIA / CONFIRMACIÓN
+     ===================================================== -->
+
+<div
+  class="mensaje-overlay"
+  *ngIf="modalMensajeVisible"
+  (click)="
+    modalTipo === 'confirmacion'
+      ? cancelarConfirmacion()
+      : cerrarModalMensaje()
+  "
+>
+
+  <div
+    class="mensaje-modal"
+    [ngClass]="modalTipo"
+    (click)="$event.stopPropagation()"
+  >
+
+    <!-- BOTÓN X -->
+    <button
+      type="button"
+      class="mensaje-close"
+      aria-label="Cerrar"
+      (click)="
+        modalTipo === 'confirmacion'
+          ? cancelarConfirmacion()
+          : cerrarModalMensaje()
+      "
+    >
+      ×
+    </button>
+
+
+    <!-- IDENTIDAD VISUAL -->
+    <div class="mensaje-brand">
+
+      <div class="mensaje-logo">
+        H
+      </div>
+
+      <div class="mensaje-brand-text">
+
+        <span>
+          Sistema de Administración
+        </span>
+
+        <strong>
+          Hidalgo
+        </strong>
+
+      </div>
+
+    </div>
+
+
+    <!-- =========================
+         ICONO DE ÉXITO
+         ========================= -->
+
+    <div
+      class="mensaje-icon"
+      *ngIf="modalTipo === 'exito'"
+    >
+      ✓
+    </div>
+
+
+    <!-- =========================
+         ICONO DE ADVERTENCIA
+         ========================= -->
+
+    <div
+      class="mensaje-icon"
+      *ngIf="modalTipo === 'advertencia'"
+    >
+      !
+    </div>
+
+
+    <!-- =========================
+         ICONO DE ERROR
+         ========================= -->
+
+    <div
+      class="mensaje-icon"
+      *ngIf="modalTipo === 'error'"
+    >
+      !
+    </div>
+
+
+    <!-- =========================
+         ICONO DE CONFIRMACIÓN
+         ========================= -->
+
+    <div
+      class="mensaje-icon"
+      *ngIf="modalTipo === 'confirmacion'"
+    >
+      ?
+    </div>
+
+
+    <!-- TÍTULO -->
+    <h2>
+      {{ modalTitulo }}
+    </h2>
+
+
+    <!-- MENSAJE -->
+    <p>
+      {{ modalMensaje }}
+    </p>
+
+
+    <!-- =========================
+         BOTÓN NORMAL
+         ========================= -->
+
+    <div
+      class="mensaje-actions"
+      *ngIf="modalTipo !== 'confirmacion'"
+    >
+
+      <button
+        type="button"
+        class="mensaje-aceptar"
+        (click)="cerrarModalMensaje()"
+      >
+        Aceptar
+      </button>
+
+    </div>
+
+
+    <!-- =========================
+         BOTONES DE CONFIRMACIÓN
+         ========================= -->
+
+    <div
+      class="mensaje-actions confirmacion-actions"
+      *ngIf="modalTipo === 'confirmacion'"
+    >
+
+      <button
+        type="button"
+        class="mensaje-cancelar"
+        (click)="cancelarConfirmacion()"
+      >
+        Cancelar
+      </button>
+
+      <button
+        type="button"
+        class="mensaje-confirmar"
+        (click)="confirmarAccion()"
+      >
+        Confirmar
+      </button>
+
+    </div>
 
   </div>
 </div>

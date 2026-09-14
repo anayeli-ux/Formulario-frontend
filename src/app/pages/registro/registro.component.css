@@ -438,3 +438,445 @@ select:disabled {
   }
 
 }
+
+/* =========================
+   MODAL DE MENSAJES
+   ========================= */
+
+.mensaje-overlay {
+  position: fixed;
+  inset: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 20px;
+
+  background:
+    rgba(35, 24, 28, 0.68);
+
+  backdrop-filter: blur(4px);
+
+  z-index: 9999;
+}
+
+
+/* TARJETA DEL MODAL */
+
+.mensaje-modal {
+  position: relative;
+
+  width: 100%;
+  max-width: 470px;
+
+  padding:
+    30px 34px 32px;
+
+  background:
+    var(--blanco);
+
+  border:
+    1px solid #eadfd8;
+
+  border-top:
+    5px solid var(--vino);
+
+  border-bottom:
+    4px solid var(--dorado);
+
+  border-radius: 14px;
+
+  box-shadow:
+    0 20px 60px
+    rgba(45, 20, 30, 0.30);
+
+  text-align: center;
+
+  font-family:
+    "Montserrat",
+    "Segoe UI",
+    Arial,
+    sans-serif;
+
+  animation:
+    aparecerModal 0.22s ease;
+}
+
+
+/* =========================
+   ANIMACIÓN
+   ========================= */
+
+@keyframes aparecerModal {
+
+  from {
+    opacity: 0;
+
+    transform:
+      translateY(10px)
+      scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateY(0)
+      scale(1);
+  }
+
+}
+
+
+/* =========================
+   BOTÓN X
+   ========================= */
+
+.modal-close {
+  position: absolute;
+
+  top: 12px;
+  right: 16px;
+
+  width: 34px;
+  height: 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+
+  border-radius: 50%;
+
+  background:
+    transparent;
+
+  color:
+    #777174;
+
+  font-size: 26px;
+  font-weight: 400;
+
+  cursor: pointer;
+
+  transition:
+    color 0.2s,
+    background 0.2s;
+}
+
+.modal-close:hover {
+  color:
+    var(--vino);
+
+  background:
+    #f7f1f3;
+}
+
+
+/* =========================
+   MARCA / LOGO
+   ========================= */
+
+.modal-brand {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 11px;
+
+  margin-bottom: 24px;
+}
+
+.modal-logo {
+  width: 44px;
+  height: 44px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border:
+    2px solid var(--dorado);
+
+  border-radius: 50%;
+
+  background:
+    var(--vino);
+
+  color:
+    white;
+
+  font-size: 19px;
+  font-weight: 700;
+}
+
+.modal-brand-text {
+  text-align: left;
+}
+
+.modal-brand-text span {
+  display: block;
+
+  margin-bottom: 1px;
+
+  color:
+    var(--dorado);
+
+  font-size: 9px;
+  font-weight: 700;
+
+  letter-spacing: 1.2px;
+
+  text-transform: uppercase;
+}
+
+.modal-brand-text strong {
+  display: block;
+
+  color:
+    var(--vino);
+
+  font-size: 19px;
+  font-weight: 700;
+}
+
+
+/* =========================
+   ICONO GENERAL
+   ========================= */
+
+.modal-icon {
+  width: 76px;
+  height: 76px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin:
+    0 auto 18px;
+
+  border-radius: 50%;
+
+  font-size: 38px;
+  font-weight: 700;
+
+  border:
+    1px solid transparent;
+}
+
+
+/* =========================
+   MODAL ÉXITO
+   ========================= */
+
+.mensaje-modal.exito
+.modal-icon {
+
+  background:
+    #e4f3ed;
+
+  border-color:
+    #cae7dc;
+
+  color:
+    #1f725a;
+}
+
+
+/* =========================
+   MODAL ADVERTENCIA
+   ========================= */
+
+.mensaje-modal.advertencia
+.modal-icon {
+
+  background:
+    #f8ecd6;
+
+  border-color:
+    #eedbb5;
+
+  color:
+    #a06b1d;
+}
+
+
+/* =========================
+   MODAL ERROR
+   ========================= */
+
+.mensaje-modal.error
+.modal-icon {
+
+  background:
+    #f5e1e7;
+
+  border-color:
+    #ead0d8;
+
+  color:
+    var(--vino);
+}
+
+
+/* =========================
+   TÍTULO
+   ========================= */
+
+.mensaje-modal h2 {
+  margin:
+    0 0 10px;
+
+  color:
+    var(--vino);
+
+  font-size:
+    25px;
+
+  font-weight:
+    700;
+}
+
+
+/* =========================
+   MENSAJE
+   ========================= */
+
+.mensaje-modal p {
+  max-width:
+    370px;
+
+  margin:
+    0 auto 26px;
+
+  color:
+    var(--texto-secundario);
+
+  font-size:
+    14px;
+
+  line-height:
+    1.6;
+}
+
+
+/* =========================
+   BOTÓN ACEPTAR
+   ========================= */
+
+.modal-aceptar {
+  min-width:
+    190px;
+
+  padding:
+    12px 28px;
+
+  border:
+    none;
+
+  border-radius:
+    7px;
+
+  background:
+    var(--vino);
+
+  color:
+    white;
+
+  font-size:
+    14px;
+
+  font-weight:
+    700;
+
+  cursor:
+    pointer;
+
+  box-shadow:
+    0 6px 14px
+    rgba(123, 23, 52, 0.18);
+
+  transition:
+    background 0.2s,
+    transform 0.2s,
+    box-shadow 0.2s;
+}
+
+.modal-aceptar:hover {
+  background:
+    var(--vino-oscuro);
+
+  transform:
+    translateY(-1px);
+
+  box-shadow:
+    0 8px 18px
+    rgba(123, 23, 52, 0.24);
+}
+
+
+/* =========================
+   RESPONSIVE MODAL
+   ========================= */
+
+@media (max-width: 520px) {
+
+  .mensaje-overlay {
+    padding:
+      16px;
+  }
+
+  .mensaje-modal {
+    padding:
+      28px 20px 26px;
+  }
+
+  .modal-brand {
+    justify-content:
+      flex-start;
+  }
+
+  .modal-logo {
+    width:
+      40px;
+
+    height:
+      40px;
+
+    font-size:
+      17px;
+  }
+
+  .modal-brand-text strong {
+    font-size:
+      17px;
+  }
+
+  .modal-icon {
+    width:
+      68px;
+
+    height:
+      68px;
+
+    font-size:
+      33px;
+  }
+
+  .mensaje-modal h2 {
+    font-size:
+      22px;
+  }
+
+  .modal-aceptar {
+    width:
+      100%;
+  }
+
+}

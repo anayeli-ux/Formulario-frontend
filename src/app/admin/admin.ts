@@ -19,33 +19,50 @@ import {
 
 import { AuthService } from '../services/auth.service';
 
+type TipoModal =
+  | 'exito'
+  | 'advertencia'
+  | 'error'
+  | 'confirmacion';
+
 @Component({
   selector: 'app-admin',
   standalone: true,
+
   imports: [
     CommonModule,
     FormsModule
   ],
+
   templateUrl: './admin.html',
   styleUrl: './admin.css'
 })
 export class Admin implements OnInit {
 
-  // Usuarios activos y eliminados
+  /* =========================
+     USUARIOS
+     ========================= */
+
   usuarios = signal<Usuario[]>([]);
 
   usuariosEliminados =
     signal<Usuario[]>([]);
 
   totalUsuariosActivos =
-    computed(() => this.usuarios().length);
+    computed(
+      () => this.usuarios().length
+    );
 
   totalUsuariosEliminados =
     computed(
       () => this.usuariosEliminados().length
     );
 
-  // Control del modal
+
+  /* =========================
+     MODAL DE EDICIÓN
+     ========================= */
+
   editando = false;
 
   modalEditarAbierto = false;
@@ -55,15 +72,42 @@ export class Admin implements OnInit {
   usuarioFormulario: Usuario =
     this.crearUsuarioVacio();
 
-  // Fecha máxima permitida
+
+  /* =========================
+     MODAL DE MENSAJES
+     ========================= */
+
+  modalMensajeVisible = false;
+
+  modalTipo: TipoModal = 'exito';
+
+  modalTitulo = '';
+
+  modalMensaje = '';
+
+
+  /*
+   * Guarda temporalmente una acción
+   * que se ejecutará al confirmar.
+   */
+  private accionConfirmada:
+    (() => void) | null = null;
+
+
+  /* =========================
+     FECHA MÁXIMA
+     ========================= */
+
   fechaMaximaAdulto =
     this.obtenerFechaMaximaAdulto();
+
 
   constructor(
     private router: Router,
     private usuarioService: UsuarioService,
     private authService: AuthService
   ) {}
+
 
   ngOnInit(): void {
 
@@ -73,9 +117,93 @@ export class Admin implements OnInit {
 
   }
 
-  // =========================
-  // USUARIOS ACTIVOS
-  // =========================
+
+  /* =========================
+     MODAL DE MENSAJES
+     ========================= */
+
+  mostrarModal(
+    tipo: TipoModal,
+    titulo: string,
+    mensaje: string
+  ): void {
+
+    this.modalTipo = tipo;
+
+    this.modalTitulo = titulo;
+
+    this.modalMensaje = mensaje;
+
+    this.modalMensajeVisible = true;
+
+  }
+
+
+  cerrarModalMensaje(): void {
+
+    this.modalMensajeVisible = false;
+
+    this.accionConfirmada = null;
+
+  }
+
+
+  /* =========================
+     MODAL DE CONFIRMACIÓN
+     ========================= */
+
+  mostrarConfirmacion(
+    titulo: string,
+    mensaje: string,
+    accion: () => void
+  ): void {
+
+    this.modalTipo = 'confirmacion';
+
+    this.modalTitulo = titulo;
+
+    this.modalMensaje = mensaje;
+
+    this.accionConfirmada = accion;
+
+    this.modalMensajeVisible = true;
+
+  }
+
+
+  confirmarAccion(): void {
+
+    if (!this.accionConfirmada) {
+      return;
+    }
+
+    const accion = this.accionConfirmada;
+
+    /*
+     * Primero cerramos el modal
+     * y después ejecutamos la acción.
+     */
+    this.modalMensajeVisible = false;
+
+    this.accionConfirmada = null;
+
+    accion();
+
+  }
+
+
+  cancelarConfirmacion(): void {
+
+    this.modalMensajeVisible = false;
+
+    this.accionConfirmada = null;
+
+  }
+
+
+  /* =========================
+     USUARIOS ACTIVOS
+     ========================= */
 
   cargarUsuarios(): void {
 
@@ -91,11 +219,17 @@ export class Admin implements OnInit {
 
         },
 
-        error: (error: unknown) => {
+        error: (error: any) => {
 
           console.error(
             'Error al cargar usuarios:',
             error
+          );
+
+          this.mostrarModal(
+            'error',
+            'Error al cargar usuarios',
+            'No fue posible obtener la lista de usuarios activos.'
           );
 
         }
@@ -104,9 +238,10 @@ export class Admin implements OnInit {
 
   }
 
-  // =========================
-  // USUARIOS ELIMINADOS
-  // =========================
+
+  /* =========================
+     USUARIOS ELIMINADOS
+     ========================= */
 
   cargarUsuariosEliminados(): void {
 
@@ -122,11 +257,17 @@ export class Admin implements OnInit {
 
         },
 
-        error: (error: unknown) => {
+        error: (error: any) => {
 
           console.error(
             'Error al cargar usuarios eliminados:',
             error
+          );
+
+          this.mostrarModal(
+            'error',
+            'Error al cargar usuarios',
+            'No fue posible obtener la lista de usuarios eliminados.'
           );
 
         }
@@ -135,9 +276,10 @@ export class Admin implements OnInit {
 
   }
 
-  // =========================
-  // CREAR USUARIO
-  // =========================
+
+  /* =========================
+     CREAR USUARIO
+     ========================= */
 
   crearUsuario(): void {
 
@@ -154,24 +296,27 @@ export class Admin implements OnInit {
 
         next: () => {
 
-          alert(
-            'Usuario creado correctamente.'
-          );
-
           this.limpiarFormulario();
 
           this.cargarUsuarios();
 
+          this.mostrarModal(
+            'exito',
+            'Usuario registrado',
+            'El usuario fue creado correctamente.'
+          );
+
         },
 
-        error: (error: unknown) => {
+        error: (error: any) => {
 
           console.error(
             'Error al crear usuario:',
             error
           );
 
-          alert(
+          this.mostrarErrorHttp(
+            error,
             'No se pudo crear el usuario.'
           );
 
@@ -181,9 +326,10 @@ export class Admin implements OnInit {
 
   }
 
-  // =========================
-  // ABRIR MODAL
-  // =========================
+
+  /* =========================
+     ABRIR MODAL DE EDICIÓN
+     ========================= */
 
   editarUsuario(
     usuario: Usuario
@@ -196,17 +342,20 @@ export class Admin implements OnInit {
     this.usuarioEditandoId =
       usuario.id;
 
-    // Copia los datos del usuario
-    // seleccionado al formulario
+    /*
+     * Copia los datos del usuario
+     * seleccionado al formulario.
+     */
     this.usuarioFormulario = {
       ...usuario
     };
 
   }
 
-  // =========================
-  // CERRAR MODAL
-  // =========================
+
+  /* =========================
+     CERRAR MODAL DE EDICIÓN
+     ========================= */
 
   cerrarModalEditar(): void {
 
@@ -216,15 +365,17 @@ export class Admin implements OnInit {
 
   }
 
+
   cancelarEdicion(): void {
 
     this.cerrarModalEditar();
 
   }
 
-  // =========================
-  // ACTUALIZAR USUARIO
-  // =========================
+
+  /* =========================
+     ACTUALIZAR USUARIO
+     ========================= */
 
   actualizarUsuario(): void {
 
@@ -238,10 +389,6 @@ export class Admin implements OnInit {
       return;
     }
 
-    /*
-     * Preparamos únicamente los campos
-     * que acepta Spring Boot.
-     */
     const usuario =
       this.prepararUsuario();
 
@@ -254,27 +401,29 @@ export class Admin implements OnInit {
 
         next: () => {
 
-          alert(
-            'Usuario actualizado correctamente.'
-          );
-
           this.modalEditarAbierto = false;
 
           this.limpiarFormulario();
 
-          // Refresca la tabla
           this.cargarUsuarios();
+
+          this.mostrarModal(
+            'exito',
+            'Usuario actualizado',
+            'Los datos del usuario fueron actualizados correctamente.'
+          );
 
         },
 
-        error: (error: unknown) => {
+        error: (error: any) => {
 
           console.error(
             'Error al actualizar usuario:',
             error
           );
 
-          alert(
+          this.mostrarErrorHttp(
+            error,
             'No se pudo actualizar el usuario.'
           );
 
@@ -284,21 +433,31 @@ export class Admin implements OnInit {
 
   }
 
-  // =========================
-  // ELIMINACIÓN LÓGICA
-  // =========================
+
+  /* =========================
+     SOLICITAR ELIMINACIÓN
+     ========================= */
 
   eliminarUsuario(
     id: number
   ): void {
 
-    const confirmar = confirm(
-      '¿Quieres eliminar este usuario?'
+    this.mostrarConfirmacion(
+      '¿Eliminar usuario?',
+      'El usuario será marcado como inactivo y aparecerá en la sección de usuarios eliminados.',
+      () => this.confirmarEliminacion(id)
     );
 
-    if (!confirmar) {
-      return;
-    }
+  }
+
+
+  /* =========================
+     CONFIRMAR ELIMINACIÓN
+     ========================= */
+
+  private confirmarEliminacion(
+    id: number
+  ): void {
 
     this.usuarioService
       .eliminarUsuario(id)
@@ -306,24 +465,27 @@ export class Admin implements OnInit {
 
         next: () => {
 
-          alert(
-            'Usuario eliminado correctamente.'
-          );
-
           this.cargarUsuarios();
 
           this.cargarUsuariosEliminados();
 
+          this.mostrarModal(
+            'exito',
+            'Usuario eliminado',
+            'El usuario fue eliminado correctamente.'
+          );
+
         },
 
-        error: (error: unknown) => {
+        error: (error: any) => {
 
           console.error(
             'Error al eliminar usuario:',
             error
           );
 
-          alert(
+          this.mostrarErrorHttp(
+            error,
             'No se pudo eliminar el usuario.'
           );
 
@@ -333,9 +495,156 @@ export class Admin implements OnInit {
 
   }
 
-  // =========================
-  // PREPARAR DATOS
-  // =========================
+
+  /* =========================
+     REACTIVAR USUARIO
+     ========================= */
+
+  reactivarUsuario(
+    id: number
+  ): void {
+
+    this.mostrarConfirmacion(
+      '¿Reactivar usuario?',
+      'El usuario volverá a aparecer en la lista de usuarios activos.',
+      () => this.confirmarReactivacion(id)
+    );
+
+  }
+
+
+  private confirmarReactivacion(
+    id: number
+  ): void {
+
+    /*
+     * Este método requiere que
+     * usuario.service.ts tenga:
+     *
+     * reactivarUsuario(id: number)
+     */
+
+    this.usuarioService
+      .reactivarUsuario(id)
+      .subscribe({
+
+        next: () => {
+
+          this.cargarUsuarios();
+
+          this.cargarUsuariosEliminados();
+
+          this.mostrarModal(
+            'exito',
+            'Usuario reactivado',
+            'El usuario fue reactivado correctamente.'
+          );
+
+        },
+
+        error: (error: any) => {
+
+          console.error(
+            'Error al reactivar usuario:',
+            error
+          );
+
+          this.mostrarErrorHttp(
+            error,
+            'No se pudo reactivar el usuario.'
+          );
+
+        }
+
+      });
+
+  }
+
+
+  /* =========================
+     ERRORES HTTP
+     ========================= */
+
+  private mostrarErrorHttp(
+    error: any,
+    mensajePredeterminado: string
+  ): void {
+
+    const mensajeBackend =
+      error?.error?.mensaje;
+
+
+    if (error.status === 400) {
+
+      this.mostrarModal(
+        'advertencia',
+        'Datos incorrectos',
+        mensajeBackend ||
+        'Hay datos incorrectos o incompletos.'
+      );
+
+    }
+
+    else if (error.status === 404) {
+
+      this.mostrarModal(
+        'error',
+        'Usuario no encontrado',
+        mensajeBackend ||
+        'El usuario solicitado no fue encontrado.'
+      );
+
+    }
+
+    else if (error.status === 409) {
+
+      this.mostrarModal(
+        'advertencia',
+        'Conflicto de datos',
+        mensajeBackend ||
+        'Ya existe un usuario con esos datos.'
+      );
+
+    }
+
+    else if (error.status === 503) {
+
+      this.mostrarModal(
+        'error',
+        'Servicio no disponible',
+        mensajeBackend ||
+        'No fue posible consultar el código postal.'
+      );
+
+    }
+
+    else if (error.status === 0) {
+
+      this.mostrarModal(
+        'error',
+        'Sin conexión',
+        'No fue posible conectarse con el servidor.'
+      );
+
+    }
+
+    else {
+
+      this.mostrarModal(
+        'error',
+        'Ocurrió un error',
+        mensajeBackend ||
+        mensajePredeterminado
+      );
+
+    }
+
+  }
+
+
+  /* =========================
+     PREPARAR DATOS
+     ========================= */
 
   private prepararUsuario():
     UsuarioRequest {
@@ -370,9 +679,10 @@ export class Admin implements OnInit {
 
   }
 
-  // =========================
-  // LIMPIAR FORMULARIO
-  // =========================
+
+  /* =========================
+     LIMPIAR FORMULARIO
+     ========================= */
 
   limpiarFormulario(): void {
 
@@ -386,9 +696,10 @@ export class Admin implements OnInit {
 
   }
 
-  // =========================
-  // CERRAR SESIÓN
-  // =========================
+
+  /* =========================
+     CERRAR SESIÓN
+     ========================= */
 
   cerrarSesion(): void {
 
@@ -400,9 +711,10 @@ export class Admin implements OnInit {
 
   }
 
-  // =========================
-  // VALIDAR EDAD
-  // =========================
+
+  /* =========================
+     VALIDAR EDAD
+     ========================= */
 
   private validarEdad(): boolean {
 
@@ -417,7 +729,9 @@ export class Admin implements OnInit {
 
     }
 
-    alert(
+    this.mostrarModal(
+      'advertencia',
+      'Edad no válida',
       'El usuario debe tener al menos 18 años.'
     );
 
@@ -425,9 +739,10 @@ export class Admin implements OnInit {
 
   }
 
-  // =========================
-  // ORDENAR POR ID
-  // =========================
+
+  /* =========================
+     ORDENAR POR ID
+     ========================= */
 
   private ordenarPorId(
     usuarios: Usuario[]
@@ -441,9 +756,10 @@ export class Admin implements OnInit {
 
   }
 
-  // =========================
-  // FECHA MÁXIMA
-  // =========================
+
+  /* =========================
+     FECHA MÁXIMA
+     ========================= */
 
   private obtenerFechaMaximaAdulto():
     string {
@@ -473,9 +789,10 @@ export class Admin implements OnInit {
 
   }
 
-  // =========================
-  // COMPROBAR EDAD
-  // =========================
+
+  /* =========================
+     COMPROBAR EDAD
+     ========================= */
 
   private esMayorDeEdad(
     fechaNacimiento: string
@@ -489,9 +806,10 @@ export class Admin implements OnInit {
 
   }
 
-  // =========================
-  // USUARIO VACÍO
-  // =========================
+
+  /* =========================
+     USUARIO VACÍO
+     ========================= */
 
   private crearUsuarioVacio():
     Usuario {
@@ -499,19 +817,30 @@ export class Admin implements OnInit {
     return {
 
       nombre: '',
+
       primerApellido: '',
+
       segundoApellido: '',
+
       telefono: '',
+
       codigoPostal: '',
 
-      // Se conservan porque Usuario
-      // los utiliza al mostrar información
+      /*
+       * Se conservan porque Usuario
+       * los utiliza para mostrar
+       * información recibida del backend.
+       */
       estado: '',
+
       municipio: '',
 
       direccion: '',
+
       fechaNacimiento: '',
+
       animalFavorito: '',
+
       activo: true
 
     };
