@@ -1,6 +1,147 @@
+<main class="admin-page">
+  <header class="admin-header">
+    <div>
+      <span class="admin-label">SISTEMA DE ADMINISTRACIÓN</span>
+      <h1>Gestión de usuarios</h1>
+      <p>Administra los registros activos y eliminados.</p>
+    </div>
+
+    <button type="button" class="logout-button" (click)="cerrarSesion()">
+      Cerrar sesión
+    </button>
+  </header>
+
+  <section class="admin-card">
+    <div class="admin-card-header">
+      <div>
+        <span class="admin-label">NUEVO REGISTRO</span>
+        <h2>Crear usuario</h2>
+      </div>
+      <span class="admin-count">{{ totalUsuariosActivos() }} activos</span>
+    </div>
+
+    <form class="create-form" #formCrear="ngForm" (ngSubmit)="crearUsuario()">
+      <div class="admin-field">
+        <label for="crearNombre">Nombre</label>
+        <input id="crearNombre" name="crearNombre" [(ngModel)]="usuarioFormulario.nombre" required minlength="2" maxlength="50">
+      </div>
+      <div class="admin-field">
+        <label for="crearPrimerApellido">Primer apellido</label>
+        <input id="crearPrimerApellido" name="crearPrimerApellido" [(ngModel)]="usuarioFormulario.primerApellido" required maxlength="50">
+      </div>
+      <div class="admin-field">
+        <label for="crearSegundoApellido">Segundo apellido</label>
+        <input id="crearSegundoApellido" name="crearSegundoApellido" [(ngModel)]="usuarioFormulario.segundoApellido" maxlength="50">
+      </div>
+      <div class="admin-field">
+        <label for="crearTelefono">Teléfono</label>
+        <input id="crearTelefono" name="crearTelefono" [(ngModel)]="usuarioFormulario.telefono" required pattern="[0-9]{10}" maxlength="10" inputmode="numeric">
+      </div>
+      <div class="admin-field">
+        <label for="crearCodigoPostal">Código postal</label>
+        <input id="crearCodigoPostal" name="crearCodigoPostal" [(ngModel)]="usuarioFormulario.codigoPostal" required pattern="[0-9]{5}" maxlength="5" inputmode="numeric">
+      </div>
+      <div class="admin-field">
+        <label for="crearFechaNacimiento">Fecha de nacimiento</label>
+        <input id="crearFechaNacimiento" type="date" name="crearFechaNacimiento" [(ngModel)]="usuarioFormulario.fechaNacimiento" [max]="fechaMaximaAdulto" required>
+      </div>
+      <div class="admin-field">
+        <label for="crearDireccion">Dirección</label>
+        <input id="crearDireccion" name="crearDireccion" [(ngModel)]="usuarioFormulario.direccion" required maxlength="150">
+      </div>
+      <div class="admin-field">
+        <label for="crearAnimalFavorito">Animal favorito</label>
+        <input id="crearAnimalFavorito" name="crearAnimalFavorito" [(ngModel)]="usuarioFormulario.animalFavorito" required maxlength="50">
+      </div>
+      <div class="admin-form-actions">
+        <button type="submit" class="admin-primary" [disabled]="formCrear.invalid">Crear usuario</button>
+        <button type="button" class="admin-secondary" (click)="limpiarFormulario()">Limpiar</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="admin-card">
+    <div class="admin-card-header">
+      <div>
+        <span class="admin-label">USUARIOS ACTIVOS</span>
+        <h2>Registros actuales</h2>
+      </div>
+    </div>
+
+    <div class="table-wrapper">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Teléfono</th>
+            <th>Código postal</th>
+            <th>Municipio</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let usuario of usuarios()">
+            <td>{{ usuario.id }}</td>
+            <td>{{ usuario.nombre }} {{ usuario.primerApellido }} {{ usuario.segundoApellido }}</td>
+            <td>{{ usuario.telefono }}</td>
+            <td>{{ usuario.codigoPostal }}</td>
+            <td>{{ usuario.municipio }}</td>
+            <td class="table-actions">
+              <button type="button" class="table-edit" (click)="editarUsuario(usuario)">Editar</button>
+              <button type="button" class="table-delete" (click)="eliminarUsuario(usuario.id!)">Eliminar</button>
+            </td>
+          </tr>
+          <tr *ngIf="usuarios().length === 0">
+            <td colspan="6" class="empty-row">No hay usuarios activos.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="admin-card">
+    <div class="admin-card-header">
+      <div>
+        <span class="admin-label">USUARIOS ELIMINADOS</span>
+        <h2>Registros inactivos</h2>
+      </div>
+      <span class="admin-count">{{ totalUsuariosEliminados() }} eliminados</span>
+    </div>
+
+    <div class="table-wrapper">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Teléfono</th>
+            <th>Código postal</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let usuario of usuariosEliminados()">
+            <td>{{ usuario.id }}</td>
+            <td>{{ usuario.nombre }} {{ usuario.primerApellido }} {{ usuario.segundoApellido }}</td>
+            <td>{{ usuario.telefono }}</td>
+            <td>{{ usuario.codigoPostal }}</td>
+            <td>
+              <button type="button" class="table-edit" (click)="reactivarUsuario(usuario.id!)">Reactivar</button>
+            </td>
+          </tr>
+          <tr *ngIf="usuariosEliminados().length === 0">
+            <td colspan="5" class="empty-row">No hay usuarios eliminados.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
 <!-- =====================================================
-     MODAL DE EDICIÓN
-     ===================================================== -->
+    MODAL DE EDICIÓN
+    ===================================================== -->
 
 <div
   class="modal-overlay"
@@ -233,9 +374,9 @@
 
 
 <!-- =====================================================
-     MODAL GENERAL DEL CRUD
-     ÉXITO / ERROR / ADVERTENCIA / CONFIRMACIÓN
-     ===================================================== -->
+    MODAL GENERAL DEL CRUD
+    ÉXITO / ERROR / ADVERTENCIA / CONFIRMACIÓN
+    ===================================================== -->
 
 <div
   class="mensaje-overlay"
@@ -291,8 +432,8 @@
 
 
     <!-- =========================
-         ICONO DE ÉXITO
-         ========================= -->
+        ICONO DE ÉXITO
+        ========================= -->
 
     <div
       class="mensaje-icon"
@@ -303,8 +444,8 @@
 
 
     <!-- =========================
-         ICONO DE ADVERTENCIA
-         ========================= -->
+        ICONO DE ADVERTENCIA
+        ======================== -->
 
     <div
       class="mensaje-icon"
@@ -315,8 +456,8 @@
 
 
     <!-- =========================
-         ICONO DE ERROR
-         ========================= -->
+        ICONO DE ERROR
+        ========================= -->
 
     <div
       class="mensaje-icon"
@@ -327,8 +468,8 @@
 
 
     <!-- =========================
-         ICONO DE CONFIRMACIÓN
-         ========================= -->
+        ICONO DE CONFIRMACIÓN
+        ========================= -->
 
     <div
       class="mensaje-icon"
@@ -351,8 +492,8 @@
 
 
     <!-- =========================
-         BOTÓN NORMAL
-         ========================= -->
+        BOTÓN NORMAL
+        ========================= -->
 
     <div
       class="mensaje-actions"
@@ -371,8 +512,8 @@
 
 
     <!-- =========================
-         BOTONES DE CONFIRMACIÓN
-         ========================= -->
+        BOTONES DE CONFIRMACIÓN
+        ========================= -->
 
     <div
       class="mensaje-actions confirmacion-actions"
