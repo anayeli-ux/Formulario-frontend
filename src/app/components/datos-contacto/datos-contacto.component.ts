@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ControlContainer, FormGroupDirective, ReactiveFormsModule } from '@angular/forms';
+import { ControlContainer, FormGroupName, ReactiveFormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-datos-contacto',
@@ -9,7 +9,7 @@ import { ControlContainer, FormGroupDirective, ReactiveFormsModule } from '@angu
   templateUrl: './datos-contacto.component.html',
   styleUrls: ['./datos-contacto.component.css'],
   viewProviders: [
-    { provide: ControlContainer, useExisting: FormGroupDirective }
+    { provide: ControlContainer, useExisting: FormGroupName }
   ]
 })
 export class DatosContactoComponent {}
