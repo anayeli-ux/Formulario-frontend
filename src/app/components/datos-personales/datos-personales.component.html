@@ -1,26 +1,55 @@
 <div class="seccion-form">
   <div class="campo">
-    <label for="nombre">Nombre(s):</label>
+    <label for="nombre">Nombre(s): <span class="required-mark">*</span></label>
     <input type="text" id="nombre" formControlName="nombre" placeholder="Escribe tu nombre">
+    <small class="field-error" *ngIf="control('nombre')?.touched && control('nombre')?.hasError('required')">Este campo es obligatorio.</small>
   </div>
 
   <div class="campo">
-    <label for="primer_apellido">Primer Apellido:</label>
+    <label for="primer_apellido">Primer Apellido: <span class="required-mark">*</span></label>
     <input type="text" id="primer_apellido" formControlName="primer_apellido" placeholder="Primer apellido">
+    <small class="field-error" *ngIf="control('primer_apellido')?.touched && control('primer_apellido')?.hasError('required')">Este campo es obligatorio.</small>
   </div>
 
   <div class="campo">
-    <label for="segundo_apellido">Segundo Apellido:</label>
-    <input
-      type="text"
-      id="segundo_apellido"
-      formControlName="segundo_apellido"
-      placeholder="Segundo apellido (opcional)"
-    >
+    <label for="password">Contraseña: <span class="required-mark">*</span></label>
+    <div class="password-input">
+      <input
+        [type]="mostrarPassword ? 'text' : 'password'"
+        id="password"
+        formControlName="password"
+        placeholder="Mínimo 8 caracteres"
+      >
+      <button
+        type="button"
+        class="password-toggle"
+        (click)="mostrarPassword = !mostrarPassword"
+        [attr.aria-label]="mostrarPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+      >
+        {{ mostrarPassword ? '🫣' : '🤫' }}
+      </button>
+    </div>
+    <div class="password-strength" *ngIf="control('password')?.value">
+      <div class="password-strength-bar">
+        <span [style.width.%]="passwordStrength * 25" [class]="'strength-' + passwordStrength"></span>
+      </div>
+      <small>{{ passwordStrengthLabel }}</small>
+    </div>
+    <small class="field-error" *ngIf="control('password')?.touched && control('password')?.invalid">
+      Usa al menos 8 caracteres, una letra, un número y un símbolo.
+    </small>
   </div>
 
   <div class="campo">
-    <label for="fecha_nacimiento">Fecha de Nacimiento:</label>
+    <label for="fecha_nacimiento">Fecha de Nacimiento: <span class="required-mark">*</span></label>
     <input type="date" id="fecha_nacimiento" formControlName="fecha_nacimiento">
+    <small class="field-error" *ngIf="control('fecha_nacimiento')?.touched && control('fecha_nacimiento')?.hasError('required')">Este campo es obligatorio.</small>
+  </div>
+
+  <div class="campo">
+    <label for="email">Correo electrónico: <span class="required-mark">*</span></label>
+    <input type="email" id="email" formControlName="email" placeholder="correo@ejemplo.com">
+    <small class="field-error" *ngIf="control('email')?.touched && control('email')?.hasError('required')">Este campo es obligatorio.</small>
+    <small class="field-error" *ngIf="control('email')?.touched && control('email')?.hasError('email')">Ingresa un correo electrónico válido.</small>
   </div>
 </div>

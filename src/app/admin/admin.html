@@ -30,8 +30,9 @@
         <input id="crearPrimerApellido" name="crearPrimerApellido" [(ngModel)]="usuarioFormulario.primerApellido" required maxlength="50">
       </div>
       <div class="admin-field">
-        <label for="crearSegundoApellido">Segundo apellido</label>
-        <input id="crearSegundoApellido" name="crearSegundoApellido" [(ngModel)]="usuarioFormulario.segundoApellido" maxlength="50">
+        <label for="crearPassword">Contraseña *</label>
+        <input id="crearPassword" type="password" name="crearPassword" [(ngModel)]="usuarioFormulario.password" required minlength="8" pattern="^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z\d]).+$">
+        <small class="field-error" *ngIf="formCrear.submitted && formCrear.controls['crearPassword']?.invalid">Usa 8 caracteres, una letra, un número y un símbolo.</small>
       </div>
       <div class="admin-field">
         <label for="crearTelefono">Teléfono</label>
@@ -50,8 +51,9 @@
         <input id="crearDireccion" name="crearDireccion" [(ngModel)]="usuarioFormulario.direccion" required maxlength="150">
       </div>
       <div class="admin-field">
-        <label for="crearAnimalFavorito">Animal favorito</label>
-        <input id="crearAnimalFavorito" name="crearAnimalFavorito" [(ngModel)]="usuarioFormulario.animalFavorito" required maxlength="50">
+        <label for="crearEmail">Correo electrónico *</label>
+        <input id="crearEmail" type="email" name="crearEmail" [(ngModel)]="usuarioFormulario.email" required email maxlength="150">
+        <small class="field-error" *ngIf="formCrear.submitted && formCrear.controls['crearEmail']?.invalid">Ingresa un correo electrónico válido.</small>
       </div>
       <div class="admin-form-actions">
         <button type="submit" class="admin-primary" [disabled]="formCrear.invalid">Crear usuario</button>
@@ -83,7 +85,7 @@
         <tbody>
           <tr *ngFor="let usuario of usuarios()">
             <td>{{ usuario.id }}</td>
-            <td>{{ usuario.nombre }} {{ usuario.primerApellido }} {{ usuario.segundoApellido }}</td>
+            <td>{{ usuario.nombre }} {{ usuario.primerApellido }}</td>
             <td>{{ usuario.telefono }}</td>
             <td>{{ usuario.codigoPostal }}</td>
             <td>{{ usuario.municipio }}</td>
@@ -123,7 +125,7 @@
         <tbody>
           <tr *ngFor="let usuario of usuariosEliminados()">
             <td>{{ usuario.id }}</td>
-            <td>{{ usuario.nombre }} {{ usuario.primerApellido }} {{ usuario.segundoApellido }}</td>
+            <td>{{ usuario.nombre }} {{ usuario.primerApellido }}</td>
             <td>{{ usuario.telefono }}</td>
             <td>{{ usuario.codigoPostal }}</td>
             <td>
@@ -210,16 +212,19 @@
       </div>
 
 
-      <!-- SEGUNDO APELLIDO -->
+      <!-- CONTRASEÑA -->
       <div class="field">
-        <label>Segundo apellido</label>
+        <label>Contraseña</label>
 
         <input
-          type="text"
-          name="modalSegundoApellido"
-          [(ngModel)]="usuarioFormulario.segundoApellido"
-          maxlength="50"
+          type="password"
+          name="modalPassword"
+          [(ngModel)]="usuarioFormulario.password"
+          minlength="8"
+          pattern="^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z\d]).+$"
+          required
         >
+        <small>Usa 8 caracteres, una letra, un número y un símbolo.</small>
       </div>
 
 
@@ -331,17 +336,19 @@
       </div>
 
 
-      <!-- ANIMAL FAVORITO -->
+      <!-- CORREO ELECTRÓNICO -->
       <div class="field">
-        <label>Animal favorito</label>
+        <label>Correo electrónico</label>
 
         <input
-          type="text"
-          name="modalAnimalFavorito"
-          [(ngModel)]="usuarioFormulario.animalFavorito"
-          maxlength="50"
+          type="email"
+          name="modalEmail"
+          [(ngModel)]="usuarioFormulario.email"
+          maxlength="150"
+          email
           required
         >
+        <small *ngIf="formEditar.submitted && formEditar.controls['modalEmail']?.invalid">Ingresa un correo electrónico válido.</small>
       </div>
 
 

@@ -43,6 +43,7 @@
       </div>
 
       <form
+        #registroFormElement
         [formGroup]="registroForm"
         (ngSubmit)="enviarRegistro()"
       >
@@ -103,43 +104,11 @@
           </app-datos-contacto>
 
         </section>
-
-
-        <!-- DATOS ADICIONALES -->
-        <section class="form-section">
-
-          <div class="section-header">
-
-            <span class="section-number">
-              03
-            </span>
-
-            <div>
-              <h3>
-                Datos adicionales
-              </h3>
-
-              <p>
-                Información complementaria.
-              </p>
-            </div>
-
-          </div>
-
-          <app-datos-adicionales
-            formGroupName="datosAdicionales"
-          >
-          </app-datos-adicionales>
-
-        </section>
-
-
         <!-- BOTÓN -->
         <div class="registro-actions">
 
           <button
             type="submit"
-            [disabled]="registroForm.invalid"
             class="btn-submit"
           >
             Registrar usuario

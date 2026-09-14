@@ -3,7 +3,7 @@
   <div class="campo">
 
     <label for="telefono">
-      Teléfono:
+      Teléfono: <span class="required-mark">*</span>
     </label>
 
     <input
@@ -14,6 +14,7 @@
       maxlength="10"
       inputmode="numeric"
     >
+    <small class="field-error" *ngIf="control('telefono')?.touched && control('telefono')?.hasError('required')">Este campo es obligatorio.</small>
   </div>
 
 
@@ -21,7 +22,7 @@
   <div class="campo">
 
     <label for="codigo_postal">
-      Código Postal:
+      Código Postal: <span class="required-mark">*</span>
     </label>
 
     <input
@@ -32,6 +33,7 @@
       maxlength="5"
       inputmode="numeric"
     >
+    <small class="field-error" *ngIf="control('codigo_postal')?.touched && control('codigo_postal')?.hasError('required')">Este campo es obligatorio.</small>
 
   </div>
 
@@ -40,7 +42,7 @@
   <div class="campo">
 
     <label for="estado">
-      Estado:
+      Estado: <span class="required-mark">*</span>
     </label>
 
     <input
@@ -50,6 +52,7 @@
       placeholder="Ej. Querétaro"
       maxlength="100"
     >
+    <small class="field-error" *ngIf="control('estado')?.touched && control('estado')?.hasError('required')">Este campo es obligatorio.</small>
 
   </div>
 
@@ -58,7 +61,7 @@
   <div class="campo">
 
     <label for="municipio">
-      Municipio:
+      Municipio: <span class="required-mark">*</span>
     </label>
 
     <input
@@ -68,6 +71,7 @@
       placeholder="Ej. Santiago de Querétaro"
       maxlength="100"
     >
+    <small class="field-error" *ngIf="control('municipio')?.touched && control('municipio')?.hasError('required')">Este campo es obligatorio.</small>
 
   </div>
 
@@ -76,7 +80,7 @@
   <div class="campo">
 
     <label for="direccion">
-      Dirección (Calle y Número):
+      Dirección (Calle y Número): <span class="required-mark">*</span>
     </label>
 
     <input
@@ -86,6 +90,7 @@
       placeholder="Calle, número exterior/interior"
       maxlength="150"
     >
+    <small class="field-error" *ngIf="control('direccion')?.touched && control('direccion')?.hasError('required')">Este campo es obligatorio.</small>
 
   </div>
 

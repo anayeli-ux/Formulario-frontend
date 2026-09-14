@@ -1,0 +1,75 @@
+.required-mark {
+  color: #b2183b;
+}
+
+.field-error {
+  display: block;
+  color: #b2183b;
+  font-size: 11px;
+}
+
+.password-input {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input input {
+  width: 100%;
+  padding-right: 42px;
+  box-sizing: border-box;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #7b1734;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.password-toggle:hover {
+  background: #f7f1f3;
+}
+
+.password-strength {
+  margin-top: 8px;
+  color: #746d70;
+  font-size: 11px;
+}
+
+.password-strength-bar {
+  height: 6px;
+  overflow: hidden;
+  margin-bottom: 4px;
+  background: #e9e1da;
+  border-radius: 8px;
+}
+
+.password-strength-bar span {
+  display: block;
+  height: 100%;
+  transition: width .2s ease, background .2s ease;
+}
+
+.strength-1,
+.strength-2 {
+  background: #c45a48;
+}
+
+.strength-3 {
+  background: #c59a52;
+}
+
+.strength-4 {
+  background: #32805c;
+}

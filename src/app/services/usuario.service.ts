@@ -13,12 +13,12 @@ import { environment } from '../../environments/environment';
 export interface UsuarioRequest {
   nombre: string;
   primerApellido: string;
-  segundoApellido: string;
+  password: string;
   telefono: string;
   codigoPostal: string;
   direccion: string;
   fechaNacimiento: string;
-  animalFavorito: string;
+  email: string;
 }
 
 

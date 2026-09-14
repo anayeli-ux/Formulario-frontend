@@ -657,8 +657,8 @@ export class Admin implements OnInit {
       primerApellido:
         this.usuarioFormulario.primerApellido,
 
-      segundoApellido:
-        this.usuarioFormulario.segundoApellido,
+      password:
+        this.usuarioFormulario.password,
 
       telefono:
         this.usuarioFormulario.telefono,
@@ -672,8 +672,8 @@ export class Admin implements OnInit {
       fechaNacimiento:
         this.usuarioFormulario.fechaNacimiento,
 
-      animalFavorito:
-        this.usuarioFormulario.animalFavorito
+      email:
+        this.usuarioFormulario.email
 
     };
 
@@ -820,7 +820,7 @@ export class Admin implements OnInit {
 
       primerApellido: '',
 
-      segundoApellido: '',
+      password: '',
 
       telefono: '',
 
@@ -839,7 +839,7 @@ export class Admin implements OnInit {
 
       fechaNacimiento: '',
 
-      animalFavorito: '',
+      email: '',
 
       activo: true
 

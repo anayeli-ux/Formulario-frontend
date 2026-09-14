@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import {
@@ -24,9 +24,6 @@ import {
   DatosContactoComponent
 } from '../../components/datos-contacto/datos-contacto.component';
 
-import {
-  DatosAdicionalesComponent
-} from '../../components/datos-adicionales/datos-adicionales.component';
 
 
 type TipoModal =
@@ -45,7 +42,6 @@ type TipoModal =
     ReactiveFormsModule,
     DatosPersonalesComponent,
     DatosContactoComponent,
-    DatosAdicionalesComponent
   ],
 
   templateUrl: './registro.component.html',
@@ -73,6 +69,11 @@ export class RegistroComponent implements OnInit {
   modalTitulo = '';
 
   modalMensaje = '';
+
+  private controlInvalidoPendiente = '';
+
+  @ViewChild('registroFormElement')
+  private registroFormElement?: ElementRef<HTMLFormElement>;
 
 
   constructor(
@@ -112,10 +113,12 @@ export class RegistroComponent implements OnInit {
               ]
             ],
 
-            segundo_apellido: [
+            password: [
               '',
               [
-                Validators.maxLength(50)
+                Validators.required,
+                Validators.minLength(8),
+                Validators.pattern(/^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z\d]).+$/)
               ]
             ],
 
@@ -123,6 +126,15 @@ export class RegistroComponent implements OnInit {
               '',
               [
                 Validators.required
+              ]
+            ],
+
+            email: [
+              '',
+              [
+                Validators.required,
+                Validators.email,
+                Validators.maxLength(150)
               ]
             ]
 
@@ -186,23 +198,6 @@ export class RegistroComponent implements OnInit {
           }),
 
 
-        // =========================
-        // DATOS ADICIONALES
-        // =========================
-
-        datosAdicionales:
-          this.fb.group({
-
-            animal_favorito: [
-              '',
-              [
-                Validators.required,
-                Validators.maxLength(50)
-              ]
-            ]
-
-          })
-
       });
 
   }
@@ -245,6 +240,47 @@ export class RegistroComponent implements OnInit {
 
     this.modalVisible = false;
 
+    this.enfocarControlInvalido();
+
+  }
+
+  private obtenerPrimerControlInvalido(
+    grupo: FormGroup
+  ): string {
+    for (const nombre of Object.keys(grupo.controls)) {
+      const control = grupo.controls[nombre];
+
+      if (control instanceof FormGroup) {
+        const controlHijo = this.obtenerPrimerControlInvalido(control);
+
+        if (controlHijo) {
+          return controlHijo;
+        }
+      } else if (control.invalid) {
+        return nombre;
+      }
+    }
+
+    return '';
+  }
+
+  private enfocarControlInvalido(): void {
+    if (!this.controlInvalidoPendiente || !this.registroFormElement) {
+      return;
+    }
+
+    const control = this.registroFormElement.nativeElement.querySelector(
+      `[formControlName="${this.controlInvalidoPendiente}"]`
+    );
+
+    if (control instanceof HTMLElement) {
+      control.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      });
+      control.focus();
+      this.controlInvalidoPendiente = '';
+    }
   }
 
 
@@ -263,6 +299,13 @@ export class RegistroComponent implements OnInit {
 
       this.registroForm
         .markAllAsTouched();
+
+      this.controlInvalidoPendiente =
+        this.obtenerPrimerControlInvalido(
+          this.registroForm
+        );
+
+      this.enfocarControlInvalido();
 
       this.mostrarModal(
         'advertencia',
@@ -287,11 +330,6 @@ export class RegistroComponent implements OnInit {
         .datosContacto;
 
 
-    const datosAdicionales =
-      this.registroForm
-        .value
-        .datosAdicionales;
-
 
     /*
      * El backend recibe un objeto plano.
@@ -310,8 +348,8 @@ export class RegistroComponent implements OnInit {
         primerApellido:
           datosPersonales.primer_apellido,
 
-        segundoApellido:
-          datosPersonales.segundo_apellido || '',
+        password:
+          datosPersonales.password,
 
         telefono:
           datosContacto.telefono,
@@ -325,8 +363,8 @@ export class RegistroComponent implements OnInit {
         fechaNacimiento:
           datosPersonales.fecha_nacimiento,
 
-        animalFavorito:
-          datosAdicionales.animal_favorito
+        email:
+          datosPersonales.email
 
       };
 

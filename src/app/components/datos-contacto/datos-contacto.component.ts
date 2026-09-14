@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ControlContainer, FormGroupName, ReactiveFormsModule } from '@angular/forms';
+import { AbstractControl, ControlContainer, FormGroupName, ReactiveFormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-datos-contacto',
@@ -12,4 +12,10 @@ import { ControlContainer, FormGroupName, ReactiveFormsModule } from '@angular/f
     { provide: ControlContainer, useExisting: FormGroupName }
   ]
 })
-export class DatosContactoComponent {}
+export class DatosContactoComponent {
+  constructor(public controlContainer: ControlContainer) {}
+
+  control(nombre: string): AbstractControl | null {
+    return this.controlContainer.control?.get(nombre) ?? null;
+  }
+}
