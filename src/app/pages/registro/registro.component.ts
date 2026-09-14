@@ -203,6 +203,8 @@ export class RegistroComponent implements OnInit {
 
       });
 
+  }
+
   private fechaNoFutura(control: AbstractControl): ValidationErrors | null {
     if (!control.value) return null;
     const fecha = new Date(`${control.value}T00:00:00`);
@@ -476,17 +478,6 @@ export class RegistroComponent implements OnInit {
 
           }
 
-        if (err.status === 400) {
-          alert('Hay datos incorrectos o incompletos. Revisa el formulario.');
-        } else if (err.status === 409) {
-          alert('El teléfono ingresado ya está registrado.');
-        } else if (err.status === 503) {
-          alert('No fue posible consultar el código postal.');
-        } else if (err.status === 0) {
-          alert('No fue posible conectarse con el servidor.');
-        } else {
-          alert('Ocurrió un error al registrar el usuario.');
-        }
       }
     });
   }
