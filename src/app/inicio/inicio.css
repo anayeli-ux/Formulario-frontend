@@ -117,6 +117,10 @@
     0 0 0 3px rgba(73, 107, 179, 0.1);
 }
 
+.input-container:has(.input-error) {
+  border-color: #e64545;
+}
+
 .icon {
   margin-right: 10px;
 }
@@ -132,6 +136,13 @@
   font-size: 16px;
 
   background: transparent;
+}
+
+.field-error {
+  display: block;
+  margin-top: 7px;
+  color: #d32f2f;
+  font-size: 13px;
 }
 
 .show-password {
