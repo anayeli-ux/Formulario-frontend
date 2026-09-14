@@ -383,7 +383,6 @@ select:disabled {
 }
 
 .btn-submit:disabled {
-<<<<<<< Updated upstream
   background:
     #c9c3c5;
 
@@ -391,6 +390,12 @@ select:disabled {
 
   cursor:
     not-allowed;
+}
+
+.mensaje-error {
+  color: #d32f2f;
+  font-size: 0.9rem;
+  margin: 12px 0;
 }
 
 /* =========================
@@ -437,15 +442,4 @@ select:disabled {
     width: 34px;
     height: 34px;
   }
-
-=======
-    background-color: #bdc3c7;
-    cursor: not-allowed;
-}
-
-.mensaje-error {
-    color: #d32f2f;
-    font-size: 0.9rem;
-    margin: 12px 0;
->>>>>>> Stashed changes
 }
