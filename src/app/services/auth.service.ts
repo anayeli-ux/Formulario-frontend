@@ -27,7 +27,12 @@ export class AuthService {
 
   // Conexión real al backend para iniciar sesión
   login(credenciales: { email: string; password: string }): Observable<any> {
-    return this.http.post<any>(`${this.authUrl}/login`, credenciales).pipe(
+    const datosAEnviar = {
+      usuario: credenciales.email,
+      password: credenciales.password
+    };
+
+    return this.http.post<any>(`${this.authUrl}/admin`, datosAEnviar).pipe(
       tap(response => {
         if (
           isPlatformBrowser(this.platformId) &&

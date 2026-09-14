@@ -1,25 +1,26 @@
-<!-- Agrupación correspondiente al sub-form declarado en el padre -->
-<div formGroupName="datosPersonales" class="seccion-form">
-    <h3>1. Datos Personales</h3>
+<div class="seccion-form">
+  <div class="campo">
+    <label for="nombre">Nombre(s):</label>
+    <input type="text" id="nombre" formControlName="nombre" placeholder="Escribe tu nombre">
+  </div>
 
-    <div class="campo">
-        <label for="nombre">Nombre(s):</label>
-        <input type="text" id="nombre" formControlName="nombre" placeholder="Escribe tu nombre">
-    </div>
+  <div class="campo">
+    <label for="primer_apellido">Primer Apellido:</label>
+    <input type="text" id="primer_apellido" formControlName="primer_apellido" placeholder="Primer apellido">
+  </div>
 
-    <div class="campo">
-        <label for="primer_apellido">Primer Apellido:</label>
-        <input type="text" id="primer_apellido" formControlName="primer_apellido" placeholder="Primer apellido">
-    </div>
+  <div class="campo">
+    <label for="segundo_apellido">Segundo Apellido:</label>
+    <input
+      type="text"
+      id="segundo_apellido"
+      formControlName="segundo_apellido"
+      placeholder="Segundo apellido (opcional)"
+    >
+  </div>
 
-    <div class="campo">
-        <label for="segundo_apellido">Segundo Apellido:</label>
-        <input type="text" id="segundo_apellido" formControlName="segundo_apellido"
-            placeholder="Segundo apellido (opcional)">
-    </div>
-
-    <div class="campo">
-        <label for="fecha_nacimiento">Fecha de Nacimiento:</label>
-        <input type="date" id="fecha_nacimiento" formControlName="fecha_nacimiento">
-    </div>
+  <div class="campo">
+    <label for="fecha_nacimiento">Fecha de Nacimiento:</label>
+    <input type="date" id="fecha_nacimiento" formControlName="fecha_nacimiento">
+  </div>
 </div>
