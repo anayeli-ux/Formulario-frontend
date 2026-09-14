@@ -1,82 +1,346 @@
-.login-container {
-    max-width: 400px;
-    margin: 80px auto;
-    padding: 30px;
-    background: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: #333;
+:host {
+  --vino: #7b1734;
+  --vino-oscuro: #641129;
+  --dorado: #c59a52;
+  --dorado-claro: #d6b77d;
+  --fondo: #f7f5f2;
+  --blanco: #ffffff;
+  --texto: #292929;
+  --texto-secundario: #746d70;
+  --borde: #ded6ce;
 }
 
-.login-container h2 {
-    text-align: center;
-    color: #2c3e50;
-    margin-bottom: 25px;
+/* =========================
+   PÁGINA
+   ========================= */
+
+.login-page {
+  min-height: 100vh;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 30px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #ffffff 0%,
+      var(--fondo) 100%
+    );
+
+  font-family:
+    "Montserrat",
+    "Segoe UI",
+    Arial,
+    sans-serif;
 }
+
+/* =========================
+   CONTENEDOR GENERAL
+   ========================= */
+
+.login-shell {
+  width: 100%;
+  max-width: 520px;
+}
+
+/* =========================
+   MARCA / ENCABEZADO
+   ========================= */
+
+.login-brand {
+  display: flex;
+  align-items: center;
+
+  gap: 16px;
+
+  margin-bottom: 18px;
+}
+
+.brand-mark {
+  width: 55px;
+  height: 55px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border-radius: 50%;
+
+  border:
+    2px solid var(--dorado);
+
+  background: var(--vino);
+
+  color: white;
+
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.brand-label {
+  display: block;
+
+  margin-bottom: 3px;
+
+  color: var(--dorado);
+
+  font-size: 11px;
+  font-weight: 700;
+
+  letter-spacing: 1.3px;
+
+  text-transform: uppercase;
+}
+
+.login-brand h1 {
+  margin: 0;
+
+  color: var(--vino);
+
+  font-size: 20px;
+  font-weight: 700;
+}
+
+/* =========================
+   LÍNEA DORADA
+   ========================= */
+
+.login-accent {
+  width: 90px;
+  height: 4px;
+
+  margin-bottom: 20px;
+
+  background: var(--dorado);
+
+  border-radius: 20px;
+}
+
+/* =========================
+   TARJETA LOGIN
+   ========================= */
+
+.login-container {
+  width: 100%;
+
+  padding: 32px;
+
+  background: var(--blanco);
+
+  border:
+    1px solid #eee7df;
+
+  border-top:
+    5px solid var(--vino);
+
+  border-radius: 12px;
+
+  box-shadow:
+    0 12px 35px rgba(80, 30, 45, 0.12);
+
+  color: var(--texto);
+}
+
+/* =========================
+   ENCABEZADO LOGIN
+   ========================= */
+
+.login-header {
+  margin-bottom: 26px;
+}
+
+.section-label {
+  color: var(--dorado);
+
+  font-size: 11px;
+  font-weight: 700;
+
+  letter-spacing: 1.4px;
+}
+
+.login-header h2 {
+  margin:
+    5px 0 7px;
+
+  color: var(--vino);
+
+  font-size: 27px;
+  font-weight: 700;
+}
+
+.login-header p {
+  margin: 0;
+
+  color: var(--texto-secundario);
+
+  font-size: 14px;
+}
+
+/* =========================
+   CAMPOS
+   ========================= */
 
 .campo {
-    margin-bottom: 15px;
+  margin-bottom: 18px;
 }
 
 .login-container label {
-    display: block;
-    margin-bottom: 6px;
-    font-weight: 600;
-    font-size: 0.9rem;
-    color: #555;
+  display: block;
+
+  margin-bottom: 7px;
+
+  color: var(--vino);
+
+  font-size: 14px;
+  font-weight: 650;
 }
 
 .login-container input {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    font-size: 0.95rem;
-    box-sizing: border-box;
-    transition: border-color 0.2s;
+  width: 100%;
+
+  padding: 12px 14px;
+
+  border:
+    1px solid var(--borde);
+
+  border-radius: 6px;
+
+  background: white;
+
+  color: var(--texto);
+
+  font-size: 15px;
+
+  outline: none;
+
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+
+.login-container input:hover {
+  border-color: var(--dorado);
 }
 
 .login-container input:focus {
-    border-color: #3498db;
-    outline: none;
-    box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+  border-color: var(--vino);
+
+  box-shadow:
+    0 0 0 3px
+    rgba(123, 23, 52, 0.09);
 }
 
+/* =========================
+   BOTÓN
+   ========================= */
+
 .login-container button {
-    width: 100%;
-    background-color: #3498db;
-    color: white;
-    padding: 12px;
-    border: none;
-    border-radius: 6px;
-    font-size: 1rem;
-    font-weight: bold;
-    cursor: pointer;
-    margin-top: 10px;
-    transition: background-color 0.2s;
+  width: 100%;
+
+  margin-top: 10px;
+
+  padding: 13px;
+
+  border: none;
+  border-radius: 6px;
+
+  background: var(--vino);
+
+  color: white;
+
+  font-size: 15px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s,
+    transform 0.2s;
 }
 
 .login-container button:hover:not(:disabled) {
-    background-color: #2980b9;
+  background:
+    var(--vino-oscuro);
+
+  transform:
+    translateY(-1px);
 }
 
+/* Cuando el formulario no es válido */
 .login-container button:disabled {
-    background-color: #bdc3c7;
-    cursor: not-allowed;
+  background: #c9c3c5;
+
+  color: white;
+
+  cursor: not-allowed;
 }
 
-.login-container p {
-    text-align: center;
-    margin-top: 20px;
-    font-size: 0.9rem;
+/* =========================
+   REGISTRO
+   ========================= */
+
+.register-text {
+  margin:
+    22px 0 0;
+
+  text-align: center;
+
+  color:
+    var(--texto-secundario);
+
+  font-size: 14px;
 }
 
-.login-container a {
-    color: #3498db;
-    text-decoration: none;
+.register-text a {
+  color: var(--vino);
+
+  font-weight: 700;
+
+  text-decoration: none;
 }
 
-.login-container a:hover {
-    text-decoration: underline;
+.register-text a:hover {
+  color: var(--dorado);
+
+  text-decoration: underline;
+}
+
+/* =========================
+   RESPONSIVE
+   ========================= */
+
+@media (max-width: 600px) {
+
+  .login-page {
+    padding: 18px;
+  }
+
+  .login-container {
+    padding: 24px 20px;
+  }
+
+  .login-brand {
+    align-items: flex-start;
+  }
+
+  .brand-mark {
+    width: 48px;
+    height: 48px;
+
+    font-size: 21px;
+  }
+
+  .login-brand h1 {
+    font-size: 17px;
+  }
+
+  .login-header h2 {
+    font-size: 24px;
+  }
+
 }

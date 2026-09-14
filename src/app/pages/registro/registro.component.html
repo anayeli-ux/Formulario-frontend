@@ -1,24 +1,150 @@
-<div class="registro-container">
-    <h2>Formulario de Registro General</h2>
+<div class="registro-page">
 
-    <form [formGroup]="registroForm" (ngSubmit)="enviarRegistro()">
+  <div class="registro-shell">
 
-        <!-- Componente hijo 1: Datos Personales -->
-        <app-datos-personales formGroupName="datosPersonales"></app-datos-personales>
+    <!-- ENCABEZADO -->
+    <div class="registro-brand">
 
-        <hr>
+      <div class="brand-mark">
+        H
+      </div>
 
-        <!-- Componente hijo 2: Datos de Contacto -->
-        <app-datos-contacto formGroupName="datosContacto"></app-datos-contacto>
+      <div>
+        <span class="brand-label">
+          Sistema de Administración
+        </span>
 
-        <hr>
+        <h1>
+          Registro de Usuario
+        </h1>
+      </div>
 
-        <!-- Componente hijo 3: Datos Adicionales -->
-        <app-datos-adicionales formGroupName="datosAdicionales"></app-datos-adicionales>
+    </div>
 
-        <button type="submit" [disabled]="registroForm.invalid" class="btn-submit">
-            Registrar Usuario
-        </button>
+    <div class="registro-accent"></div>
 
-    </form>
+    <!-- TARJETA PRINCIPAL -->
+    <div class="registro-container">
+
+      <div class="registro-header">
+
+        <span class="section-label">
+          REGISTRO
+        </span>
+
+        <h2>
+          Formulario de Registro General
+        </h2>
+
+        <p>
+          Completa la información solicitada para crear un nuevo registro.
+        </p>
+
+      </div>
+
+      <form
+        [formGroup]="registroForm"
+        (ngSubmit)="enviarRegistro()"
+      >
+
+        <!-- DATOS PERSONALES -->
+        <section class="form-section">
+
+          <div class="section-header">
+            <span class="section-number">
+              01
+            </span>
+
+            <div>
+              <h3>
+                Datos personales
+              </h3>
+
+              <p>
+                Información general del usuario.
+              </p>
+            </div>
+          </div>
+
+          <app-datos-personales
+            formGroupName="datosPersonales"
+          >
+          </app-datos-personales>
+
+        </section>
+
+
+        <!-- DATOS DE CONTACTO -->
+        <section class="form-section">
+
+          <div class="section-header">
+            <span class="section-number">
+              02
+            </span>
+
+            <div>
+              <h3>
+                Datos de contacto
+              </h3>
+
+              <p>
+                Información de contacto y ubicación.
+              </p>
+            </div>
+          </div>
+
+          <app-datos-contacto
+            formGroupName="datosContacto"
+          >
+          </app-datos-contacto>
+
+        </section>
+
+
+        <!-- DATOS ADICIONALES -->
+        <section class="form-section">
+
+          <div class="section-header">
+            <span class="section-number">
+              03
+            </span>
+
+            <div>
+              <h3>
+                Datos adicionales
+              </h3>
+
+              <p>
+                Información complementaria.
+              </p>
+            </div>
+          </div>
+
+          <app-datos-adicionales
+            formGroupName="datosAdicionales"
+          >
+          </app-datos-adicionales>
+
+        </section>
+
+
+        <!-- BOTÓN -->
+        <div class="registro-actions">
+
+          <button
+            type="submit"
+            [disabled]="registroForm.invalid"
+            class="btn-submit"
+          >
+            Registrar usuario
+          </button>
+
+        </div>
+
+      </form>
+
+    </div>
+
+  </div>
+
 </div>

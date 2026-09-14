@@ -1,17 +1,22 @@
 import { CommonModule } from '@angular/common';
+
 import {
   Component,
   OnInit,
   computed,
   signal
 } from '@angular/core';
+
 import { FormsModule } from '@angular/forms';
-import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 
 import { Usuario } from '../models/usuario.model';
-import { UsuarioService } from '../services/usuario.service';
-import { PostaliaService } from '../services/postalia.service';
+
+import {
+  UsuarioService,
+  UsuarioRequest
+} from '../services/usuario.service';
+
 import { AuthService } from '../services/auth.service';
 
 @Component({
@@ -26,113 +31,141 @@ import { AuthService } from '../services/auth.service';
 })
 export class Admin implements OnInit {
 
-  // Datos de las tablas
+  // Usuarios activos y eliminados
   usuarios = signal<Usuario[]>([]);
-  usuariosEliminados = signal<Usuario[]>([]);
+
+  usuariosEliminados =
+    signal<Usuario[]>([]);
 
   totalUsuariosActivos =
     computed(() => this.usuarios().length);
 
   totalUsuariosEliminados =
-    computed(() => this.usuariosEliminados().length);
+    computed(
+      () => this.usuariosEliminados().length
+    );
 
+  // Control del modal
   editando = false;
+
   modalEditarAbierto = false;
+
   usuarioEditandoId?: number;
 
   usuarioFormulario: Usuario =
     this.crearUsuarioVacio();
 
-  cpLoading = false;
-  cpError = '';
-  colonias: string[] = [];
-
-  // Fecha máxima para validar 18 años
+  // Fecha máxima permitida
   fechaMaximaAdulto =
     this.obtenerFechaMaximaAdulto();
 
   constructor(
     private router: Router,
     private usuarioService: UsuarioService,
-    private postaliaService: PostaliaService,
     private authService: AuthService
   ) {}
 
   ngOnInit(): void {
+
     this.cargarUsuarios();
+
     this.cargarUsuariosEliminados();
+
   }
 
+  // =========================
+  // USUARIOS ACTIVOS
+  // =========================
+
   cargarUsuarios(): void {
-    this.usuarios.set([]);
 
     this.usuarioService
       .listarUsuarios()
       .subscribe({
+
         next: (usuarios: Usuario[]) => {
+
           this.usuarios.set(
             this.ordenarPorId(usuarios)
           );
+
         },
 
         error: (error: unknown) => {
+
           console.error(
             'Error al cargar usuarios:',
             error
           );
+
         }
+
       });
+
   }
 
+  // =========================
+  // USUARIOS ELIMINADOS
+  // =========================
+
   cargarUsuariosEliminados(): void {
-    this.usuariosEliminados.set([]);
 
     this.usuarioService
       .listarUsuariosEliminados()
       .subscribe({
+
         next: (usuarios: Usuario[]) => {
+
           this.usuariosEliminados.set(
             this.ordenarPorId(usuarios)
           );
+
         },
 
         error: (error: unknown) => {
+
           console.error(
             'Error al cargar usuarios eliminados:',
             error
           );
+
         }
+
       });
+
   }
 
-  guardarUsuario(): void {
-    if (this.editando) {
-      this.actualizarUsuario();
-    } else {
-      this.crearUsuario();
-    }
-  }
+  // =========================
+  // CREAR USUARIO
+  // =========================
 
   crearUsuario(): void {
+
     if (!this.validarEdad()) {
       return;
     }
 
+    const usuario =
+      this.prepararUsuario();
+
     this.usuarioService
-      .crearUsuario(
-        this.usuarioFormulario
-      )
+      .crearUsuario(usuario)
       .subscribe({
+
         next: () => {
+
           alert(
             'Usuario creado correctamente.'
           );
 
           this.limpiarFormulario();
+
           this.cargarUsuarios();
+
         },
 
         error: (error: unknown) => {
+
           console.error(
             'Error al crear usuario:',
             error
@@ -141,28 +174,60 @@ export class Admin implements OnInit {
           alert(
             'No se pudo crear el usuario.'
           );
+
         }
+
       });
+
   }
 
-  editarUsuario(usuario: Usuario): void {
-    this.editando = true;
-    this.modalEditarAbierto = true;
-    this.usuarioEditandoId = usuario.id;
+  // =========================
+  // ABRIR MODAL
+  // =========================
 
+  editarUsuario(
+    usuario: Usuario
+  ): void {
+
+    this.editando = true;
+
+    this.modalEditarAbierto = true;
+
+    this.usuarioEditandoId =
+      usuario.id;
+
+    // Copia los datos del usuario
+    // seleccionado al formulario
     this.usuarioFormulario = {
       ...usuario
     };
 
-    this.limpiarCodigoPostal();
   }
+
+  // =========================
+  // CERRAR MODAL
+  // =========================
 
   cerrarModalEditar(): void {
+
     this.modalEditarAbierto = false;
+
     this.limpiarFormulario();
+
   }
 
+  cancelarEdicion(): void {
+
+    this.cerrarModalEditar();
+
+  }
+
+  // =========================
+  // ACTUALIZAR USUARIO
+  // =========================
+
   actualizarUsuario(): void {
+
     if (
       this.usuarioEditandoId === undefined
     ) {
@@ -173,13 +238,22 @@ export class Admin implements OnInit {
       return;
     }
 
+    /*
+     * Preparamos únicamente los campos
+     * que acepta Spring Boot.
+     */
+    const usuario =
+      this.prepararUsuario();
+
     this.usuarioService
       .actualizarUsuario(
         this.usuarioEditandoId,
-        this.usuarioFormulario
+        usuario
       )
       .subscribe({
+
         next: () => {
+
           alert(
             'Usuario actualizado correctamente.'
           );
@@ -187,10 +261,14 @@ export class Admin implements OnInit {
           this.modalEditarAbierto = false;
 
           this.limpiarFormulario();
+
+          // Refresca la tabla
           this.cargarUsuarios();
+
         },
 
         error: (error: unknown) => {
+
           console.error(
             'Error al actualizar usuario:',
             error
@@ -199,12 +277,21 @@ export class Admin implements OnInit {
           alert(
             'No se pudo actualizar el usuario.'
           );
+
         }
+
       });
+
   }
 
-  // Eliminación lógica
-  eliminarUsuario(id: number): void {
+  // =========================
+  // ELIMINACIÓN LÓGICA
+  // =========================
+
+  eliminarUsuario(
+    id: number
+  ): void {
+
     const confirmar = confirm(
       '¿Quieres eliminar este usuario?'
     );
@@ -216,16 +303,21 @@ export class Admin implements OnInit {
     this.usuarioService
       .eliminarUsuario(id)
       .subscribe({
+
         next: () => {
+
           alert(
             'Usuario eliminado correctamente.'
           );
 
           this.cargarUsuarios();
+
           this.cargarUsuariosEliminados();
+
         },
 
         error: (error: unknown) => {
+
           console.error(
             'Error al eliminar usuario:',
             error
@@ -234,90 +326,95 @@ export class Admin implements OnInit {
           alert(
             'No se pudo eliminar el usuario.'
           );
+
         }
+
       });
+
   }
 
-  buscarCodigoPostal(): void {
-    this.cpError = '';
-    this.colonias = [];
+  // =========================
+  // PREPARAR DATOS
+  // =========================
 
-    const cp =
-      this.usuarioFormulario
-        .codigoPostal
-        .trim();
+  private prepararUsuario():
+    UsuarioRequest {
 
-    if (!/^\d{5}$/.test(cp)) {
-      this.usuarioFormulario.estado = '';
-      this.usuarioFormulario.municipio = '';
-      return;
-    }
+    return {
 
-    this.cpLoading = true;
+      nombre:
+        this.usuarioFormulario.nombre,
 
-    this.postaliaService
-      .buscarCodigoPostal(cp)
-      .subscribe({
-        next: (respuesta) => {
-          this.usuarioFormulario.estado =
-            respuesta.estado;
+      primerApellido:
+        this.usuarioFormulario.primerApellido,
 
-          this.usuarioFormulario.municipio =
-            respuesta.municipio;
+      segundoApellido:
+        this.usuarioFormulario.segundoApellido,
 
-          this.colonias =
-            respuesta.colonias.map(
-              colonia => colonia.nombre
-            );
+      telefono:
+        this.usuarioFormulario.telefono,
 
-          this.cpLoading = false;
-        },
+      codigoPostal:
+        this.usuarioFormulario.codigoPostal,
 
-        error: (error: unknown) => {
-          if (
-            error instanceof HttpErrorResponse &&
-            error.status === 404
-          ) {
-            this.cpError =
-              'Código postal no encontrado.';
-          } else {
-            this.cpError =
-              'No se pudo consultar el código postal.';
-          }
+      direccion:
+        this.usuarioFormulario.direccion,
 
-          this.usuarioFormulario.estado = '';
-          this.usuarioFormulario.municipio = '';
-          this.cpLoading = false;
-        }
-      });
+      fechaNacimiento:
+        this.usuarioFormulario.fechaNacimiento,
+
+      animalFavorito:
+        this.usuarioFormulario.animalFavorito
+
+    };
+
   }
 
-  cancelarEdicion(): void {
-    this.cerrarModalEditar();
-  }
+  // =========================
+  // LIMPIAR FORMULARIO
+  // =========================
 
   limpiarFormulario(): void {
+
     this.editando = false;
-    this.usuarioEditandoId = undefined;
+
+    this.usuarioEditandoId =
+      undefined;
 
     this.usuarioFormulario =
       this.crearUsuarioVacio();
 
-    this.limpiarCodigoPostal();
   }
+
+  // =========================
+  // CERRAR SESIÓN
+  // =========================
 
   cerrarSesion(): void {
-    this.authService.cerrarSesion();
-    this.router.navigate(['/']);
+
+    this.authService
+      .cerrarSesion();
+
+    this.router
+      .navigate(['/']);
+
   }
 
+  // =========================
+  // VALIDAR EDAD
+  // =========================
+
   private validarEdad(): boolean {
+
     if (
       this.esMayorDeEdad(
-        this.usuarioFormulario.fechaNacimiento
+        this.usuarioFormulario
+          .fechaNacimiento
       )
     ) {
+
       return true;
+
     }
 
     alert(
@@ -325,24 +422,32 @@ export class Admin implements OnInit {
     );
 
     return false;
+
   }
+
+  // =========================
+  // ORDENAR POR ID
+  // =========================
 
   private ordenarPorId(
     usuarios: Usuario[]
   ): Usuario[] {
+
     return [...usuarios].sort(
       (a, b) =>
-        (a.id ?? 0) - (b.id ?? 0)
+        (a.id ?? 0) -
+        (b.id ?? 0)
     );
+
   }
 
-  private limpiarCodigoPostal(): void {
-    this.cpError = '';
-    this.cpLoading = false;
-    this.colonias = [];
-  }
+  // =========================
+  // FECHA MÁXIMA
+  // =========================
 
-  private obtenerFechaMaximaAdulto(): string {
+  private obtenerFechaMaximaAdulto():
+    string {
+
     const hoy = new Date();
 
     const fecha = new Date(
@@ -365,31 +470,52 @@ export class Admin implements OnInit {
       ).padStart(2, '0');
 
     return `${anio}-${mes}-${dia}`;
+
   }
+
+  // =========================
+  // COMPROBAR EDAD
+  // =========================
 
   private esMayorDeEdad(
     fechaNacimiento: string
   ): boolean {
+
     return (
       !!fechaNacimiento &&
       fechaNacimiento <=
         this.fechaMaximaAdulto
     );
+
   }
 
-  private crearUsuarioVacio(): Usuario {
+  // =========================
+  // USUARIO VACÍO
+  // =========================
+
+  private crearUsuarioVacio():
+    Usuario {
+
     return {
+
       nombre: '',
       primerApellido: '',
       segundoApellido: '',
       telefono: '',
       codigoPostal: '',
+
+      // Se conservan porque Usuario
+      // los utiliza al mostrar información
       estado: '',
       municipio: '',
+
       direccion: '',
       fechaNacimiento: '',
       animalFavorito: '',
       activo: true
+
     };
+
   }
+
 }
