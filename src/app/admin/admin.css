@@ -1,3 +1,12 @@
+:host {
+  --vino: #7b1734;
+  --vino-oscuro: #641129;
+  --dorado: #c59a52;
+  --dorado-claro: #d6b77d;
+  --blanco: #ffffff;
+  --texto-secundario: #746d70;
+}
+
 /* =========================
    ETIQUETA DEL MODAL DE EDICIÓN
    ========================= */
@@ -151,6 +160,165 @@
 .admin-primary:disabled {
   background: #c9c3c5;
   cursor: not-allowed;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow-y: auto;
+  background: rgba(35, 24, 28, .7);
+  backdrop-filter: blur(4px);
+}
+
+.modal-card {
+  position: relative;
+  width: min(760px, 100%);
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  padding: 28px 30px;
+  background: var(--blanco);
+  border: 1px solid #eadfd8;
+  border-top: 5px solid var(--vino);
+  border-radius: 14px;
+  box-shadow: 0 22px 65px rgba(40, 15, 23, .32);
+  animation: aparecerModal .2s ease-out;
+}
+
+@keyframes aparecerModal {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 22px;
+}
+
+.modal-header h2 {
+  margin: 0;
+  color: var(--vino);
+  font-size: 24px;
+}
+
+.modal-close {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--texto-secundario);
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.modal-close:hover {
+  background: #f7f1f3;
+  color: var(--vino);
+}
+
+.user-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.user-form .field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.user-form .field.full {
+  grid-column: 1 / -1;
+}
+
+.user-form .field label {
+  color: #51494c;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.user-form .field input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
+  border: 1px solid #ded6ce;
+  border-radius: 5px;
+  font: inherit;
+}
+
+.user-form .field input:focus {
+  outline: 2px solid var(--dorado-claro);
+  border-color: var(--vino);
+}
+
+.user-form .field small {
+  color: var(--texto-secundario);
+  font-size: 11px;
+}
+
+.user-form .actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.user-form .actions button {
+  border-radius: 6px;
+  padding: 11px 18px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.user-form .actions .save {
+  border: 0;
+  background: var(--vino);
+  color: white;
+}
+
+.user-form .actions .cancel {
+  border: 1px solid #d8cec6;
+  background: white;
+  color: var(--vino);
+}
+
+@media (max-width: 600px) {
+  .modal-card {
+    padding: 22px 18px;
+  }
+
+  .user-form {
+    grid-template-columns: 1fr;
+  }
+
+  .user-form .field.full {
+    grid-column: auto;
+  }
+
+  .user-form .actions {
+    flex-direction: column-reverse;
+  }
+
+  .user-form .actions button {
+    width: 100%;
+  }
 }
 
 .table-wrapper {
