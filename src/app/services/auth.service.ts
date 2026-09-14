@@ -12,6 +12,12 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
 
+export interface LoginResponse {
+  acceso?: boolean;
+  token?: string;
+  usuario?: unknown;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -26,20 +32,22 @@ export class AuthService {
   ) {}
 
   // Conexión real al backend para iniciar sesión
-  login(credenciales: { email: string; password: string }): Observable<any> {
+  login(credenciales: { email: string; password: string }): Observable<LoginResponse> {
     const datosAEnviar = {
       usuario: credenciales.email,
       password: credenciales.password
     };
 
-    return this.http.post<any>(`${this.authUrl}/admin`, datosAEnviar).pipe(
+    return this.http.post<LoginResponse>(`${this.authUrl}/admin`, datosAEnviar).pipe(
       tap(response => {
         if (
           isPlatformBrowser(this.platformId) &&
           response &&
-          response.token
+          (response.acceso === true || response.token)
         ) {
-          localStorage.setItem('token', response.token);
+          if (response.token) {
+            localStorage.setItem('token', response.token);
+          }
           localStorage.setItem('adminSesion', 'true');
           localStorage.setItem('usuario', JSON.stringify(response.usuario || {}));
         }

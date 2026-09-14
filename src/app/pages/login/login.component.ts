@@ -33,6 +33,12 @@ export class LoginComponent implements OnInit {
       this.authService.login(this.loginForm.value).subscribe({
         next: (response) => {
           console.log('Login exitoso', response);
+
+          if (response.acceso === false) {
+            this.errorMensaje = 'Credenciales incorrectas.';
+            return;
+          }
+
           this.router.navigate(['/admin']);
         },
         error: (err) => {

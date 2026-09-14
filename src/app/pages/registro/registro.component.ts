@@ -14,6 +14,7 @@ import {
   UsuarioService,
   UsuarioRequest
 } from '../../services/usuario.service';
+import { Router } from '@angular/router';
 
 import {
   DatosPersonalesComponent
@@ -76,7 +77,8 @@ export class RegistroComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private usuarioService: UsuarioService
+    private usuarioService: UsuarioService,
+    private router: Router
   ) {}
 
 
@@ -368,11 +370,7 @@ export class RegistroComponent implements OnInit {
             .reset();
 
 
-          this.mostrarModal(
-            'exito',
-            '¡Usuario registrado!',
-            'El usuario fue registrado correctamente.'
-          );
+          this.router.navigate(['/exito']);
 
         },
 
