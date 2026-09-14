@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import {
   AuthService
@@ -30,11 +29,7 @@ export class InicioComponent {
 
   mostrarPassword = false;
 
-  private apiUrl =
-    'http://localhost:8081/api/auth/admin';
-
   constructor(
-    private http: HttpClient,
     private router: Router,
     private authService: AuthService
   ) {}
@@ -62,36 +57,22 @@ export class InicioComponent {
 
     this.cargando = true;
 
-    const datos = {
-
-      usuario: this.usuario,
-
-      password: this.password
-
-    };
-
-    this.http
-      .post<{ acceso: boolean }>(
-        this.apiUrl,
-        datos
-      )
+    this.authService
+      .login({
+        identificador: this.usuario,
+        password: this.password
+      })
       .subscribe({
 
         next: respuesta => {
 
           this.cargando = false;
 
-          if (respuesta.acceso) {
-
-            this.authService.iniciarSesion();
-
-            this.router.navigate(['/admin']);
-
-          } else {
-
+          if (respuesta.acceso === false) {
             this.mensajeError =
               'Usuario o contraseña incorrectos.';
-
+          } else {
+            this.router.navigate(['/admin']);
           }
 
         },

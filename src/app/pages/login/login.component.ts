@@ -23,14 +23,19 @@ export class LoginComponent implements OnInit {
 
   ngOnInit(): void {
     this.loginForm = this.fb.group({
-      email: ['', [Validators.required]],
+      identificador: ['', [Validators.required]],
       password: ['', [Validators.required]]
     });
   }
 
   onLogin(): void {
     if (this.loginForm.valid) {
-      this.authService.login(this.loginForm.value).subscribe({
+      const credenciales = {
+        identificador: this.loginForm.value.identificador.trim(),
+        password: this.loginForm.value.password
+      };
+
+      this.authService.login(credenciales).subscribe({
         next: (response) => {
           console.log('Login exitoso', response);
 

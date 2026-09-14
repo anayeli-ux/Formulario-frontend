@@ -32,9 +32,9 @@ export class AuthService {
   ) {}
 
   // Conexión real al backend para iniciar sesión
-  login(credenciales: { email: string; password: string }): Observable<LoginResponse> {
+  login(credenciales: { identificador: string; password: string }): Observable<LoginResponse> {
     const datosAEnviar = {
-      usuario: credenciales.email,
+      usuario: credenciales.identificador,
       password: credenciales.password
     };
 

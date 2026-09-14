@@ -13,7 +13,7 @@
     <form (ngSubmit)="iniciarSesion()">
 
       <div class="field">
-        <label for="usuario">Usuario</label>
+        <label for="usuario">Teléfono o correo electrónico</label>
 
         <div class="input-container">
           <span class="icon">👤</span>
@@ -23,7 +23,7 @@
             type="text"
             name="usuario"
             [(ngModel)]="usuario"
-            placeholder="Ingresa tu usuario"
+            placeholder="Teléfono o correo electrónico"
             required
             minlength="3"
             #usuarioControl="ngModel"
