@@ -278,7 +278,7 @@ export class Admin implements OnInit {
 
 
   /* =========================
-     CREAR USUARIO
+    CREAR USUARIO
      ========================= */
 
   crearUsuario(form?: NgForm): void {
@@ -294,6 +294,9 @@ export class Admin implements OnInit {
 
     const usuario =
       this.prepararUsuario();
+
+    console.log('ADMIN enviando:', usuario);
+    console.log('CP enviado:', usuario.codigoPostal);
 
     this.usuarioService
       .crearUsuario(usuario)
@@ -396,6 +399,7 @@ export class Admin implements OnInit {
 
     const usuario =
       this.prepararUsuario();
+      
 
     this.usuarioService
       .actualizarUsuario(
