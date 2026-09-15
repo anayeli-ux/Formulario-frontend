@@ -1,16 +1,16 @@
 :host {
-  --vino: #7b1734;
-  --vino-oscuro: #641129;
-  --dorado: #c59a52;
-  --dorado-claro: #d6b77d;
+  --vino: #3159c7;
+  --vino-oscuro: #264aa9;
+  --dorado: #60739b;
+  --dorado-claro: #9aa9c4;
 
-  --fondo: #f7f5f2;
+  --fondo: #f7f8fa;
   --blanco: #ffffff;
 
-  --texto: #292929;
-  --texto-secundario: #746d70;
+  --texto: #26364f;
+  --texto-secundario: #707d91;
 
-  --borde: #ded6ce;
+  --borde: #d9e0ea;
 }
 
 /* =========================
@@ -23,11 +23,7 @@
   padding: 35px 20px;
 
   background:
-    linear-gradient(
-      180deg,
-      #ffffff 0%,
-      var(--fondo) 100%
-    );
+    url('/fondo-registro.jpg') center / cover fixed no-repeat;
 
   font-family:
     "Montserrat",
@@ -132,7 +128,7 @@
     var(--blanco);
 
   border:
-    1px solid #eee7df;
+    1px solid #d9e0ea;
 
   border-top:
     5px solid var(--vino);
@@ -141,7 +137,7 @@
 
   box-shadow:
     0 12px 35px
-    rgba(80, 30, 45, 0.1);
+    rgba(38, 74, 169, 0.16);
 }
 
 /* =========================
@@ -598,5 +594,39 @@ select:disabled {
   .section-number {
     width: 34px;
     height: 34px;
+  }
+}
+
+@media (max-width: 480px) {
+  .registro-page {
+    padding: 18px 10px;
+  }
+
+  .registro-container {
+    padding: 22px 16px;
+    border-radius: 10px;
+  }
+
+  .registro-brand {
+    gap: 10px;
+  }
+
+  .brand-mark {
+    width: 42px;
+    height: 42px;
+    font-size: 18px;
+  }
+
+  .registro-brand h1 {
+    font-size: 16px;
+  }
+
+  .registro-header h2 {
+    font-size: 21px;
+  }
+
+  .registro-header p,
+  .section-header p {
+    font-size: 12px;
   }
 }

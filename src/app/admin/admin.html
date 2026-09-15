@@ -20,35 +20,47 @@
       <span class="admin-count">{{ totalUsuariosActivos() }} activos</span>
     </div>
 
-    <form class="create-form" #formCrear="ngForm" (ngSubmit)="crearUsuario()">
+    <form class="create-form" #formCrear="ngForm" (ngSubmit)="crearUsuario(formCrear)">
       <div class="admin-field">
-        <label for="crearNombre">Nombre</label>
+        <label for="crearNombre">Nombre <span class="required-mark">*</span></label>
         <input id="crearNombre" name="crearNombre" [(ngModel)]="usuarioFormulario.nombre" required minlength="2" maxlength="50">
+        <small class="field-error" *ngIf="formCrear.submitted && formCrear.controls['crearNombre']?.invalid">Este campo es obligatorio.</small>
       </div>
       <div class="admin-field">
-        <label for="crearPrimerApellido">Primer apellido</label>
+        <label for="crearPrimerApellido">Primer apellido <span class="required-mark">*</span></label>
         <input id="crearPrimerApellido" name="crearPrimerApellido" [(ngModel)]="usuarioFormulario.primerApellido" required maxlength="50">
+        <small class="field-error" *ngIf="formCrear.submitted && formCrear.controls['crearPrimerApellido']?.invalid">Este campo es obligatorio.</small>
       </div>
       <div class="admin-field">
         <label for="crearPassword">Contraseña *</label>
         <input id="crearPassword" type="password" name="crearPassword" [(ngModel)]="usuarioFormulario.password" required minlength="8" pattern="^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z\d]).+$">
+        <div class="admin-password-strength" *ngIf="usuarioFormulario.password">
+          <div class="admin-password-strength-bar">
+            <span [style.width.%]="passwordStrength * 25" [class]="'strength-' + passwordStrength"></span>
+          </div>
+          <small>{{ passwordStrengthLabel }}</small>
+        </div>
         <small class="field-error" *ngIf="formCrear.submitted && formCrear.controls['crearPassword']?.invalid">Usa 8 caracteres, una letra, un número y un símbolo.</small>
       </div>
       <div class="admin-field">
-        <label for="crearTelefono">Teléfono</label>
+        <label for="crearTelefono">Teléfono <span class="required-mark">*</span></label>
         <input id="crearTelefono" name="crearTelefono" [(ngModel)]="usuarioFormulario.telefono" required pattern="[0-9]{10}" maxlength="10" inputmode="numeric">
+        <small class="field-error" *ngIf="formCrear.submitted && formCrear.controls['crearTelefono']?.invalid">Ingresa un teléfono de 10 dígitos.</small>
       </div>
       <div class="admin-field">
-        <label for="crearCodigoPostal">Código postal</label>
+        <label for="crearCodigoPostal">Código postal <span class="required-mark">*</span></label>
         <input id="crearCodigoPostal" name="crearCodigoPostal" [(ngModel)]="usuarioFormulario.codigoPostal" required pattern="[0-9]{5}" maxlength="5" inputmode="numeric">
+        <small class="field-error" *ngIf="formCrear.submitted && formCrear.controls['crearCodigoPostal']?.invalid">Ingresa un código postal de 5 dígitos.</small>
       </div>
       <div class="admin-field">
-        <label for="crearFechaNacimiento">Fecha de nacimiento</label>
+        <label for="crearFechaNacimiento">Fecha de nacimiento <span class="required-mark">*</span></label>
         <input id="crearFechaNacimiento" type="date" name="crearFechaNacimiento" [(ngModel)]="usuarioFormulario.fechaNacimiento" [max]="fechaMaximaAdulto" required>
+        <small class="field-error" *ngIf="formCrear.submitted && formCrear.controls['crearFechaNacimiento']?.invalid">Este campo es obligatorio.</small>
       </div>
       <div class="admin-field">
-        <label for="crearDireccion">Dirección</label>
+        <label for="crearDireccion">Dirección <span class="required-mark">*</span></label>
         <input id="crearDireccion" name="crearDireccion" [(ngModel)]="usuarioFormulario.direccion" required maxlength="150">
+        <small class="field-error" *ngIf="formCrear.submitted && formCrear.controls['crearDireccion']?.invalid">Este campo es obligatorio.</small>
       </div>
       <div class="admin-field">
         <label for="crearEmail">Correo electrónico *</label>
@@ -56,7 +68,7 @@
         <small class="field-error" *ngIf="formCrear.submitted && formCrear.controls['crearEmail']?.invalid">Ingresa un correo electrónico válido.</small>
       </div>
       <div class="admin-form-actions">
-        <button type="submit" class="admin-primary" [disabled]="formCrear.invalid">Crear usuario</button>
+        <button type="submit" class="admin-primary">Crear usuario</button>
         <button type="button" class="admin-secondary" (click)="limpiarFormulario()">Limpiar</button>
       </div>
     </form>

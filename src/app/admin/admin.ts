@@ -7,7 +7,7 @@ import {
   signal
 } from '@angular/core';
 
-import { FormsModule } from '@angular/forms';
+import { FormsModule, NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 
 import { Usuario } from '../models/usuario.model';
@@ -281,7 +281,12 @@ export class Admin implements OnInit {
      CREAR USUARIO
      ========================= */
 
-  crearUsuario(): void {
+  crearUsuario(form?: NgForm): void {
+
+    if (form && form.invalid) {
+      form.form.markAllAsTouched();
+      return;
+    }
 
     if (!this.validarEdad()) {
       return;
@@ -694,6 +699,22 @@ export class Admin implements OnInit {
     this.usuarioFormulario =
       this.crearUsuarioVacio();
 
+  }
+
+  get passwordStrength(): number {
+    const password = this.usuarioFormulario.password ?? '';
+    let strength = 0;
+
+    if (password.length >= 8) strength++;
+    if (/[A-Za-z]/.test(password)) strength++;
+    if (/\d/.test(password)) strength++;
+    if (/[^A-Za-z\d]/.test(password)) strength++;
+
+    return strength;
+  }
+
+  get passwordStrengthLabel(): string {
+    return ['Muy débil', 'Débil', 'Regular', 'Fuerte', 'Muy fuerte'][this.passwordStrength];
   }
 
 
