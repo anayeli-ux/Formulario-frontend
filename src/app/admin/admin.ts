@@ -9,6 +9,7 @@ import {
 
 import { FormsModule, NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
+import { finalize } from 'rxjs';
 
 import { Usuario } from '../models/usuario.model';
 
@@ -18,6 +19,7 @@ import {
 } from '../services/usuario.service';
 
 import { AuthService } from '../services/auth.service';
+import { PostaliaService } from '../services/postalia.service';
 
 type TipoModal =
   | 'exito'
@@ -85,6 +87,8 @@ export class Admin implements OnInit {
 
   modalMensaje = '';
 
+  cargando = false;
+
 
   /*
    * Guarda temporalmente una acción
@@ -105,7 +109,8 @@ export class Admin implements OnInit {
   constructor(
     private router: Router,
     private usuarioService: UsuarioService,
-    private authService: AuthService
+    private authService: AuthService,
+    private postaliaService: PostaliaService
   ) {}
 
 
@@ -214,7 +219,9 @@ export class Admin implements OnInit {
         next: (usuarios: Usuario[]) => {
 
           this.usuarios.set(
-            this.ordenarPorId(usuarios)
+            this.ordenarPorId(
+              this.completarUbicaciones(usuarios)
+            )
           );
 
         },
@@ -252,7 +259,9 @@ export class Admin implements OnInit {
         next: (usuarios: Usuario[]) => {
 
           this.usuariosEliminados.set(
-            this.ordenarPorId(usuarios)
+            this.ordenarPorId(
+              this.completarUbicaciones(usuarios)
+            )
           );
 
         },
@@ -283,6 +292,10 @@ export class Admin implements OnInit {
 
   crearUsuario(form?: NgForm): void {
 
+    if (this.cargando) {
+      return;
+    }
+
     if (form && form.invalid) {
       form.form.markAllAsTouched();
       return;
@@ -298,8 +311,11 @@ export class Admin implements OnInit {
     console.log('ADMIN enviando:', usuario);
     console.log('CP enviado:', usuario.codigoPostal);
 
+    this.cargando = true;
+
     this.usuarioService
       .crearUsuario(usuario)
+      .pipe(finalize(() => this.cargando = false))
       .subscribe({
 
         next: () => {
@@ -358,6 +374,39 @@ export class Admin implements OnInit {
       ...usuario
     };
 
+    this.actualizarUbicacion();
+
+  }
+
+  actualizarUbicacion(): void {
+    const codigoPostal = this.usuarioFormulario.codigoPostal;
+
+    if (!/^\d{5}$/.test(codigoPostal)) {
+      this.usuarioFormulario = {
+        ...this.usuarioFormulario,
+        estado: '',
+        municipio: ''
+      };
+      return;
+    }
+
+    this.postaliaService.buscarCodigoPostal(codigoPostal).subscribe({
+      next: ubicacion => {
+        this.usuarioFormulario = {
+          ...this.usuarioFormulario,
+          estado: ubicacion.estado,
+          municipio: ubicacion.municipio
+        };
+      },
+      error: error => {
+        console.error('Error al consultar el código postal:', error);
+        this.usuarioFormulario = {
+          ...this.usuarioFormulario,
+          estado: '',
+          municipio: ''
+        };
+      }
+    });
   }
 
 
@@ -387,6 +436,10 @@ export class Admin implements OnInit {
 
   actualizarUsuario(): void {
 
+    if (this.cargando) {
+      return;
+    }
+
     if (
       this.usuarioEditandoId === undefined
     ) {
@@ -401,11 +454,14 @@ export class Admin implements OnInit {
       this.prepararUsuario();
       
 
+    this.cargando = true;
+
     this.usuarioService
       .actualizarUsuario(
         this.usuarioEditandoId,
         usuario
       )
+      .pipe(finalize(() => this.cargando = false))
       .subscribe({
 
         next: () => {
@@ -468,8 +524,11 @@ export class Admin implements OnInit {
     id: number
   ): void {
 
+    this.cargando = true;
+
     this.usuarioService
       .eliminarUsuario(id)
+      .pipe(finalize(() => this.cargando = false))
       .subscribe({
 
         next: () => {
@@ -526,6 +585,8 @@ export class Admin implements OnInit {
     id: number
   ): void {
 
+    this.cargando = true;
+
     /*
      * Este método requiere que
      * usuario.service.ts tenga:
@@ -535,6 +596,7 @@ export class Admin implements OnInit {
 
     this.usuarioService
       .reactivarUsuario(id)
+      .pipe(finalize(() => this.cargando = false))
       .subscribe({
 
         next: () => {
@@ -667,7 +729,7 @@ export class Admin implements OnInit {
         this.usuarioFormulario.primerApellido,
 
       password:
-        this.usuarioFormulario.password,
+        this.usuarioFormulario.password ?? '',
 
       telefono:
         this.usuarioFormulario.telefono,
@@ -779,6 +841,36 @@ export class Admin implements OnInit {
         (b.id ?? 0)
     );
 
+  }
+
+  private completarUbicaciones(
+    usuarios: Usuario[]
+  ): Usuario[] {
+
+    return usuarios.map(usuario => {
+      if (!usuario.codigoPostal) {
+        return usuario;
+      }
+
+      this.postaliaService.buscarCodigoPostal(usuario.codigoPostal).subscribe({
+        next: ubicacion => {
+          const actualizar = (lista: Usuario[]) => lista.map(item =>
+            item.id === usuario.id
+              ? { ...item, estado: ubicacion.estado, municipio: ubicacion.municipio }
+              : item
+          );
+
+          this.usuarios.update(actualizar);
+          this.usuariosEliminados.update(actualizar);
+        },
+        error: error => console.error(
+          'Error al consultar el código postal del usuario:',
+          error
+        )
+      });
+
+      return usuario;
+    });
   }
 
 

@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import {
@@ -15,6 +15,7 @@ import {
   UsuarioRequest
 } from '../../services/usuario.service';
 import { Router } from '@angular/router';
+import { finalize } from 'rxjs';
 
 import {
   DatosPersonalesComponent
@@ -52,10 +53,11 @@ type TipoModal =
 })
 
 
-export class RegistroComponent implements OnInit {
+export class RegistroComponent implements OnInit, OnDestroy {
 
   registroForm!: FormGroup;
   mensajeError = '';
+  cargando = false;
 
 
   // =========================
@@ -69,6 +71,10 @@ export class RegistroComponent implements OnInit {
   modalTitulo = '';
 
   modalMensaje = '';
+
+  esRegistroExitoso = false;
+
+  private redireccionTimer?: ReturnType<typeof setTimeout>;
 
   private controlInvalidoPendiente = '';
 
@@ -125,7 +131,8 @@ export class RegistroComponent implements OnInit {
             fecha_nacimiento: [
               '',
               [
-                Validators.required
+                Validators.required,
+                this.fechaNoFutura.bind(this)
               ]
             ],
 
@@ -202,6 +209,12 @@ export class RegistroComponent implements OnInit {
 
   }
 
+  ngOnDestroy(): void {
+    if (this.redireccionTimer) {
+      clearTimeout(this.redireccionTimer);
+    }
+  }
+
   private fechaNoFutura(control: AbstractControl): ValidationErrors | null {
     if (!control.value) return null;
     const fecha = new Date(`${control.value}T00:00:00`);
@@ -227,6 +240,8 @@ export class RegistroComponent implements OnInit {
 
     this.modalMensaje = mensaje;
 
+    this.esRegistroExitoso = tipo === 'exito';
+
     this.modalVisible = true;
 
   }
@@ -239,6 +254,11 @@ export class RegistroComponent implements OnInit {
   cerrarModal(): void {
 
     this.modalVisible = false;
+
+    if (this.redireccionTimer) {
+      clearTimeout(this.redireccionTimer);
+      this.redireccionTimer = undefined;
+    }
 
     this.enfocarControlInvalido();
 
@@ -289,6 +309,10 @@ export class RegistroComponent implements OnInit {
   // =========================
 
   enviarRegistro(): void {
+    if (this.cargando) {
+      return;
+    }
+
     this.mensajeError = '';
 
     /*
@@ -387,8 +411,11 @@ export class RegistroComponent implements OnInit {
     );
 
 
+    this.cargando = true;
+
     this.usuarioService
       .crearUsuario(datosAEnviar)
+      .pipe(finalize(() => this.cargando = false))
       .subscribe({
 
 
@@ -408,7 +435,15 @@ export class RegistroComponent implements OnInit {
             .reset();
 
 
-          this.router.navigate(['/exito']);
+          this.mostrarModal(
+            'exito',
+            '¡Lo lograste!',
+            'Tu registro se completó correctamente. Serás redirigido al inicio de sesión.'
+          );
+
+          this.redireccionTimer = setTimeout(() => {
+            this.router.navigate(['/login']);
+          }, 3000);
 
         },
 

@@ -1,0 +1,185 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  color: #203047;
+  font-family: "Montserrat", "Segoe UI", Arial, sans-serif;
+}
+
+.perfil-page {
+  min-height: 100vh;
+  padding: 42px 24px 64px;
+  box-sizing: border-box;
+  background:
+    linear-gradient(rgba(12, 30, 54, .42), rgba(12, 30, 54, .42)),
+    url('/fondo-usuario.jpg') center / cover fixed no-repeat;
+}
+
+.perfil-shell {
+  width: min(100%, 920px);
+  margin: 0 auto;
+}
+
+.perfil-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 28px;
+  color: #fff;
+}
+
+.perfil-kicker,
+.card-kicker,
+.dato-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+}
+
+.perfil-kicker {
+  margin-bottom: 8px;
+  color: #cfe0ff;
+}
+
+.perfil-header h1 {
+  margin: 0;
+  font-size: clamp(30px, 5vw, 48px);
+  line-height: 1.05;
+}
+
+.perfil-header p {
+  margin: 12px 0 0;
+  color: #e2ebf8;
+}
+
+.perfil-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.role-button,
+.logout-button {
+  flex: 0 0 auto;
+  min-height: 42px;
+  padding: 0 18px;
+  border: 1px solid rgba(255, 255, 255, .7);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, .1);
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.role-button {
+  border-color: #f4d58b;
+  background: #f4d58b;
+  color: #203047;
+}
+
+.role-button:hover {
+  border-color: #ffe7ae;
+  background: #ffe7ae;
+}
+
+.logout-button:hover {
+  background: #fff;
+  color: #203047;
+}
+
+.perfil-card {
+  padding: 38px;
+  border: 1px solid rgba(255, 255, 255, .65);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .95);
+  box-shadow: 0 20px 45px rgba(10, 24, 42, .24);
+}
+
+.perfil-card-heading {
+  padding-bottom: 24px;
+  border-bottom: 1px solid #dce4ef;
+}
+
+.card-kicker,
+.dato-label {
+  color: #5270a1;
+}
+
+.perfil-card h2 {
+  margin: 8px 0 0;
+  color: #203047;
+  font-size: 26px;
+}
+
+.datos-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px 32px;
+  padding-top: 28px;
+}
+
+.dato-label {
+  margin-bottom: 7px;
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+
+.dato strong {
+  display: block;
+  color: #263b58;
+  font-size: 15px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.dato-completo {
+  grid-column: 1 / -1;
+}
+
+.status-message {
+  margin: 0;
+  color: #5270a1;
+  text-align: center;
+}
+
+.error-message {
+  color: #a43131;
+}
+
+@media (max-width: 620px) {
+  .perfil-page {
+    padding: 28px 14px 44px;
+  }
+
+  .perfil-header {
+    flex-direction: column;
+  }
+
+  .logout-button {
+    width: 100%;
+  }
+
+  .perfil-actions {
+    width: 100%;
+  }
+
+  .role-button {
+    width: 100%;
+  }
+
+  .perfil-card {
+    padding: 26px 20px;
+  }
+
+  .datos-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .dato-completo {
+    grid-column: auto;
+  }
+}

@@ -62,6 +62,14 @@ export class UsuarioService {
 
   }
 
+  obtenerMiPerfil(): Observable<Usuario> {
+
+    return this.http.get<Usuario>(
+      `${this.apiUrl}/me`
+    );
+
+  }
+
 
   // =========================
   // CREAR USUARIO

@@ -6,7 +6,7 @@
       <p>Administra los registros activos y eliminados.</p>
     </div>
 
-    <button type="button" class="logout-button" (click)="cerrarSesion()">
+    <button type="button" class="logout-button" (click)="cerrarSesion()" [disabled]="cargando">
       Cerrar sesión
     </button>
   </header>
@@ -68,8 +68,8 @@
         <small class="field-error" *ngIf="formCrear.submitted && formCrear.controls['crearEmail']?.invalid">Ingresa un correo electrónico válido.</small>
       </div>
       <div class="admin-form-actions">
-        <button type="submit" class="admin-primary">Crear usuario</button>
-        <button type="button" class="admin-secondary" (click)="limpiarFormulario()">Limpiar</button>
+        <button type="submit" class="admin-primary" [disabled]="cargando">Crear usuario</button>
+        <button type="button" class="admin-secondary" (click)="limpiarFormulario()" [disabled]="cargando">Limpiar</button>
       </div>
     </form>
   </section>
@@ -102,8 +102,8 @@
             <td>{{ usuario.codigoPostal }}</td>
             <td>{{ usuario.municipio }}</td>
             <td class="table-actions">
-              <button type="button" class="table-edit" (click)="editarUsuario(usuario)">Editar</button>
-              <button type="button" class="table-delete" (click)="eliminarUsuario(usuario.id!)">Eliminar</button>
+              <button type="button" class="table-edit" (click)="editarUsuario(usuario)" [disabled]="cargando">Editar</button>
+              <button type="button" class="table-delete" (click)="eliminarUsuario(usuario.id!)" [disabled]="cargando">Eliminar</button>
             </td>
           </tr>
           <tr *ngIf="usuarios().length === 0">
@@ -141,7 +141,7 @@
             <td>{{ usuario.telefono }}</td>
             <td>{{ usuario.codigoPostal }}</td>
             <td>
-              <button type="button" class="table-edit" (click)="reactivarUsuario(usuario.id!)">Reactivar</button>
+              <button type="button" class="table-edit" (click)="reactivarUsuario(usuario.id!)" [disabled]="cargando">Reactivar</button>
             </td>
           </tr>
           <tr *ngIf="usuariosEliminados().length === 0">
@@ -269,6 +269,7 @@
           type="text"
           name="modalCodigoPostal"
           [(ngModel)]="usuarioFormulario.codigoPostal"
+          (ngModelChange)="actualizarUbicacion()"
           maxlength="5"
           minlength="5"
           pattern="[0-9]{5}"
@@ -370,7 +371,7 @@
         <button
           class="save"
           type="submit"
-          [disabled]="formEditar.invalid"
+          [disabled]="formEditar.invalid || cargando"
         >
           Actualizar usuario
         </button>
@@ -379,6 +380,7 @@
           class="cancel"
           type="button"
           (click)="cerrarModalEditar()"
+          [disabled]="cargando"
         >
           Cancelar
         </button>
@@ -387,6 +389,14 @@
 
     </form>
 
+  </div>
+</div>
+
+<div class="mensaje-overlay" *ngIf="cargando" aria-live="polite" aria-busy="true">
+  <div class="mensaje-modal">
+    <div class="mensaje-icon">...</div>
+    <h2>Procesando solicitud</h2>
+    <p>Espera un momento...</p>
   </div>
 </div>
 

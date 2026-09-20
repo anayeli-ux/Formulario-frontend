@@ -13,9 +13,13 @@ import { Observable, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 export interface LoginResponse {
-  acceso?: boolean;
-  token?: string;
-  usuario?: unknown;
+  acceso: boolean;
+  token: string;
+  usuario: {
+    id: number;
+    email: string;
+    rol: string;
+  };
 }
 
 @Injectable({
@@ -38,7 +42,7 @@ export class AuthService {
       password: credenciales.password
     };
 
-    return this.http.post<LoginResponse>(`${this.authUrl}/admin`, datosAEnviar).pipe(
+    return this.http.post<LoginResponse>(`${this.authUrl}/login`, datosAEnviar).pipe(
       tap(response => {
         if (
           isPlatformBrowser(this.platformId) &&

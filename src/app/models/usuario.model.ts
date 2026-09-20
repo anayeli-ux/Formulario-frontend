@@ -2,7 +2,7 @@ export interface Usuario {
   id?: number;
   nombre: string;
   primerApellido: string;
-  password: string;
+  password?: string;
   telefono: string;
   codigoPostal: string;
   estado: string;

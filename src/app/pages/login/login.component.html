@@ -43,14 +43,14 @@
 
         <div class="campo">
           <label for="identificador">
-            Teléfono o correo electrónico
+            Correo electrónico
           </label>
 
           <input
             type="text"
             id="identificador"
             formControlName="identificador"
-            placeholder="Teléfono o correo electrónico"
+            placeholder="correo@ejemplo.com"
           >
         </div>
 
@@ -69,9 +69,9 @@
 
         <button
           type="submit"
-          [disabled]="loginForm.invalid"
+          [disabled]="loginForm.invalid || cargando"
         >
-          Iniciar sesión
+          {{ cargando ? 'Iniciando sesión...' : 'Iniciar sesión' }}
         </button>
 
       </form>
@@ -88,4 +88,12 @@
 
   </div>
 
+</div>
+
+<div class="loading-overlay" *ngIf="cargando" aria-live="polite" aria-busy="true">
+  <div class="loading-modal">
+    <span class="loading-spinner" aria-hidden="true"></span>
+    <strong>Iniciando sesión</strong>
+    <span>Espera un momento...</span>
+  </div>
 </div>

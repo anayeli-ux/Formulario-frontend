@@ -388,6 +388,47 @@ select:disabled {
     not-allowed;
 }
 
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: grid;
+  place-items: center;
+  background: rgba(35, 24, 28, .7);
+  backdrop-filter: blur(4px);
+}
+
+.loading-modal {
+  display: grid;
+  gap: 10px;
+  min-width: 230px;
+  padding: 28px;
+  border-radius: 12px;
+  background: var(--blanco);
+  color: var(--texto);
+  text-align: center;
+  box-shadow: 0 22px 65px rgba(40, 15, 23, .32);
+}
+
+.loading-modal span:last-child {
+  color: var(--texto-secundario);
+  font-size: 13px;
+}
+
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  margin: 0 auto 4px;
+  border: 3px solid #d9e2f7;
+  border-top-color: var(--vino);
+  border-radius: 50%;
+  animation: girarRegistro .8s linear infinite;
+}
+
+@keyframes girarRegistro {
+  to { transform: rotate(360deg); }
+}
+
 .mensaje-error {
   color: #d32f2f;
   font-size: 0.9rem;
@@ -418,6 +459,23 @@ select:disabled {
   box-shadow: 0 22px 65px rgba(40, 15, 23, .32);
   text-align: center;
   animation: aparecerMensaje .22s ease;
+}
+
+.modal-success-image {
+  display: block;
+  width: 160px;
+  height: 160px;
+  margin: 0 auto 20px;
+  object-fit: cover;
+  border-radius: 14px;
+}
+
+.mensaje-modal.exito .modal-brand {
+  display: none;
+}
+
+.mensaje-modal.exito h2 {
+  margin-bottom: 8px;
 }
 
 @keyframes aparecerMensaje {

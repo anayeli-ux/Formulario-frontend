@@ -110,8 +110,9 @@
           <button
             type="submit"
             class="btn-submit"
+            [disabled]="cargando"
           >
-            Registrar usuario
+            {{ cargando ? 'Registrando usuario...' : 'Registrar usuario' }}
           </button>
 
         </div>
@@ -124,6 +125,14 @@
 
 </div>
 
+<div class="loading-overlay" *ngIf="cargando" aria-live="polite" aria-busy="true">
+  <div class="loading-modal">
+    <span class="loading-spinner" aria-hidden="true"></span>
+    <strong>Registrando usuario</strong>
+    <span>Espera un momento...</span>
+  </div>
+</div>
+
 
 <!-- =========================================
     MODAL DE MENSAJES
@@ -132,7 +141,7 @@
 <div
   class="mensaje-overlay"
   *ngIf="modalVisible"
-  (click)="cerrarModal()"
+  (click)="!esRegistroExitoso && cerrarModal()"
 >
 
   <div
@@ -143,6 +152,7 @@
 
     <!-- BOTÓN CERRAR -->
     <button
+      *ngIf="!esRegistroExitoso"
       type="button"
       class="modal-close"
       (click)="cerrarModal()"
@@ -151,6 +161,13 @@
       ×
     </button>
 
+
+    <img
+      *ngIf="esRegistroExitoso"
+      src="gatito.jpg"
+      alt="Registro completado"
+      class="modal-success-image"
+    >
 
     <!-- IDENTIDAD VISUAL -->
     <div class="modal-brand">
@@ -175,7 +192,7 @@
 
 
     <!-- ICONO SEGÚN EL TIPO -->
-    <div class="modal-icon">
+    <div class="modal-icon" *ngIf="!esRegistroExitoso">
 
       <span *ngIf="modalTipo === 'exito'">
         ✓
@@ -206,6 +223,7 @@
 
     <!-- BOTÓN -->
     <button
+      *ngIf="!esRegistroExitoso"
       type="button"
       class="modal-aceptar"
       (click)="cerrarModal()"
