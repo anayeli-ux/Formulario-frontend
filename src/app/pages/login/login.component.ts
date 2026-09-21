@@ -1,9 +1,10 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { finalize } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
+import { LoginError, LoginErrorField } from '../../models/login.model';
 
 @Component({
   selector: 'app-login',
@@ -14,7 +15,8 @@ import { AuthService } from '../../services/auth.service';
 })
 export class LoginComponent implements OnInit {
   loginForm!: FormGroup;
-  errorMensaje: string = '';
+  errorMensaje = '';
+  loginError: LoginError | null = null;
   cargando = false;
 
   constructor(
@@ -30,45 +32,79 @@ export class LoginComponent implements OnInit {
     });
   }
 
+  getFieldError(controlName: string): string {
+    const control = this.loginForm.get(controlName) as AbstractControl | null;
+
+    if (!control || !control.touched || !control.errors) {
+      return '';
+    }
+
+    if (control.errors['required']) {
+      return controlName === 'identificador'
+        ? 'El correo o usuario es obligatorio.'
+        : 'La contraseña es obligatoria.';
+    }
+
+    return '';
+  }
+
+  setLoginError(mensaje: string, campo: LoginErrorField = 'general'): void {
+    this.loginError = { mensaje, campo };
+    this.errorMensaje = mensaje;
+  }
+
+  clearLoginError(): void {
+    this.loginError = null;
+    this.errorMensaje = '';
+  }
+
   onLogin(): void {
     if (this.cargando) {
       return;
     }
 
-    if (this.loginForm.valid) {
-      this.cargando = true;
-      const credenciales = {
-        identificador: this.loginForm.value.identificador.trim(),
-        password: this.loginForm.value.password
-      };
+    this.clearLoginError();
 
-      this.authService.login(credenciales).pipe(
-        finalize(() => this.cargando = false)
-      ).subscribe({
-        next: (response) => {
-          console.log('Login exitoso', response);
-
-          if (response.acceso === false) {
-            this.errorMensaje = 'Credenciales incorrectas.';
-            return;
-          }
-
-          const destino = response.usuario.rol === 'ADMIN'
-            ? '/admin'
-            : '/usuario';
-
-          this.router.navigate([destino]);
-        },
-        error: (err) => {
-          console.error('Error de autenticación', err);
-          this.errorMensaje = 'Credenciales incorrectas o error en el servidor.';
-        }
-      });
-    } else {
+    if (this.loginForm.invalid) {
       this.loginForm.markAllAsTouched();
+      const identificadorControl = this.loginForm.get('identificador');
+      const passwordControl = this.loginForm.get('password');
+
+      if (identificadorControl?.invalid) {
+        this.setLoginError('El correo o usuario es obligatorio.', 'identificador');
+      } else if (passwordControl?.invalid) {
+        this.setLoginError('La contraseña es obligatoria.', 'password');
+      }
+      return;
     }
+
+    this.cargando = true;
+    const credenciales = {
+      identificador: this.loginForm.value.identificador.trim(),
+      password: this.loginForm.value.password
+    };
+
+    this.authService.login(credenciales).pipe(
+      finalize(() => this.cargando = false)
+    ).subscribe({
+      next: (response) => {
+        console.log('Login exitoso', response);
+
+        if (response.acceso === false) {
+          this.setLoginError('Datos incorrectos. Verifica tu correo y contraseña.', 'general');
+          return;
+        }
+
+        const destino = response.usuario.rol === 'ADMIN'
+          ? '/admin'
+          : '/usuario';
+
+        this.router.navigate([destino]);
+      },
+      error: (err) => {
+        console.error('Error de autenticación', err);
+        this.setLoginError('Datos incorrectos. Verifica tu correo y contraseña.', 'general');
+      }
+    });
   }
-
-
-  
 }

@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 import { Usuario } from '../../models/usuario.model';
 import { AuthService } from '../../services/auth.service';
@@ -15,17 +16,20 @@ import { UsuarioService } from '../../services/usuario.service';
 })
 export class UsuarioPerfilComponent implements OnInit {
   private readonly enlaceCambioDeRol =
-    'https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=RDdQw4w9WgXcQ&start_radio=1';
+    'https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&rel=0';
 
   usuario?: Usuario;
   cargando = true;
   errorMensaje = '';
+  modalVisible = false;
+  youtubeEmbedUrl: SafeResourceUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.enlaceCambioDeRol);
 
   constructor(
     private usuarioService: UsuarioService,
     private postaliaService: PostaliaService,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private sanitizer: DomSanitizer
   ) {}
 
   ngOnInit(): void {
@@ -67,6 +71,10 @@ export class UsuarioPerfilComponent implements OnInit {
   }
 
   cambiarDeRol(): void {
-    window.location.href = this.enlaceCambioDeRol;
+    this.modalVisible = true;
+  }
+
+  cerrarVideo(): void {
+    this.modalVisible = false;
   }
 }

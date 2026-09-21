@@ -108,12 +108,29 @@
   outline: none;
 }
 
+.login-container input.input-error {
+  border: 1px solid #d93025;
+  box-shadow: inset 0 -2px 0 #d93025;
+}
+
 .login-container input::placeholder {
   color: #a4a4a4;
 }
 
 .login-container input:focus {
   box-shadow: inset 0 -2px 0 var(--azul);
+}
+
+.mensaje-error {
+  margin-top: 6px;
+  color: #d93025;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.mensaje-error-general {
+  margin: 14px 0 10px;
+  font-weight: 600;
 }
 
 .login-container form > button {

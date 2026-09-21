@@ -9,7 +9,7 @@
 
       <div class="perfil-actions">
         <button class="role-button" type="button" (click)="cambiarDeRol()">
-          Cambiar de roll
+        solicitar cambio de rol
         </button>
 
         <button class="logout-button" type="button" (click)="cerrarSesion()">
@@ -65,3 +65,27 @@
     </section>
   </section>
 </main>
+
+<div class="video-modal-backdrop" *ngIf="modalVisible" (click)="cerrarVideo()">
+  <div
+    class="video-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Video de cambio de rol"
+    (click)="$event.stopPropagation()"
+  >
+    <button class="video-close" type="button" (click)="cerrarVideo()" aria-label="Cerrar video">
+      ×
+    </button>
+
+    <div class="video-wrapper">
+      <iframe
+        [src]="youtubeEmbedUrl"
+        title="Video de cambio de rol"
+        frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowfullscreen
+      ></iframe>
+    </div>
+  </div>
+</div>
