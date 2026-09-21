@@ -1,25 +1,35 @@
 import { inject } from '@angular/core';
 import { Router, CanActivateFn } from '@angular/router';
+import { catchError, map, of } from 'rxjs';
 import { AuthService } from '../services/auth.service';
+import { UsuarioService } from '../services/usuario.service';
 
 export const adminGuard: CanActivateFn = (route, state) => {
     const authService = inject(AuthService);
+    const usuarioService = inject(UsuarioService);
     const router = inject(Router);
-    const usuario = localStorage.getItem('usuario');
 
-    let esAdministrador = false;
-    if (usuario) {
-        try {
-            esAdministrador = JSON.parse(usuario).rol === 'ADMIN';
-        } catch {
-            esAdministrador = false;
-        }
+    if (!authService.haySesion()) {
+        router.navigate(['/login']);
+        return false;
     }
 
-    if (authService.haySesion() && esAdministrador) {
-        return true;
-    }
+    return usuarioService.obtenerMiPerfil().pipe(
+        map((usuario) => {
+            const esAdministrador = usuario?.rol === 'ADMIN';
 
-    router.navigate(['/login']);
-    return false;
+            if (esAdministrador) {
+                return true;
+            }
+
+            authService.cerrarSesion();
+            router.navigate(['/login']);
+            return false;
+        }),
+        catchError(() => {
+            authService.cerrarSesion();
+            router.navigate(['/login']);
+            return of(false);
+        })
+    );
 };

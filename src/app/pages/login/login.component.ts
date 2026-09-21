@@ -88,8 +88,6 @@ export class LoginComponent implements OnInit {
       finalize(() => this.cargando = false)
     ).subscribe({
       next: (response) => {
-        console.log('Login exitoso', response);
-
         if (response.acceso === false) {
           this.setLoginError('Datos incorrectos. Verifica tu correo y contraseña.', 'general');
           return;
@@ -101,8 +99,7 @@ export class LoginComponent implements OnInit {
 
         this.router.navigate([destino]);
       },
-      error: (err) => {
-        console.error('Error de autenticación', err);
+      error: () => {
         this.setLoginError('Datos incorrectos. Verifica tu correo y contraseña.', 'general');
       }
     });

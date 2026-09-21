@@ -226,13 +226,7 @@ export class Admin implements OnInit {
 
         },
 
-        error: (error: any) => {
-
-          console.error(
-            'Error al cargar usuarios:',
-            error
-          );
-
+        error: () => {
           this.mostrarModal(
             'error',
             'Error al cargar usuarios',
@@ -266,13 +260,7 @@ export class Admin implements OnInit {
 
         },
 
-        error: (error: any) => {
-
-          console.error(
-            'Error al cargar usuarios eliminados:',
-            error
-          );
-
+        error: () => {
           this.mostrarModal(
             'error',
             'Error al cargar usuarios',
@@ -308,9 +296,6 @@ export class Admin implements OnInit {
     const usuario =
       this.prepararUsuario();
 
-    console.log('ADMIN enviando:', usuario);
-    console.log('CP enviado:', usuario.codigoPostal);
-
     this.cargando = true;
 
     this.usuarioService
@@ -333,12 +318,6 @@ export class Admin implements OnInit {
         },
 
         error: (error: any) => {
-
-          console.error(
-            'Error al crear usuario:',
-            error
-          );
-
           this.mostrarErrorHttp(
             error,
             'No se pudo crear el usuario.'
@@ -398,8 +377,7 @@ export class Admin implements OnInit {
           municipio: ubicacion.municipio
         };
       },
-      error: error => {
-        console.error('Error al consultar el código postal:', error);
+      error: () => {
         this.usuarioFormulario = {
           ...this.usuarioFormulario,
           estado: '',
@@ -481,12 +459,6 @@ export class Admin implements OnInit {
         },
 
         error: (error: any) => {
-
-          console.error(
-            'Error al actualizar usuario:',
-            error
-          );
-
           this.mostrarErrorHttp(
             error,
             'No se pudo actualizar el usuario.'
@@ -546,12 +518,6 @@ export class Admin implements OnInit {
         },
 
         error: (error: any) => {
-
-          console.error(
-            'Error al eliminar usuario:',
-            error
-          );
-
           this.mostrarErrorHttp(
             error,
             'No se pudo eliminar el usuario.'
@@ -614,12 +580,6 @@ export class Admin implements OnInit {
         },
 
         error: (error: any) => {
-
-          console.error(
-            'Error al reactivar usuario:',
-            error
-          );
-
           this.mostrarErrorHttp(
             error,
             'No se pudo reactivar el usuario.'
@@ -863,10 +823,7 @@ export class Admin implements OnInit {
           this.usuarios.update(actualizar);
           this.usuariosEliminados.update(actualizar);
         },
-        error: error => console.error(
-          'Error al consultar el código postal del usuario:',
-          error
-        )
+        error: () => undefined
       });
 
       return usuario;

@@ -19,6 +19,9 @@ export interface UsuarioRequest {
   direccion: string;
   fechaNacimiento: string;
   email: string;
+  telefonos?: Array<{ tipo: string; valor: string }>;
+  correos?: Array<{ tipo: string; valor: string }>;
+  direcciones?: Array<{ tipo: string; valor: string }>;
 }
 
 

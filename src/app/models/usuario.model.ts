@@ -1,3 +1,8 @@
+export interface ContactoItem {
+  tipo: string;
+  valor: string;
+}
+
 export interface Usuario {
   id?: number;
   nombre: string;
@@ -11,4 +16,8 @@ export interface Usuario {
   fechaNacimiento: string;
   email: string;
   activo?: boolean;
+  rol?: string;
+  telefonos?: ContactoItem[];
+  correos?: ContactoItem[];
+  direcciones?: ContactoItem[];
 }

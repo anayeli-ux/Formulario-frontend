@@ -35,6 +35,17 @@ export class AuthService {
     private http: HttpClient
   ) {}
 
+  private guardarSesion(usuario: LoginResponse['usuario'] | null | undefined, token?: string): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    if (token) {
+      localStorage.setItem('token', token);
+    }
+
+  }
+
   // Conexión real al backend para iniciar sesión
   login(credenciales: { identificador: string; password: string }): Observable<LoginResponse> {
     const datosAEnviar = {
@@ -47,29 +58,12 @@ export class AuthService {
         if (
           isPlatformBrowser(this.platformId) &&
           response &&
-          (response.acceso === true || response.token)
+          response.acceso === true
         ) {
-          if (response.token) {
-            localStorage.setItem('token', response.token);
-          }
-          localStorage.setItem('adminSesion', 'true');
-          localStorage.setItem('usuario', JSON.stringify(response.usuario || {}));
+          this.guardarSesion(response.usuario, response.token);
         }
       })
     );
-  }
-
-  iniciarSesion(): void {
-    if (
-      isPlatformBrowser(
-        this.platformId
-      )
-    ) {
-      localStorage.setItem(
-        'adminSesion',
-        'true'
-      );
-    }
   }
 
   haySesion(): boolean {
@@ -81,11 +75,7 @@ export class AuthService {
       return false;
     }
 
-    return (
-      localStorage.getItem(
-        'adminSesion'
-      ) === 'true' || !!localStorage.getItem('token')
-    );
+    return !!localStorage.getItem('token');
   }
 
   getToken(): string | null {
@@ -101,11 +91,7 @@ export class AuthService {
         this.platformId
       )
     ) {
-      localStorage.removeItem(
-        'adminSesion'
-      );
       localStorage.removeItem('token');
-      localStorage.removeItem('usuario');
     }
   }
 

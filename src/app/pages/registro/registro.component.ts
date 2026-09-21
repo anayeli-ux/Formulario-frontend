@@ -2,6 +2,7 @@ import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/co
 import { CommonModule } from '@angular/common';
 
 import {
+  FormArray,
   FormBuilder,
   FormGroup,
   Validators,
@@ -163,6 +164,10 @@ export class RegistroComponent implements OnInit, OnDestroy {
               ]
             ],
 
+            telefonos: this.fb.array([
+              this.crearContacto('Casa')
+            ]),
+
             codigo_postal: [
               '',
               [
@@ -171,9 +176,6 @@ export class RegistroComponent implements OnInit, OnDestroy {
               ]
             ],
 
-
-            // Estado vuelve a aparecer
-            // en el formulario.
             estado: [
               '',
               [
@@ -182,9 +184,6 @@ export class RegistroComponent implements OnInit, OnDestroy {
               ]
             ],
 
-
-            // Municipio vuelve a aparecer
-            // en el formulario.
             municipio: [
               '',
               [
@@ -193,20 +192,34 @@ export class RegistroComponent implements OnInit, OnDestroy {
               ]
             ],
 
-
             direccion: [
               '',
               [
                 Validators.required,
                 Validators.maxLength(150)
               ]
-            ]
+            ],
+
+            direcciones: this.fb.array([
+              this.crearContacto('Principal')
+            ]),
+
+            correos: this.fb.array([
+              this.crearContacto('Personal')
+            ])
 
           }),
 
 
       });
 
+  }
+
+  private crearContacto(tipo = ''): FormGroup {
+    return this.fb.group({
+      tipo: [tipo, Validators.required],
+      valor: ['', Validators.required]
+    });
   }
 
   ngOnDestroy(): void {
@@ -363,6 +376,15 @@ export class RegistroComponent implements OnInit, OnDestroy {
      * continúa obteniéndolos mediante
      * su lógica actual.
      */
+    const telefonosExtra = (datosContacto.telefonos ?? []).filter((item: any) => item?.valor)
+      .map((item: any) => ({ tipo: item.tipo || 'Contacto', valor: item.valor }));
+
+    const direccionesExtra = (datosContacto.direcciones ?? []).filter((item: any) => item?.valor)
+      .map((item: any) => ({ tipo: item.tipo || 'Dirección', valor: item.valor }));
+
+    const correosExtra = (datosContacto.correos ?? []).filter((item: any) => item?.valor)
+      .map((item: any) => ({ tipo: item.tipo || 'Correo', valor: item.valor }));
+
     const datosAEnviar:
       UsuarioRequest = {
 
@@ -388,27 +410,24 @@ export class RegistroComponent implements OnInit, OnDestroy {
           datosPersonales.fecha_nacimiento,
 
         email:
-          datosPersonales.email
+          datosPersonales.email,
+
+        telefonos: [
+          { tipo: 'Principal', valor: datosContacto.telefono },
+          ...telefonosExtra
+        ],
+
+        direcciones: [
+          { tipo: 'Principal', valor: datosContacto.direccion },
+          ...direccionesExtra
+        ],
+
+        correos: [
+          { tipo: 'Principal', valor: datosPersonales.email },
+          ...correosExtra
+        ]
 
       };
-
-
-    console.log('Enviando datos al backend (8081):', datosAEnviar);
-
-
-    /*
-     * Solo para comprobar lo escrito
-     * por el usuario en el formulario.
-     */
-    console.log(
-      'Estado escrito:',
-      datosContacto.estado
-    );
-
-    console.log(
-      'Municipio escrito:',
-      datosContacto.municipio
-    );
 
 
     this.cargando = true;
@@ -423,14 +442,7 @@ export class RegistroComponent implements OnInit, OnDestroy {
         // REGISTRO EXITOSO
         // =========================
 
-        next: (response) => {
-
-          console.log(
-            '¡Guardado exitosamente!',
-            response
-          );
-
-
+        next: () => {
           this.registroForm
             .reset();
 
@@ -453,18 +465,6 @@ export class RegistroComponent implements OnInit, OnDestroy {
         // =========================
 
         error: (err) => {
-
-          console.error(
-            'Error al registrar:',
-            err
-          );
-
-          console.error(
-            'Respuesta del backend:',
-            err.error
-          );
-
-
           // =========================
           // ERROR 400
           // =========================

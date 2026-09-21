@@ -51,14 +51,12 @@ export class UsuarioPerfilComponent implements OnInit {
             };
             this.cargando = false;
           },
-          error: error => {
-            console.error('Error al consultar el código postal:', error);
+          error: () => {
             this.cargando = false;
           }
         });
       },
-      error: error => {
-        console.error('Error al cargar el perfil:', error);
+      error: () => {
         this.errorMensaje = 'No fue posible cargar tus datos.';
         this.cargando = false;
       }
