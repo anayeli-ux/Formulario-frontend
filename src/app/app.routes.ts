@@ -1,8 +1,8 @@
 import { Routes } from '@angular/router';
 import { LoginComponent } from './pages/login/login.component';
 import { RegistroComponent } from './pages/registro/registro.component';
-import { Exito } from './exito/exito';
-import { Admin } from './admin/admin';
+import { Exito } from './pages/exito/exito';
+import { Admin } from './pages/admin/admin';
 import { adminGuard } from './guards/admin.guard';
 import { authGuard } from './guards/auth.guard';
 import { UsuarioPerfilComponent } from './pages/usuario-perfil/usuario-perfil.component';

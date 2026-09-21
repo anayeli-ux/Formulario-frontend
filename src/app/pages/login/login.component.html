@@ -86,10 +86,10 @@
 
         <div
           class="mensaje-error mensaje-error-general"
-          *ngIf="loginError?.mensaje"
+          *ngIf="loginError"
           role="alert"
         >
-          {{ loginError?.mensaje }}
+          {{ loginError.mensaje }}
         </div>
 
         <button

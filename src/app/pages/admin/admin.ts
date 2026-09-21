@@ -11,15 +11,15 @@ import { FormsModule, NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
 
-import { Usuario } from '../models/usuario.model';
+import { Usuario } from '../../models/usuario.model';
 
 import {
   UsuarioService,
   UsuarioRequest
-} from '../services/usuario.service';
+} from '../../services/usuario.service';
 
-import { AuthService } from '../services/auth.service';
-import { PostaliaService } from '../services/postalia.service';
+import { AuthService } from '../../services/auth.service';
+import { PostaliaService } from '../../services/postalia.service';
 
 type TipoModal =
   | 'exito'
