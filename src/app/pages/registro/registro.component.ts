@@ -201,7 +201,7 @@ export class RegistroComponent implements OnInit, OnDestroy {
             ],
 
             direcciones: this.fb.array([
-              this.crearContacto('Principal')
+              this.crearDireccion('Principal')
             ]),
 
             correos: this.fb.array([
@@ -219,6 +219,14 @@ export class RegistroComponent implements OnInit, OnDestroy {
     return this.fb.group({
       tipo: [tipo, Validators.required],
       valor: ['', Validators.required]
+    });
+  }
+
+  private crearDireccion(tipo = ''): FormGroup {
+    return this.fb.group({
+      tipo: [tipo, Validators.required],
+      valor: ['', Validators.required],
+      codigoPostal: ['', [Validators.required, Validators.pattern(/^\d{5}$/)]]
     });
   }
 
@@ -380,7 +388,11 @@ export class RegistroComponent implements OnInit, OnDestroy {
       .map((item: any) => ({ tipo: item.tipo || 'Contacto', valor: item.valor }));
 
     const direccionesExtra = (datosContacto.direcciones ?? []).filter((item: any) => item?.valor)
-      .map((item: any) => ({ tipo: item.tipo || 'Dirección', valor: item.valor }));
+      .map((item: any) => ({
+        tipo: item.tipo || 'Dirección',
+        valor: item.valor,
+        codigoPostal: item.codigoPostal
+      }));
 
     const correosExtra = (datosContacto.correos ?? []).filter((item: any) => item?.valor)
       .map((item: any) => ({ tipo: item.tipo || 'Correo', valor: item.valor }));
@@ -418,7 +430,11 @@ export class RegistroComponent implements OnInit, OnDestroy {
         ],
 
         direcciones: [
-          { tipo: 'Principal', valor: datosContacto.direccion },
+          {
+            tipo: 'Principal',
+            valor: datosContacto.direccion,
+            codigoPostal: datosContacto.codigo_postal
+          },
           ...direccionesExtra
         ],
 

@@ -102,6 +102,10 @@
         <option *ngFor="let tipo of tiposPredeterminados" [value]="tipo">{{ tipo }}</option>
       </select>
       <input class="contacto-input" formControlName="valor" placeholder="Dirección completa" />
+      <div class="contacto-field">
+        <label class="contacto-label" [for]="'direccion-codigo-postal-' + i">Código Postal</label>
+        <input class="contacto-input contacto-codigo-postal" [id]="'direccion-codigo-postal-' + i" formControlName="codigoPostal" placeholder="Código Postal" maxlength="5" inputmode="numeric" />
+      </div>
       <button type="button" class="chip-button danger" (click)="quitarDireccion(i)">Quitar</button>
     </div>
 

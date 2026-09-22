@@ -43,6 +43,14 @@ export class DatosContactoComponent {
     });
   }
 
+  nuevoDireccion(tipo = 'Personal'): FormGroup {
+    return this.fb.group({
+      tipo: new FormControl(tipo, Validators.required),
+      valor: new FormControl('', Validators.required),
+      codigoPostal: new FormControl('', [Validators.required, Validators.pattern(/^\d{5}$/)])
+    });
+  }
+
   agregarTelefono(): void {
     this.telefonos.push(this.nuevoContacto('Personal'));
   }
@@ -52,7 +60,7 @@ export class DatosContactoComponent {
   }
 
   agregarDireccion(): void {
-    this.direcciones.push(this.nuevoContacto('Personal'));
+    this.direcciones.push(this.nuevoDireccion('Personal'));
   }
 
   quitarTelefono(index: number): void {

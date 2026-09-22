@@ -50,6 +50,7 @@ export interface UsuarioRequest {
   direcciones?: Array<{
     tipo: string;
     valor: string;
+    codigoPostal: string;
   }>;
 
 }
