@@ -6,6 +6,7 @@ import { Usuario } from '../../models/usuario.model';
 import { AuthService } from '../../services/auth.service';
 import { PostaliaService } from '../../services/postalia.service';
 import { UsuarioService } from '../../services/usuario.service';
+import { finalize } from 'rxjs';
 
 @Component({
   selector: 'app-usuario-perfil',
@@ -64,8 +65,21 @@ export class UsuarioPerfilComponent implements OnInit {
   }
 
   cerrarSesion(): void {
-    this.authService.cerrarSesion();
-    this.router.navigate(['/login']);
+    if (this.cargando) {
+      return;
+    }
+
+    this.cargando = true;
+
+    this.authService.cerrarSesion().pipe(
+      finalize(() => this.cargando = false)
+    ).subscribe({
+      next: () => this.router.navigate(['/login']),
+      error: () => {
+        this.authService.limpiarSesionLocal();
+        this.router.navigate(['/login']);
+      }
+    });
   }
 
   cambiarDeRol(): void {

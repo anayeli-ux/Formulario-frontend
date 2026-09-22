@@ -340,6 +340,68 @@
   font-size: 11px;
 }
 
+.user-form .field small.field-error {
+  color: #b2183b;
+}
+
+.search-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+
+.search-field label {
+  color: #51494c;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.search-field input {
+  width: 100%;
+  height: 42px;
+  padding: 10px 12px;
+  border: 1px solid #d9e0ea;
+  border-radius: 5px;
+  background: #fff;
+  color: #26364f;
+  font: inherit;
+}
+
+.search-field input:focus {
+  outline: none;
+  border-color: #3159c7;
+  box-shadow: 0 0 0 3px rgba(49, 89, 199, .12);
+}
+
+.contactos-edicion {
+  display: grid;
+  gap: 10px;
+  padding-top: 8px;
+  border-top: 1px solid #e1e6ef;
+}
+
+.contactos-edicion h3 {
+  margin: 6px 0 0;
+  color: var(--vino);
+  font-size: 14px;
+}
+
+.contacto-edicion {
+  display: grid;
+  grid-template-columns: minmax(120px, .7fr) minmax(0, 1.5fr) minmax(100px, .7fr);
+  gap: 8px;
+}
+
+.contacto-edicion input {
+  width: 100%;
+  min-width: 0;
+  padding: 9px;
+  border: 1px solid #d9e0ea;
+  border-radius: 5px;
+  font: inherit;
+}
+
 .user-form .actions {
   display: flex;
   justify-content: flex-end;

@@ -50,6 +50,18 @@ export class Admin implements OnInit {
   usuariosEliminados =
     signal<Usuario[]>([]);
 
+  busquedaUsuarios = signal('');
+
+  busquedaUsuariosEliminados = signal('');
+
+  usuariosFiltrados = computed(() =>
+    this.filtrarUsuarios(this.usuarios(), this.busquedaUsuarios())
+  );
+
+  usuariosEliminadosFiltrados = computed(() =>
+    this.filtrarUsuarios(this.usuariosEliminados(), this.busquedaUsuariosEliminados())
+  );
+
   totalUsuariosActivos =
     computed(
       () => this.usuarios().length
@@ -294,7 +306,7 @@ export class Admin implements OnInit {
     }
 
     const usuario =
-      this.prepararUsuario();
+      this.prepararUsuario(true);
 
     this.cargando = true;
 
@@ -350,7 +362,11 @@ export class Admin implements OnInit {
      * seleccionado al formulario.
      */
     this.usuarioFormulario = {
-      ...usuario
+      ...usuario,
+      password: '',
+      telefonos: usuario.telefonos ?? [],
+      direcciones: usuario.direcciones ?? [],
+      correos: usuario.correos ?? []
     };
 
     this.actualizarUbicacion();
@@ -412,15 +428,23 @@ export class Admin implements OnInit {
      ACTUALIZAR USUARIO
      ========================= */
 
-  actualizarUsuario(): void {
+  actualizarUsuario(form?: NgForm): void {
 
     if (this.cargando) {
       return;
     }
 
-    if (
-      this.usuarioEditandoId === undefined
-    ) {
+    if (this.usuarioEditandoId === undefined) {
+      return;
+    }
+
+    form?.form.markAllAsTouched();
+
+    if (form?.invalid) {
+      return;
+    }
+
+    if (!this.formularioEdicionValido()) {
       return;
     }
 
@@ -429,7 +453,7 @@ export class Admin implements OnInit {
     }
 
     const usuario =
-      this.prepararUsuario();
+      this.prepararUsuario(false);
       
 
     this.cargando = true;
@@ -601,8 +625,7 @@ export class Admin implements OnInit {
     mensajePredeterminado: string
   ): void {
 
-    const mensajeBackend =
-      error?.error?.mensaje;
+    const mensajeBackend = this.obtenerMensajeError(error);
 
 
     if (error.status === 400) {
@@ -677,19 +700,16 @@ export class Admin implements OnInit {
      PREPARAR DATOS
      ========================= */
 
-  private prepararUsuario():
+  private prepararUsuario(incluirPassword = true):
     UsuarioRequest {
 
-    return {
+    const usuario: UsuarioRequest = {
 
       nombre:
         this.usuarioFormulario.nombre,
 
       primerApellido:
         this.usuarioFormulario.primerApellido,
-
-      password:
-        this.usuarioFormulario.password ?? '',
 
       telefono:
         this.usuarioFormulario.telefono,
@@ -704,10 +724,107 @@ export class Admin implements OnInit {
         this.usuarioFormulario.fechaNacimiento,
 
       email:
-        this.usuarioFormulario.email
+        this.usuarioFormulario.email,
+
+      telefonos: this.usuarioFormulario.telefonos,
+
+      direcciones: (this.usuarioFormulario.direcciones ?? []).map(direccion => ({
+        tipo: direccion.tipo,
+        valor: direccion.valor,
+        codigoPostal: direccion.codigoPostal || this.usuarioFormulario.codigoPostal
+      })),
+
+      correos: this.usuarioFormulario.correos
 
     };
 
+    if (incluirPassword) {
+      usuario.password = this.usuarioFormulario.password ?? '';
+    }
+
+    return usuario;
+
+  }
+
+  private formularioEdicionValido(): boolean {
+    const password = this.usuarioFormulario.password ?? '';
+
+    if (password && !/^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/.test(password)) {
+      this.mostrarModal('advertencia', 'Datos incorrectos', 'La contraseña debe tener 8 caracteres, una letra, un número y un símbolo.');
+      return false;
+    }
+
+    if (!this.usuarioFormulario.nombre.trim() || !this.usuarioFormulario.primerApellido.trim() ||
+        !/^\d{10}$/.test(this.usuarioFormulario.telefono) ||
+        !/^\d{5}$/.test(this.usuarioFormulario.codigoPostal) ||
+        !this.usuarioFormulario.direccion.trim() ||
+        !/^\S+@\S+\.\S+$/.test(this.usuarioFormulario.email)) {
+      this.mostrarModal('advertencia', 'Datos incorrectos', 'Revisa los campos obligatorios y sus formatos.');
+      return false;
+    }
+
+    const contactosInvalidos = [
+      ...(this.usuarioFormulario.telefonos ?? []),
+      ...(this.usuarioFormulario.direcciones ?? []),
+      ...(this.usuarioFormulario.correos ?? [])
+    ].some(contacto => !contacto.tipo?.trim() || !contacto.valor?.trim());
+
+    const direccionesConFormatoInvalido =
+      (this.usuarioFormulario.direcciones ?? []).some(direccion =>
+        !!direccion.codigoPostal && !/^\d{5}$/.test(direccion.codigoPostal)
+      );
+
+    if (contactosInvalidos || direccionesConFormatoInvalido) {
+      this.mostrarModal('advertencia', 'Datos incorrectos', 'Completa correctamente todos los teléfonos, direcciones y correos adicionales.');
+      return false;
+    }
+
+    return true;
+  }
+
+  private obtenerMensajeError(error: any): string {
+    const respuesta = error?.error;
+
+    if (typeof respuesta === 'string') {
+      return respuesta;
+    }
+
+    return respuesta?.mensaje || respuesta?.message || error?.message || '';
+  }
+
+  private filtrarUsuarios(usuarios: Usuario[], busqueda: string): Usuario[] {
+    const termino = this.normalizarTexto(busqueda);
+
+    if (!termino) {
+      return usuarios;
+    }
+
+    return usuarios.filter(usuario => {
+      const valores = [
+        usuario.id,
+        usuario.nombre,
+        usuario.primerApellido,
+        usuario.telefono,
+        usuario.codigoPostal,
+        usuario.estado,
+        usuario.municipio,
+        usuario.direccion,
+        usuario.email,
+        ...(usuario.telefonos ?? []).flatMap(contacto => [contacto.tipo, contacto.valor]),
+        ...(usuario.direcciones ?? []).flatMap(contacto => [contacto.tipo, contacto.valor, contacto.codigoPostal]),
+        ...(usuario.correos ?? []).flatMap(contacto => [contacto.tipo, contacto.valor])
+      ];
+
+      return valores.some(valor => this.normalizarTexto(String(valor ?? '')).includes(termino));
+    });
+  }
+
+  private normalizarTexto(valor: string): string {
+    return valor
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim();
   }
 
 
@@ -750,11 +867,21 @@ export class Admin implements OnInit {
 
   cerrarSesion(): void {
 
-    this.authService
-      .cerrarSesion();
+    if (this.cargando) {
+      return;
+    }
 
-    this.router
-      .navigate(['/']);
+    this.cargando = true;
+
+    this.authService.cerrarSesion().pipe(
+      finalize(() => this.cargando = false)
+    ).subscribe({
+      next: () => this.router.navigate(['/login']),
+      error: () => {
+        this.authService.limpiarSesionLocal();
+        this.router.navigate(['/login']);
+      }
+    });
 
   }
 

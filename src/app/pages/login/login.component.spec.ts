@@ -34,9 +34,7 @@ describe('LoginComponent', () => {
   it('should set a red invalid credentials message when login fails', () => {
     authService.login.and.returnValue(of({
       acceso: false,
-      token: '',
-      usuario: { id: 1, email: 'test@test.com', rol: 'USER' },
-      mensaje: 'Datos incorrectos'
+      usuario: { id: 1, email: 'test@test.com', rol: 'USER' }
     }));
 
     component.loginForm.setValue({

@@ -82,6 +82,11 @@
       </div>
     </div>
 
+    <div class="search-field">
+      <label for="buscarUsuarios">Buscar usuarios activos</label>
+      <input id="buscarUsuarios" type="search" [ngModel]="busquedaUsuarios()" (ngModelChange)="busquedaUsuarios.set($event)" name="buscarUsuarios" placeholder="Nombre, apellido, teléfono, dirección o código postal">
+    </div>
+
     <div class="table-wrapper">
       <table class="admin-table">
         <thead>
@@ -95,7 +100,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let usuario of usuarios()">
+          <tr *ngFor="let usuario of usuariosFiltrados()">
             <td>{{ usuario.id }}</td>
             <td>{{ usuario.nombre }} {{ usuario.primerApellido }}</td>
             <td>{{ usuario.telefono }}</td>
@@ -106,8 +111,8 @@
               <button type="button" class="table-delete" (click)="eliminarUsuario(usuario.id!)" [disabled]="cargando">Eliminar</button>
             </td>
           </tr>
-          <tr *ngIf="usuarios().length === 0">
-            <td colspan="6" class="empty-row">No hay usuarios activos.</td>
+          <tr *ngIf="usuariosFiltrados().length === 0">
+            <td colspan="6" class="empty-row">{{ busquedaUsuarios() ? 'No hay coincidencias.' : 'No hay usuarios activos.' }}</td>
           </tr>
         </tbody>
       </table>
@@ -123,6 +128,11 @@
       <span class="admin-count">{{ totalUsuariosEliminados() }} eliminados</span>
     </div>
 
+    <div class="search-field">
+      <label for="buscarUsuariosEliminados">Buscar usuarios eliminados</label>
+      <input id="buscarUsuariosEliminados" type="search" [ngModel]="busquedaUsuariosEliminados()" (ngModelChange)="busquedaUsuariosEliminados.set($event)" name="buscarUsuariosEliminados" placeholder="Nombre, apellido, teléfono, dirección o código postal">
+    </div>
+
     <div class="table-wrapper">
       <table class="admin-table">
         <thead>
@@ -135,7 +145,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let usuario of usuariosEliminados()">
+          <tr *ngFor="let usuario of usuariosEliminadosFiltrados()">
             <td>{{ usuario.id }}</td>
             <td>{{ usuario.nombre }} {{ usuario.primerApellido }}</td>
             <td>{{ usuario.telefono }}</td>
@@ -144,8 +154,8 @@
               <button type="button" class="table-edit" (click)="reactivarUsuario(usuario.id!)" [disabled]="cargando">Reactivar</button>
             </td>
           </tr>
-          <tr *ngIf="usuariosEliminados().length === 0">
-            <td colspan="5" class="empty-row">No hay usuarios eliminados.</td>
+          <tr *ngIf="usuariosEliminadosFiltrados().length === 0">
+            <td colspan="5" class="empty-row">{{ busquedaUsuariosEliminados() ? 'No hay coincidencias.' : 'No hay usuarios eliminados.' }}</td>
           </tr>
         </tbody>
       </table>
@@ -192,7 +202,7 @@
     <form
       class="user-form"
       #formEditar="ngForm"
-      (ngSubmit)="actualizarUsuario()"
+      (ngSubmit)="actualizarUsuario(formEditar)"
     >
 
       <!-- NOMBRE -->
@@ -207,6 +217,7 @@
           maxlength="50"
           required
         >
+        <small class="field-error" *ngIf="formEditar.submitted && formEditar.controls['modalNombre']?.invalid">Ingresa un nombre válido.</small>
       </div>
 
 
@@ -221,6 +232,7 @@
           maxlength="50"
           required
         >
+        <small class="field-error" *ngIf="formEditar.submitted && formEditar.controls['modalPrimerApellido']?.invalid">Ingresa un apellido válido.</small>
       </div>
 
 
@@ -234,9 +246,9 @@
           [(ngModel)]="usuarioFormulario.password"
           minlength="8"
           pattern="^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z\d]).+$"
-          required
         >
-        <small>Usa 8 caracteres, una letra, un número y un símbolo.</small>
+        <small>Déjala vacía para conservar la contraseña actual.</small>
+        <small class="field-error" *ngIf="formEditar.submitted && formEditar.controls['modalPassword']?.invalid">Usa 8 caracteres, una letra, un número y un símbolo.</small>
       </div>
 
 
@@ -258,6 +270,7 @@
         <small>
           Debe contener 10 dígitos.
         </small>
+        <small class="field-error" *ngIf="formEditar.submitted && formEditar.controls['modalTelefono']?.invalid">Ingresa un teléfono de 10 dígitos.</small>
       </div>
 
 
@@ -280,6 +293,7 @@
         <small>
           Debe contener 5 dígitos.
         </small>
+        <small class="field-error" *ngIf="formEditar.submitted && formEditar.controls['modalCodigoPostal']?.invalid">Ingresa un código postal de 5 dígitos.</small>
       </div>
 
 
@@ -298,6 +312,7 @@
         <small>
           Debe tener al menos 18 años.
         </small>
+        <small class="field-error" *ngIf="formEditar.submitted && formEditar.controls['modalFechaNacimiento']?.invalid">Ingresa una fecha válida.</small>
       </div>
 
 
@@ -346,6 +361,7 @@
           maxlength="150"
           required
         >
+        <small class="field-error" *ngIf="formEditar.submitted && formEditar.controls['modalDireccion']?.invalid">La dirección es obligatoria.</small>
       </div>
 
 
@@ -364,6 +380,27 @@
         <small *ngIf="formEditar.submitted && formEditar.controls['modalEmail']?.invalid">Ingresa un correo electrónico válido.</small>
       </div>
 
+      <div class="contactos-edicion full">
+        <h3>Teléfonos adicionales</h3>
+        <div class="contacto-edicion" *ngFor="let contacto of usuarioFormulario.telefonos; let i = index">
+          <input [name]="'modalTelefonoTipo' + i" [(ngModel)]="contacto.tipo" placeholder="Tipo">
+          <input [name]="'modalTelefonoValor' + i" [(ngModel)]="contacto.valor" placeholder="Teléfono">
+        </div>
+
+        <h3>Direcciones adicionales</h3>
+        <div class="contacto-edicion" *ngFor="let contacto of usuarioFormulario.direcciones; let i = index">
+          <input [name]="'modalDireccionTipo' + i" [(ngModel)]="contacto.tipo" placeholder="Tipo">
+          <input [name]="'modalDireccionValor' + i" [(ngModel)]="contacto.valor" placeholder="Dirección">
+          <input [name]="'modalDireccionCodigoPostal' + i" [(ngModel)]="contacto.codigoPostal" placeholder="Código postal" maxlength="5" pattern="[0-9]{5}">
+        </div>
+
+        <h3>Correos adicionales</h3>
+        <div class="contacto-edicion" *ngFor="let contacto of usuarioFormulario.correos; let i = index">
+          <input [name]="'modalCorreoTipo' + i" [(ngModel)]="contacto.tipo" placeholder="Tipo">
+          <input [name]="'modalCorreoValor' + i" [(ngModel)]="contacto.valor" placeholder="Correo" email>
+        </div>
+      </div>
+
 
       <!-- BOTONES -->
       <div class="actions full">
@@ -371,7 +408,7 @@
         <button
           class="save"
           type="submit"
-          [disabled]="formEditar.invalid || cargando"
+          [disabled]="cargando"
         >
           Actualizar usuario
         </button>

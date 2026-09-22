@@ -22,14 +22,10 @@ export const adminGuard: CanActivateFn = (route, state) => {
                 return true;
             }
 
-            authService.cerrarSesion().subscribe();
-            router.navigate(['/login']);
-            return false;
+            return router.parseUrl('/usuario');
         }),
         catchError(() => {
-            authService.cerrarSesion().subscribe();
-            router.navigate(['/login']);
-            return of(false);
+            return of(router.parseUrl('/login'));
         })
     );
 };

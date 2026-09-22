@@ -8,10 +8,13 @@ export const authGuard: CanActivateFn = (route, state) => {
     const router = inject(Router);
 
     return usuarioService.obtenerMiPerfil().pipe(
-        map(() => true),
+        map(usuario =>
+            usuario?.rol === 'ADMIN'
+                ? router.parseUrl('/admin')
+                : true
+        ),
         catchError(() => {
-            router.navigate(['/login']);
-            return of(false);
+            return of(router.parseUrl('/login'));
         })
     );
 };

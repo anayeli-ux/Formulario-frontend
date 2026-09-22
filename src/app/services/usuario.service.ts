@@ -22,7 +22,7 @@ export interface UsuarioRequest {
 
   primerApellido: string;
 
-  password: string;
+  password?: string;
 
   telefono: string;
 

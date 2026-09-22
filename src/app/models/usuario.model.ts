@@ -3,6 +3,10 @@ export interface ContactoItem {
   valor: string;
 }
 
+export interface DireccionItem extends ContactoItem {
+  codigoPostal: string;
+}
+
 export interface Usuario {
   id?: number;
   nombre: string;
@@ -19,5 +23,5 @@ export interface Usuario {
   rol?: string;
   telefonos?: ContactoItem[];
   correos?: ContactoItem[];
-  direcciones?: ContactoItem[];
+  direcciones?: DireccionItem[];
 }

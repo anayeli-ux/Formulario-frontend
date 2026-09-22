@@ -6,12 +6,13 @@ import { Admin } from './pages/admin/admin';
 import { adminGuard } from './guards/admin.guard';
 import { authGuard } from './guards/auth.guard';
 import { UsuarioPerfilComponent } from './pages/usuario-perfil/usuario-perfil.component';
+import { guestGuard } from './guards/guest.guard';
 
 export const routes: Routes = [
-  { path: 'login', component: LoginComponent },
-  { path: 'registro', component: RegistroComponent },
+  { path: 'login', component: LoginComponent, canActivate: [guestGuard] },
+  { path: 'registro', component: RegistroComponent, canActivate: [guestGuard] },
 
-  { path: 'exito', component: Exito },
+  { path: 'exito', component: Exito, canActivate: [guestGuard] },
   {
     path: 'admin',
     component: Admin,
