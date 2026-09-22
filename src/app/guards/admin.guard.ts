@@ -9,25 +9,25 @@ export const adminGuard: CanActivateFn = (route, state) => {
     const usuarioService = inject(UsuarioService);
     const router = inject(Router);
 
-    if (!authService.haySesion()) {
-        router.navigate(['/login']);
-        return false;
-    }
-
     return usuarioService.obtenerMiPerfil().pipe(
         map((usuario) => {
             const esAdministrador = usuario?.rol === 'ADMIN';
 
             if (esAdministrador) {
+                authService['usuarioActual'] = {
+                    id: usuario.id ?? 0,
+                    email: usuario.email,
+                    rol: usuario.rol ?? 'USER'
+                };
                 return true;
             }
 
-            authService.cerrarSesion();
+            authService.cerrarSesion().subscribe();
             router.navigate(['/login']);
             return false;
         }),
         catchError(() => {
-            authService.cerrarSesion();
+            authService.cerrarSesion().subscribe();
             router.navigate(['/login']);
             return of(false);
         })

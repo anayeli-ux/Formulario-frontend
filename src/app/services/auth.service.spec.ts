@@ -14,17 +14,15 @@ describe('AuthService', () => {
     });
 
     service = TestBed.inject(AuthService);
-    localStorage.clear();
+    service.limpiarSesionLocal();
   });
 
-  it('should not accept a forged admin flag as a valid session', () => {
-    localStorage.setItem('adminSesion', 'true');
-
+  it('should report no active session when no user is cached in memory', () => {
     expect(service.haySesion()).toBeFalse();
   });
 
-  it('should accept a real session only when a valid token exists', () => {
-    localStorage.setItem('token', 'abc123');
+  it('should report active session when the backend has already validated the user', () => {
+    service['usuarioActual'] = { id: 1, email: 'admin@test.com', rol: 'ADMIN' };
 
     expect(service.haySesion()).toBeTrue();
   });

@@ -47,7 +47,8 @@ export class UsuarioService {
   listarUsuarios(): Observable<Usuario[]> {
 
     return this.http.get<Usuario[]>(
-      this.apiUrl
+      this.apiUrl,
+      { withCredentials: true }
     );
 
   }
@@ -60,7 +61,8 @@ export class UsuarioService {
   listarUsuariosEliminados(): Observable<Usuario[]> {
 
     return this.http.get<Usuario[]>(
-      `${this.apiUrl}/eliminados`
+      `${this.apiUrl}/eliminados`,
+      { withCredentials: true }
     );
 
   }
@@ -68,7 +70,8 @@ export class UsuarioService {
   obtenerMiPerfil(): Observable<Usuario> {
 
     return this.http.get<Usuario>(
-      `${this.apiUrl}/me`
+      `${this.apiUrl}/me`,
+      { withCredentials: true }
     );
 
   }
@@ -84,7 +87,8 @@ export class UsuarioService {
 
     return this.http.post<Usuario>(
       this.apiUrl,
-      usuario
+      usuario,
+      { withCredentials: true }
     );
 
   }
@@ -101,7 +105,8 @@ export class UsuarioService {
 
     return this.http.put<Usuario>(
       `${this.apiUrl}/${id}`,
-      usuario
+      usuario,
+      { withCredentials: true }
     );
 
   }
@@ -116,7 +121,8 @@ export class UsuarioService {
   ): Observable<void> {
 
     return this.http.delete<void>(
-      `${this.apiUrl}/${id}`
+      `${this.apiUrl}/${id}`,
+      { withCredentials: true }
     );
 
   }
@@ -132,7 +138,8 @@ export class UsuarioService {
 
     return this.http.put<Usuario>(
       `${this.apiUrl}/${id}/reactivar`,
-      {}
+      {},
+      { withCredentials: true }
     );
 
   }

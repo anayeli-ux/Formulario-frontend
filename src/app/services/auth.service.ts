@@ -119,6 +119,15 @@ export class AuthService {
     return this.usuarioActual;
   }
 
+  /**
+   * Compatibilidad con código legado que aún invoca una comprobación
+   * de sesión. En la estrategia con cookie HttpOnly la fuente de verdad
+   * es la respuesta del backend, no un valor del navegador.
+   */
+  haySesion(): boolean {
+    return this.usuarioActual !== null;
+  }
+
   // =========================
   // CERRAR SESIÓN
   // =========================
