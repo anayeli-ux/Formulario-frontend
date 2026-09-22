@@ -3,294 +3,231 @@
   --vino-oscuro: #264aa9;
   --dorado: #60739b;
   --dorado-claro: #9aa9c4;
-
   --fondo: #f7f8fa;
   --blanco: #ffffff;
-
   --texto: #26364f;
   --texto-secundario: #707d91;
-
   --borde: #d9e0ea;
 }
 
 /* =========================
-   PÁGINA
-   ========================= */
-
+  PÁGINA
+  ========================= */
 .registro-page {
   min-height: 100vh;
-
   padding: 35px 20px;
-
   background:
     url('/fondo-registro.jpg') center / cover fixed no-repeat;
-
   font-family:
     "Montserrat",
     "Segoe UI",
     Arial,
     sans-serif;
-
   color: var(--texto);
+  overflow: hidden;
+  isolation: isolate;
+  animation: registroEntrada .7s ease both;
 }
 
+.registro-page::before {
+  content: '';
+  position: fixed;
+  z-index: -1;
+  width: 42vw;
+  height: 42vw;
+  top: -20vw;
+  right: -12vw;
+  border: 1px solid rgba(255, 255, 255, .18);
+  border-radius: 50%;
+  animation: registroPulso 12s ease-in-out infinite alternate;
+}
 .registro-shell {
   width: 100%;
   max-width: 850px;
-
   margin: 0 auto;
 }
 
 /* =========================
-   ENCABEZADO SUPERIOR
-   ========================= */
-
+  ENCABEZADO SUPERIOR
+  ========================= */
 .registro-brand {
   display: flex;
   align-items: center;
-
   gap: 16px;
-
   margin-bottom: 18px;
 }
-
 .brand-mark {
   width: 55px;
   height: 55px;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   flex-shrink: 0;
-
   border-radius: 50%;
-
   border:
     2px solid var(--dorado);
-
   background:
     var(--vino);
-
   color: white;
-
   font-size: 24px;
   font-weight: 700;
 }
-
 .brand-label {
   display: block;
-
   margin-bottom: 3px;
-
   color:
     var(--dorado);
-
   font-size: 11px;
   font-weight: 700;
-
   letter-spacing: 1.3px;
-
   text-transform: uppercase;
 }
-
 .registro-brand h1 {
   margin: 0;
-
   color:
     var(--vino);
-
   font-size: 22px;
   font-weight: 700;
 }
-
 /* Línea dorada */
 .registro-accent {
   width: 95px;
   height: 4px;
-
   margin-bottom: 22px;
-
   background:
     var(--dorado);
-
   border-radius: 10px;
 }
 
 /* =========================
-   TARJETA
-   ========================= */
-
+  TARJETA
+  ========================= */
 .registro-container {
   padding: 34px;
-
-  background:
-    var(--blanco);
-
+  background: rgba(250, 252, 255, .9);
   border:
     1px solid #d9e0ea;
-
   border-top:
     5px solid var(--vino);
-
   border-radius: 12px;
-
   box-shadow:
     0 12px 35px
     rgba(38, 74, 169, 0.16);
+  backdrop-filter: blur(10px);
+  animation: tarjetaEntradaRegistro .7s .1s ease both;
 }
 
 /* =========================
-   CABECERA FORMULARIO
-   ========================= */
-
+  CABECERA FORMULARIO
+  ========================= */
 .registro-header {
   margin-bottom: 30px;
 }
-
 .section-label {
   color:
     var(--dorado);
-
   font-size: 11px;
   font-weight: 700;
-
   letter-spacing: 1.4px;
 }
-
 .registro-header h2 {
   margin:
     5px 0 7px;
-
   color:
     var(--vino);
-
   font-size: 28px;
   font-weight: 700;
 }
-
 .registro-header p {
   margin: 0;
-
   color:
     var(--texto-secundario);
-
   font-size: 14px;
 }
 
 /* =========================
-   SECCIONES
-   ========================= */
-
+  SECCIONES
+  ========================= */
 .form-section {
   margin-bottom: 30px;
-
   padding-bottom: 26px;
-
   border-bottom:
     1px solid #e9e1da;
+  animation: seccionEntrada .55s ease both;
 }
 
+.form-section:nth-of-type(2) {
+  animation-delay: .1s;
+}
 .form-section:last-of-type {
   border-bottom: none;
 }
-
 .section-header {
   display: flex;
-
   align-items: flex-start;
-
   gap: 14px;
-
   margin-bottom: 18px;
 }
-
 .section-number {
   width: 38px;
   height: 38px;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   flex-shrink: 0;
-
   border-radius: 50%;
-
   background:
     var(--vino);
-
   color: white;
-
   font-size: 12px;
   font-weight: 700;
-
   border:
     2px solid var(--dorado);
 }
-
 .section-header h3 {
   margin: 0;
-
   color:
     var(--vino);
-
   font-size: 18px;
   font-weight: 700;
 }
-
 .section-header p {
   margin:
     4px 0 0;
-
   color:
     var(--texto-secundario);
-
   font-size: 13px;
 }
 
 /* =========================
-   ESTILOS PARA COMPONENTES
-   HIJOS
+  ESTILOS PARA COMPONENTES
+  HIJOS
    ========================= */
-
 fieldset,
 .section-container {
   border: none;
-
   padding: 0;
-
   margin: 0;
 }
-
 h3 {
   color:
     var(--vino);
 }
-
 label {
   display: block;
-
   margin-bottom: 6px;
-
   color:
     var(--vino);
-
   font-size: 14px;
   font-weight: 650;
 }
-
 input,
 select {
   width: 100%;
-
   padding: 12px 14px;
-
   margin-bottom: 16px;
-
   border:
     1px solid var(--borde);
-
   border-radius: 6px;
 
   background: white;
@@ -324,6 +261,7 @@ select:focus {
   box-shadow:
     0 0 0 3px
     rgba(123, 23, 52, 0.09);
+  transform: translateY(-1px);
 }
 
 /* Campos deshabilitados */
@@ -364,10 +302,12 @@ select:disabled {
   font-weight: 700;
 
   cursor: pointer;
+  box-shadow: 0 8px 18px rgba(49, 89, 199, .2);
 
   transition:
     background 0.2s,
-    transform 0.2s;
+    transform 0.2s,
+    box-shadow 0.2s;
 }
 
 .btn-submit:hover:not(:disabled) {
@@ -376,6 +316,7 @@ select:disabled {
 
   transform:
     translateY(-1px);
+  box-shadow: 0 12px 24px rgba(49, 89, 199, .28);
 }
 
 .btn-submit:disabled {
@@ -427,6 +368,26 @@ select:disabled {
 
 @keyframes girarRegistro {
   to { transform: rotate(360deg); }
+}
+
+@keyframes registroEntrada {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes tarjetaEntradaRegistro {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes seccionEntrada {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes registroPulso {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to { transform: translate3d(-20px, 22px, 0) scale(1.08); }
 }
 
 .mensaje-error {
@@ -507,6 +468,15 @@ select:disabled {
 .modal-close:hover {
   background: #f7f1f3;
   color: var(--vino);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .registro-page,
+  .registro-page::before,
+  .registro-container,
+  .form-section {
+    animation: none;
+  }
 }
 
 .modal-brand {

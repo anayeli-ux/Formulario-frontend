@@ -98,7 +98,7 @@
 
 .admin-card {
   padding: 24px;
-  background: white;
+  background: rgba(250, 252, 255, .9);
   border: 1px solid #d9e0ea;
   border-top: 4px solid #3159c7;
   border-radius: 10px;
@@ -107,7 +107,6 @@
 
 .admin-card-header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
   gap: 16px;
   margin-bottom: 20px;

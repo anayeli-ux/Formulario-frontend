@@ -19,6 +19,34 @@
     linear-gradient(rgba(16, 28, 39, .28), rgba(16, 28, 39, .28)),
     url('/fondo-login.jpg') center / cover no-repeat;
   font-family: "Inter", "Segoe UI", Arial, sans-serif;
+  overflow: hidden;
+  isolation: isolate;
+  animation: loginEntrada .7s ease both;
+}
+
+.login-page::before,
+.login-page::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  width: 32vw;
+  height: 32vw;
+  min-width: 220px;
+  min-height: 220px;
+  border: 1px solid rgba(255, 255, 255, .2);
+  border-radius: 50%;
+  animation: orbitar 14s ease-in-out infinite alternate;
+}
+
+.login-page::before {
+  top: -12vw;
+  left: -8vw;
+}
+
+.login-page::after {
+  right: -10vw;
+  bottom: -14vw;
+  animation-delay: -5s;
 }
 
 .login-shell {
@@ -36,9 +64,12 @@
   width: 100%;
   box-sizing: border-box;
   padding: 88px 64px 46px;
-  background: rgba(255, 255, 255, .97);
+  background: rgba(246, 249, 255, .88);
+  border: 1px solid rgba(255, 255, 255, .72);
   border-radius: 32px;
   box-shadow: 0 18px 45px rgba(0, 0, 0, .22);
+  backdrop-filter: blur(12px);
+  animation: tarjetaEntrada .65s .08s ease both;
   color: var(--texto);
 }
 
@@ -119,6 +150,8 @@
 
 .login-container input:focus {
   box-shadow: inset 0 -2px 0 var(--azul);
+  background: #fff;
+  transform: translateY(-1px);
 }
 
 .mensaje-error {
@@ -143,11 +176,14 @@
   color: white;
   font-size: 14px;
   cursor: pointer;
-  transition: background .2s ease;
+  box-shadow: 0 8px 18px rgba(49, 89, 199, .2);
+  transition: background .2s ease, transform .2s ease, box-shadow .2s ease;
 }
 
 .login-container form > button:hover:not(:disabled) {
   background: var(--azul-oscuro);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(49, 89, 199, .28);
 }
 
 .login-container form > button:disabled {
@@ -196,6 +232,21 @@
   to { transform: rotate(360deg); }
 }
 
+@keyframes loginEntrada {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes tarjetaEntrada {
+  from { opacity: 0; transform: translateY(18px) scale(.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes orbitar {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to { transform: translate3d(24px, 18px, 0) scale(1.08); }
+}
+
 .register-text {
   margin: 42px 0 0;
   text-align: center;
@@ -223,5 +274,14 @@
   .login-container {
     padding: 76px 30px 34px;
     border-radius: 26px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-page,
+  .login-page::before,
+  .login-page::after,
+  .login-container {
+    animation: none;
   }
 }

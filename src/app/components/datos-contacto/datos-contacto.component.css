@@ -37,6 +37,9 @@
 }
 
 .chip-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   height: 40px;
   padding: 0 12px;
   border: 1px solid #3159c7;
@@ -45,6 +48,21 @@
   color: #1e3a8a;
   font: inherit;
   cursor: pointer;
+  transition: transform .18s ease, box-shadow .18s ease, background-color .18s ease;
+}
+
+.campo:has(> .chip-button) {
+  margin-bottom: 28px;
+}
+
+.campo > .chip-button {
+  margin-top: 2px;
+  margin-bottom: 4px;
+}
+
+.chip-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 7px 16px rgba(49, 89, 199, .16);
 }
 
 .chip-button.danger {
@@ -62,5 +80,15 @@
   .contacto-input,
   .chip-button {
     width: 100%;
+  }
+
+  .campo:has(> .chip-button) {
+    margin-bottom: 24px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chip-button {
+    transition: none;
   }
 }

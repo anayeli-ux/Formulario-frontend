@@ -12,6 +12,22 @@
   background:
     linear-gradient(rgba(12, 30, 54, .42), rgba(12, 30, 54, .42)),
     url('/fondo-usuario.jpg') center / cover fixed no-repeat;
+  overflow: hidden;
+  isolation: isolate;
+  animation: perfilEntrada .7s ease both;
+}
+
+.perfil-page::before {
+  content: '';
+  position: fixed;
+  z-index: -1;
+  width: 36vw;
+  height: 36vw;
+  top: -14vw;
+  left: -10vw;
+  border: 1px solid rgba(255, 255, 255, .2);
+  border-radius: 50%;
+  animation: perfilPulso 14s ease-in-out infinite alternate;
 }
 
 .perfil-shell {
@@ -32,7 +48,6 @@
 .card-kicker,
 .dato-label {
   display: block;
-  font-size: 11px;
   font-weight: 700;
   letter-spacing: 1.4px;
   text-transform: uppercase;
@@ -94,8 +109,10 @@
   padding: 38px;
   border: 1px solid rgba(255, 255, 255, .65);
   border-radius: 8px;
-  background: rgba(255, 255, 255, .95);
+  background: rgba(245, 249, 255, .88);
   box-shadow: 0 20px 45px rgba(10, 24, 42, .24);
+  backdrop-filter: blur(12px);
+  animation: perfilTarjeta .65s .1s ease both;
 }
 
 .perfil-card-heading {
@@ -133,6 +150,14 @@
   font-size: 15px;
   font-weight: 600;
   overflow-wrap: anywhere;
+}
+
+.dato {
+  transition: transform .18s ease;
+}
+
+.dato:hover {
+  transform: translateX(4px);
 }
 
 .dato-completo {
@@ -197,6 +222,31 @@
   width: 100%;
   height: 100%;
   border: 0;
+}
+
+@keyframes perfilEntrada {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes perfilTarjeta {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes perfilPulso {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(20px, 18px, 0) scale(1.08); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .perfil-page,
+  .perfil-page::before,
+  .perfil-card,
+  .dato {
+    animation: none;
+    transition: none;
+  }
 }
 
 @media (max-width: 620px) {
