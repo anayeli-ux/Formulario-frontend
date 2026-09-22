@@ -14,13 +14,7 @@ export const environment = {
     auth: {
         login: '/auth/login',
         logout: '/auth/logout',
-
-        /*
-         * Endpoint que confirma si la cookie sigue siendo
-         * válida y devuelve el usuario autenticado.
-         * Debe responder con el usuario si la sesión es válida
-         * y con 401/403 si no lo es.
-         */
-        perfil: '/usuarios/me'
+        perfil: '/usuarios/me',
+        csrf: '/auth/csrf'
     }
 };
