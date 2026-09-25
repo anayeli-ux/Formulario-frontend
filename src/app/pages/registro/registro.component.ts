@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import {
+  FormArray,
   FormBuilder,
   FormGroup,
   Validators,
@@ -15,6 +16,7 @@ import {
   UsuarioRequest
 } from '../../services/usuario.service';
 import { Router } from '@angular/router';
+import { finalize } from 'rxjs';
 
 import {
   DatosPersonalesComponent
@@ -24,9 +26,6 @@ import {
   DatosContactoComponent
 } from '../../components/datos-contacto/datos-contacto.component';
 
-import {
-  DatosAdicionalesComponent
-} from '../../components/datos-adicionales/datos-adicionales.component';
 
 
 type TipoModal =
@@ -45,7 +44,6 @@ type TipoModal =
     ReactiveFormsModule,
     DatosPersonalesComponent,
     DatosContactoComponent,
-    DatosAdicionalesComponent
   ],
 
   templateUrl: './registro.component.html',
@@ -56,10 +54,11 @@ type TipoModal =
 })
 
 
-export class RegistroComponent implements OnInit {
+export class RegistroComponent implements OnInit, OnDestroy {
 
   registroForm!: FormGroup;
   mensajeError = '';
+  cargando = false;
 
 
   // =========================
@@ -73,6 +72,15 @@ export class RegistroComponent implements OnInit {
   modalTitulo = '';
 
   modalMensaje = '';
+
+  esRegistroExitoso = false;
+
+  private redireccionTimer?: ReturnType<typeof setTimeout>;
+
+  private controlInvalidoPendiente = '';
+
+  @ViewChild('registroFormElement')
+  private registroFormElement?: ElementRef<HTMLFormElement>;
 
 
   constructor(
@@ -112,17 +120,29 @@ export class RegistroComponent implements OnInit {
               ]
             ],
 
-            segundo_apellido: [
+            password: [
               '',
               [
-                Validators.maxLength(50)
+                Validators.required,
+                Validators.minLength(8),
+                Validators.pattern(/^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z\d]).+$/)
               ]
             ],
 
             fecha_nacimiento: [
               '',
               [
-                Validators.required
+                Validators.required,
+                this.fechaNoFutura.bind(this)
+              ]
+            ],
+
+            email: [
+              '',
+              [
+                Validators.required,
+                Validators.email,
+                Validators.maxLength(150)
               ]
             ]
 
@@ -144,6 +164,10 @@ export class RegistroComponent implements OnInit {
               ]
             ],
 
+            telefonos: this.fb.array([
+              this.crearContacto('Casa')
+            ]),
+
             codigo_postal: [
               '',
               [
@@ -152,9 +176,6 @@ export class RegistroComponent implements OnInit {
               ]
             ],
 
-
-            // Estado vuelve a aparecer
-            // en el formulario.
             estado: [
               '',
               [
@@ -163,9 +184,6 @@ export class RegistroComponent implements OnInit {
               ]
             ],
 
-
-            // Municipio vuelve a aparecer
-            // en el formulario.
             municipio: [
               '',
               [
@@ -174,37 +192,48 @@ export class RegistroComponent implements OnInit {
               ]
             ],
 
-
             direccion: [
               '',
               [
                 Validators.required,
                 Validators.maxLength(150)
               ]
-            ]
+            ],
+
+            direcciones: this.fb.array([
+              this.crearDireccion('Principal')
+            ]),
+
+            correos: this.fb.array([
+              this.crearContacto('Personal')
+            ])
 
           }),
 
 
-        // =========================
-        // DATOS ADICIONALES
-        // =========================
-
-        datosAdicionales:
-          this.fb.group({
-
-            animal_favorito: [
-              '',
-              [
-                Validators.required,
-                Validators.maxLength(50)
-              ]
-            ]
-
-          })
-
       });
 
+  }
+
+  private crearContacto(tipo = ''): FormGroup {
+    return this.fb.group({
+      tipo: [tipo, Validators.required],
+      valor: ['', Validators.required]
+    });
+  }
+
+  private crearDireccion(tipo = ''): FormGroup {
+    return this.fb.group({
+      tipo: [tipo, Validators.required],
+      valor: ['', Validators.required],
+      codigoPostal: ['', [Validators.required, Validators.pattern(/^\d{5}$/)]]
+    });
+  }
+
+  ngOnDestroy(): void {
+    if (this.redireccionTimer) {
+      clearTimeout(this.redireccionTimer);
+    }
   }
 
   private fechaNoFutura(control: AbstractControl): ValidationErrors | null {
@@ -232,6 +261,8 @@ export class RegistroComponent implements OnInit {
 
     this.modalMensaje = mensaje;
 
+    this.esRegistroExitoso = tipo === 'exito';
+
     this.modalVisible = true;
 
   }
@@ -245,6 +276,52 @@ export class RegistroComponent implements OnInit {
 
     this.modalVisible = false;
 
+    if (this.redireccionTimer) {
+      clearTimeout(this.redireccionTimer);
+      this.redireccionTimer = undefined;
+    }
+
+    this.enfocarControlInvalido();
+
+  }
+
+  private obtenerPrimerControlInvalido(
+    grupo: FormGroup
+  ): string {
+    for (const nombre of Object.keys(grupo.controls)) {
+      const control = grupo.controls[nombre];
+
+      if (control instanceof FormGroup) {
+        const controlHijo = this.obtenerPrimerControlInvalido(control);
+
+        if (controlHijo) {
+          return controlHijo;
+        }
+      } else if (control.invalid) {
+        return nombre;
+      }
+    }
+
+    return '';
+  }
+
+  private enfocarControlInvalido(): void {
+    if (!this.controlInvalidoPendiente || !this.registroFormElement) {
+      return;
+    }
+
+    const control = this.registroFormElement.nativeElement.querySelector(
+      `[formControlName="${this.controlInvalidoPendiente}"]`
+    );
+
+    if (control instanceof HTMLElement) {
+      control.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      });
+      control.focus();
+      this.controlInvalidoPendiente = '';
+    }
   }
 
 
@@ -253,6 +330,10 @@ export class RegistroComponent implements OnInit {
   // =========================
 
   enviarRegistro(): void {
+    if (this.cargando) {
+      return;
+    }
+
     this.mensajeError = '';
 
     /*
@@ -263,6 +344,13 @@ export class RegistroComponent implements OnInit {
 
       this.registroForm
         .markAllAsTouched();
+
+      this.controlInvalidoPendiente =
+        this.obtenerPrimerControlInvalido(
+          this.registroForm
+        );
+
+      this.enfocarControlInvalido();
 
       this.mostrarModal(
         'advertencia',
@@ -287,11 +375,6 @@ export class RegistroComponent implements OnInit {
         .datosContacto;
 
 
-    const datosAdicionales =
-      this.registroForm
-        .value
-        .datosAdicionales;
-
 
     /*
      * El backend recibe un objeto plano.
@@ -301,6 +384,19 @@ export class RegistroComponent implements OnInit {
      * continúa obteniéndolos mediante
      * su lógica actual.
      */
+    const telefonosExtra = (datosContacto.telefonos ?? []).filter((item: any) => item?.valor)
+      .map((item: any) => ({ tipo: item.tipo || 'Contacto', valor: item.valor }));
+
+    const direccionesExtra = (datosContacto.direcciones ?? []).filter((item: any) => item?.valor)
+      .map((item: any) => ({
+        tipo: item.tipo || 'Dirección',
+        valor: item.valor,
+        codigoPostal: item.codigoPostal
+      }));
+
+    const correosExtra = (datosContacto.correos ?? []).filter((item: any) => item?.valor)
+      .map((item: any) => ({ tipo: item.tipo || 'Correo', valor: item.valor }));
+
     const datosAEnviar:
       UsuarioRequest = {
 
@@ -310,8 +406,8 @@ export class RegistroComponent implements OnInit {
         primerApellido:
           datosPersonales.primer_apellido,
 
-        segundoApellido:
-          datosPersonales.segundo_apellido || '',
+        password:
+          datosPersonales.password,
 
         telefono:
           datosContacto.telefono,
@@ -325,32 +421,36 @@ export class RegistroComponent implements OnInit {
         fechaNacimiento:
           datosPersonales.fecha_nacimiento,
 
-        animalFavorito:
-          datosAdicionales.animal_favorito
+        email:
+          datosPersonales.email,
+
+        telefonos: [
+          { tipo: 'Principal', valor: datosContacto.telefono },
+          ...telefonosExtra
+        ],
+
+        direcciones: [
+          {
+            tipo: 'Principal',
+            valor: datosContacto.direccion,
+            codigoPostal: datosContacto.codigo_postal
+          },
+          ...direccionesExtra
+        ],
+
+        correos: [
+          { tipo: 'Principal', valor: datosPersonales.email },
+          ...correosExtra
+        ]
 
       };
 
 
-    console.log('Enviando datos al backend (8081):', datosAEnviar);
-
-
-    /*
-     * Solo para comprobar lo escrito
-     * por el usuario en el formulario.
-     */
-    console.log(
-      'Estado escrito:',
-      datosContacto.estado
-    );
-
-    console.log(
-      'Municipio escrito:',
-      datosContacto.municipio
-    );
-
+    this.cargando = true;
 
     this.usuarioService
       .crearUsuario(datosAEnviar)
+      .pipe(finalize(() => this.cargando = false))
       .subscribe({
 
 
@@ -358,19 +458,20 @@ export class RegistroComponent implements OnInit {
         // REGISTRO EXITOSO
         // =========================
 
-        next: (response) => {
-
-          console.log(
-            '¡Guardado exitosamente!',
-            response
-          );
-
-
+        next: () => {
           this.registroForm
             .reset();
 
 
-          this.router.navigate(['/exito']);
+          this.mostrarModal(
+            'exito',
+            '¡Lo lograste!',
+            'Tu registro se completó correctamente. Serás redirigido al inicio de sesión.'
+          );
+
+          this.redireccionTimer = setTimeout(() => {
+            this.router.navigate(['/login']);
+          }, 3000);
 
         },
 
@@ -380,18 +481,6 @@ export class RegistroComponent implements OnInit {
         // =========================
 
         error: (err) => {
-
-          console.error(
-            'Error al registrar:',
-            err
-          );
-
-          console.error(
-            'Respuesta del backend:',
-            err.error
-          );
-
-
           // =========================
           // ERROR 400
           // =========================

@@ -1,0 +1,91 @@
+<main class="perfil-page">
+  <section class="perfil-shell" aria-labelledby="perfil-title">
+    <header class="perfil-header">
+      <div>
+        <span class="perfil-kicker">Área personal</span>
+        <h1 id="perfil-title">Mis datos</h1>
+        <p>Consulta la información registrada en el sistema.</p>
+      </div>
+
+      <div class="perfil-actions">
+        <button class="role-button" type="button" (click)="cambiarDeRol()">
+        ADMINISTRADOR
+        </button>
+
+        <button class="logout-button" type="button" (click)="cerrarSesion()">
+          Cerrar sesión
+        </button>
+      </div>
+    </header>
+
+    <section class="perfil-card" *ngIf="cargando" aria-live="polite">
+      <p class="status-message">Cargando tus datos...</p>
+    </section>
+
+    <section class="perfil-card" *ngIf="!cargando && errorMensaje" aria-live="polite">
+      <p class="status-message error-message">{{ errorMensaje }}</p>
+    </section>
+
+    <section class="perfil-card" *ngIf="!cargando && usuario" aria-label="Datos personales">
+      <div class="perfil-card-heading">
+        <span class="card-kicker">Información del usuario</span>
+        <h2>{{ usuario.nombre }} {{ usuario.primerApellido }}</h2>
+      </div>
+
+      <div class="datos-grid">
+        <div class="dato">
+          <span class="dato-label">Correo electrónico</span>
+          <strong>{{ usuario.email }}</strong>
+        </div>
+        <div class="dato">
+          <span class="dato-label">Teléfono</span>
+          <strong>{{ usuario.telefono }}</strong>
+        </div>
+        <div class="dato">
+          <span class="dato-label">Fecha de nacimiento</span>
+          <strong>{{ usuario.fechaNacimiento }}</strong>
+        </div>
+        <div class="dato">
+          <span class="dato-label">Código postal</span>
+          <strong>{{ usuario.codigoPostal }}</strong>
+        </div>
+        <div class="dato">
+          <span class="dato-label">Estado</span>
+          <strong>{{ usuario.estado }}</strong>
+        </div>
+        <div class="dato">
+          <span class="dato-label">Municipio</span>
+          <strong>{{ usuario.municipio }}</strong>
+        </div>
+        <div class="dato dato-completo">
+          <span class="dato-label">Dirección</span>
+          <strong>{{ usuario.direccion }}</strong>
+        </div>
+      </div>
+    </section>
+  </section>
+</main>
+
+<div class="video-modal-backdrop" *ngIf="modalVisible" (click)="cerrarVideo()">
+  <div
+    class="video-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Video de cambio de rol"
+    (click)="$event.stopPropagation()"
+  >
+    <button class="video-close" type="button" (click)="cerrarVideo()" aria-label="Cerrar video">
+      ×
+    </button>
+
+    <div class="video-wrapper">
+      <iframe
+        [src]="youtubeEmbedUrl"
+        title="Video de cambio de rol"
+        frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowfullscreen
+      ></iframe>
+    </div>
+  </div>
+</div>

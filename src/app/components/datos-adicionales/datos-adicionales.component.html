@@ -1,11 +1,13 @@
 <div class="seccion-form">
   <div class="campo">
-    <label for="animal_favorito">Animal Favorito:</label>
+    <label for="email">Correo electrónico: <span class="required-mark"></span></label>
     <input
-      type="text"
-      id="animal_favorito"
-      formControlName="animal_favorito"
-      placeholder="Ej. Gato, Perro..."
+      type="email"
+      id="email"
+      formControlName="email"
+      placeholder="correo@ejemplo.com"
     >
+    <small class="field-error" *ngIf="control('email')?.touched && control('email')?.hasError('required')">Este campo es obligatorio.</small>
+    <small class="field-error" *ngIf="control('email')?.touched && control('email')?.hasError('email')">Ingresa un correo electrónico válido.</small>
   </div>
 </div>

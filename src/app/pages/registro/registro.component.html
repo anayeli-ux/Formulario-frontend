@@ -43,6 +43,7 @@
       </div>
 
       <form
+        #registroFormElement
         [formGroup]="registroForm"
         (ngSubmit)="enviarRegistro()"
       >
@@ -103,46 +104,15 @@
           </app-datos-contacto>
 
         </section>
-
-
-        <!-- DATOS ADICIONALES -->
-        <section class="form-section">
-
-          <div class="section-header">
-
-            <span class="section-number">
-              03
-            </span>
-
-            <div>
-              <h3>
-                Datos adicionales
-              </h3>
-
-              <p>
-                Información complementaria.
-              </p>
-            </div>
-
-          </div>
-
-          <app-datos-adicionales
-            formGroupName="datosAdicionales"
-          >
-          </app-datos-adicionales>
-
-        </section>
-
-
         <!-- BOTÓN -->
         <div class="registro-actions">
 
           <button
             type="submit"
-            [disabled]="registroForm.invalid"
             class="btn-submit"
+            [disabled]="cargando"
           >
-            Registrar usuario
+            {{ cargando ? 'Registrando usuario...' : 'Registrar usuario' }}
           </button>
 
         </div>
@@ -155,6 +125,14 @@
 
 </div>
 
+<div class="loading-overlay" *ngIf="cargando" aria-live="polite" aria-busy="true">
+  <div class="loading-modal">
+    <span class="loading-spinner" aria-hidden="true"></span>
+    <strong>Registrando usuario</strong>
+    <span>Espera un momento...</span>
+  </div>
+</div>
+
 
 <!-- =========================================
     MODAL DE MENSAJES
@@ -163,7 +141,7 @@
 <div
   class="mensaje-overlay"
   *ngIf="modalVisible"
-  (click)="cerrarModal()"
+  (click)="!esRegistroExitoso && cerrarModal()"
 >
 
   <div
@@ -174,6 +152,7 @@
 
     <!-- BOTÓN CERRAR -->
     <button
+      *ngIf="!esRegistroExitoso"
       type="button"
       class="modal-close"
       (click)="cerrarModal()"
@@ -182,6 +161,13 @@
       ×
     </button>
 
+
+    <img
+      *ngIf="esRegistroExitoso"
+      src="gatito.jpg"
+      alt="Registro completado"
+      class="modal-success-image"
+    >
 
     <!-- IDENTIDAD VISUAL -->
     <div class="modal-brand">
@@ -206,7 +192,7 @@
 
 
     <!-- ICONO SEGÚN EL TIPO -->
-    <div class="modal-icon">
+    <div class="modal-icon" *ngIf="!esRegistroExitoso">
 
       <span *ngIf="modalTipo === 'exito'">
         ✓
@@ -237,6 +223,7 @@
 
     <!-- BOTÓN -->
     <button
+      *ngIf="!esRegistroExitoso"
       type="button"
       class="modal-aceptar"
       (click)="cerrarModal()"

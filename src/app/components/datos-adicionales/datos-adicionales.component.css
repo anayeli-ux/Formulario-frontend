@@ -1,0 +1,9 @@
+.required-mark {
+  color: #b2183b;
+}
+
+.field-error {
+  display: block;
+  color: #b2183b;
+  font-size: 11px;
+}

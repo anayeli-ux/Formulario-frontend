@@ -1,9 +1,7 @@
 <div class="seccion-form">
-  <!-- TELÉFONO -->
   <div class="campo">
-
     <label for="telefono">
-      Teléfono:
+      Teléfono principal: <span class="required-mark"></span>
     </label>
 
     <input
@@ -14,14 +12,26 @@
       maxlength="10"
       inputmode="numeric"
     >
+    <small class="field-error" *ngIf="control('telefono')?.touched && control('telefono')?.hasError('required')">Este campo es obligatorio.</small>
   </div>
 
+  <div class="campo" formArrayName="telefonos">
+    <label>Teléfonos adicionales</label>
 
-  <!-- CÓDIGO POSTAL -->
+    <div *ngFor="let item of telefonos.controls; let i = index" [formGroupName]="i" class="contacto-item">
+      <select class="contacto-select" formControlName="tipo">
+        <option *ngFor="let tipo of tiposPredeterminados" [value]="tipo">{{ tipo }}</option>
+      </select>
+      <input class="contacto-input" formControlName="valor" placeholder="Número" />
+      <button type="button" class="chip-button danger" (click)="quitarTelefono(i)">Quitar</button>
+    </div>
+
+    <button type="button" class="chip-button" (click)="agregarTelefono()">+ Agregar teléfono</button>
+  </div>
+
   <div class="campo">
-
     <label for="codigo_postal">
-      Código Postal:
+      Código Postal: <span class="required-mark"></span>
     </label>
 
     <input
@@ -32,51 +42,45 @@
       maxlength="5"
       inputmode="numeric"
     >
+    <small class="field-error" *ngIf="control('codigo_postal')?.touched && control('codigo_postal')?.hasError('required')">Este campo es obligatorio.</small>
 
   </div>
 
-
-  <!-- ESTADO -->
   <div class="campo">
-
     <label for="estado">
-      Estado:
+      Estado: <span class="required-mark"></span>
     </label>
 
     <input
       type="text"
       id="estado"
       formControlName="estado"
-      placeholder="Ej. Querétaro"
+      placeholder="Ej. Hidalgo"
       maxlength="100"
     >
+    <small class="field-error" *ngIf="control('estado')?.touched && control('estado')?.hasError('required')">Este campo es obligatorio.</small>
 
   </div>
 
-
-  <!-- MUNICIPIO -->
   <div class="campo">
-
     <label for="municipio">
-      Municipio:
+      Municipio: <span class="required-mark"></span>
     </label>
 
     <input
       type="text"
       id="municipio"
       formControlName="municipio"
-      placeholder="Ej. Santiago de Querétaro"
+      placeholder="Ej. Pachuca"
       maxlength="100"
     >
+    <small class="field-error" *ngIf="control('municipio')?.touched && control('municipio')?.hasError('required')">Este campo es obligatorio.</small>
 
   </div>
 
-
-  <!-- DIRECCIÓN -->
   <div class="campo">
-
     <label for="direccion">
-      Dirección (Calle y Número):
+      Dirección principal: <span class="required-mark"></span>
     </label>
 
     <input
@@ -86,7 +90,39 @@
       placeholder="Calle, número exterior/interior"
       maxlength="150"
     >
+    <small class="field-error" *ngIf="control('direccion')?.touched && control('direccion')?.hasError('required')">Este campo es obligatorio.</small>
 
   </div>
 
+  <div class="campo" formArrayName="direcciones">
+    <label>Direcciones adicionales</label>
+
+    <div *ngFor="let item of direcciones.controls; let i = index" [formGroupName]="i" class="contacto-item">
+      <select class="contacto-select" formControlName="tipo">
+        <option *ngFor="let tipo of tiposPredeterminados" [value]="tipo">{{ tipo }}</option>
+      </select>
+      <input class="contacto-input" formControlName="valor" placeholder="Dirección completa" />
+      <div class="contacto-field">
+        <label class="contacto-label" [for]="'direccion-codigo-postal-' + i">Código Postal</label>
+        <input class="contacto-input contacto-codigo-postal" [id]="'direccion-codigo-postal-' + i" formControlName="codigoPostal" placeholder="Código Postal" maxlength="5" inputmode="numeric" />
+      </div>
+      <button type="button" class="chip-button danger" (click)="quitarDireccion(i)">Quitar</button>
+    </div>
+
+    <button type="button" class="chip-button" (click)="agregarDireccion()">+ Agregar dirección</button>
+  </div>
+
+  <div class="campo" formArrayName="correos">
+    <label>Correos adicionales</label>
+
+    <div *ngFor="let item of correos.controls; let i = index" [formGroupName]="i" class="contacto-item">
+      <select class="contacto-select" formControlName="tipo">
+        <option *ngFor="let tipo of tiposPredeterminados" [value]="tipo">{{ tipo }}</option>
+      </select>
+      <input class="contacto-input" formControlName="valor" placeholder="correo@ejemplo.com" />
+      <button type="button" class="chip-button danger" (click)="quitarCorreo(i)">Quitar</button>
+    </div>
+
+    <button type="button" class="chip-button" (click)="agregarCorreo()">+ Agregar correo</button>
+  </div>
 </div>

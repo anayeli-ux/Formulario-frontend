@@ -11,6 +11,7 @@ import {
 import {
   PostaliaResponse
 } from '../models/postalia.model';
+import { environment } from '../../environments/environment';
 
 
 @Injectable({
@@ -19,7 +20,7 @@ import {
 export class PostaliaService {
 
   private apiUrl =
-    'http://localhost:8081/api/postalia';
+    `${environment.apiUrl}/postalia`;
 
 
   constructor(

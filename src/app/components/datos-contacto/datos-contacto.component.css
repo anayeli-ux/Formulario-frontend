@@ -1,0 +1,109 @@
+.required-mark {
+  color: #b2183b;
+}
+
+.field-error {
+  display: block;
+  color: #b2183b;
+  font-size: 11px;
+}
+
+.contacto-item {
+  display: grid;
+  grid-template-columns: minmax(130px, 170px) minmax(0, 1fr) minmax(110px, 130px) auto;
+  gap: 8px;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.contacto-select,
+.contacto-input {
+  height: 40px;
+  box-sizing: border-box;
+  border: 1px solid #d4d9e2;
+  border-radius: 6px;
+  background: #fff;
+  font: inherit;
+}
+
+.contacto-select {
+  flex: 0 0 160px;
+  padding: 0 10px;
+}
+
+.contacto-input {
+  flex: 1 1 auto;
+  padding: 0 12px;
+}
+
+.chip-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid #3159c7;
+  border-radius: 6px;
+  background: #eef3ff;
+  color: #1e3a8a;
+  font: inherit;
+  cursor: pointer;
+  transition: transform .18s ease, box-shadow .18s ease, background-color .18s ease;
+}
+
+.campo:has(> .chip-button) {
+  margin-bottom: 28px;
+}
+
+.campo > .chip-button {
+  margin-top: 2px;
+  margin-bottom: 4px;
+}
+
+.chip-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 7px 16px rgba(49, 89, 199, .16);
+}
+
+.chip-button.danger {
+  border-color: #d93025;
+  background: #fdecec;
+  color: #b42318;
+}
+
+@media (max-width: 560px) {
+  .contacto-item {
+    grid-template-columns: 1fr;
+  }
+
+  .contacto-select,
+  .contacto-input,
+  .chip-button {
+    width: 100%;
+  }
+
+  .campo:has(> .chip-button) {
+    margin-bottom: 24px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chip-button {
+    transition: none;
+  }
+}
+
+.contacto-codigo-postal {
+  min-width: 0;
+}
+
+.contacto-field {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.contacto-label {
+  color: #4b5563;
+  font-size: 11px;
+}

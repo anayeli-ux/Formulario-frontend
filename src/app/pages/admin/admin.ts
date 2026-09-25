@@ -7,17 +7,19 @@ import {
   signal
 } from '@angular/core';
 
-import { FormsModule } from '@angular/forms';
+import { FormsModule, NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
+import { finalize } from 'rxjs';
 
-import { Usuario } from '../models/usuario.model';
+import { Usuario } from '../../models/usuario.model';
 
 import {
   UsuarioService,
   UsuarioRequest
-} from '../services/usuario.service';
+} from '../../services/usuario.service';
 
-import { AuthService } from '../services/auth.service';
+import { AuthService } from '../../services/auth.service';
+import { PostaliaService } from '../../services/postalia.service';
 
 type TipoModal =
   | 'exito'
@@ -47,6 +49,18 @@ export class Admin implements OnInit {
 
   usuariosEliminados =
     signal<Usuario[]>([]);
+
+  busquedaUsuarios = signal('');
+
+  busquedaUsuariosEliminados = signal('');
+
+  usuariosFiltrados = computed(() =>
+    this.filtrarUsuarios(this.usuarios(), this.busquedaUsuarios())
+  );
+
+  usuariosEliminadosFiltrados = computed(() =>
+    this.filtrarUsuarios(this.usuariosEliminados(), this.busquedaUsuariosEliminados())
+  );
 
   totalUsuariosActivos =
     computed(
@@ -85,6 +99,8 @@ export class Admin implements OnInit {
 
   modalMensaje = '';
 
+  cargando = false;
+
 
   /*
    * Guarda temporalmente una acción
@@ -105,7 +121,8 @@ export class Admin implements OnInit {
   constructor(
     private router: Router,
     private usuarioService: UsuarioService,
-    private authService: AuthService
+    private authService: AuthService,
+    private postaliaService: PostaliaService
   ) {}
 
 
@@ -214,18 +231,14 @@ export class Admin implements OnInit {
         next: (usuarios: Usuario[]) => {
 
           this.usuarios.set(
-            this.ordenarPorId(usuarios)
+            this.ordenarPorId(
+              this.completarUbicaciones(usuarios)
+            )
           );
 
         },
 
-        error: (error: any) => {
-
-          console.error(
-            'Error al cargar usuarios:',
-            error
-          );
-
+        error: () => {
           this.mostrarModal(
             'error',
             'Error al cargar usuarios',
@@ -252,18 +265,14 @@ export class Admin implements OnInit {
         next: (usuarios: Usuario[]) => {
 
           this.usuariosEliminados.set(
-            this.ordenarPorId(usuarios)
+            this.ordenarPorId(
+              this.completarUbicaciones(usuarios)
+            )
           );
 
         },
 
-        error: (error: any) => {
-
-          console.error(
-            'Error al cargar usuarios eliminados:',
-            error
-          );
-
+        error: () => {
           this.mostrarModal(
             'error',
             'Error al cargar usuarios',
@@ -278,20 +287,32 @@ export class Admin implements OnInit {
 
 
   /* =========================
-     CREAR USUARIO
+    CREAR USUARIO
      ========================= */
 
-  crearUsuario(): void {
+  crearUsuario(form?: NgForm): void {
+
+    if (this.cargando) {
+      return;
+    }
+
+    if (form && form.invalid) {
+      form.form.markAllAsTouched();
+      return;
+    }
 
     if (!this.validarEdad()) {
       return;
     }
 
     const usuario =
-      this.prepararUsuario();
+      this.prepararUsuario(true);
+
+    this.cargando = true;
 
     this.usuarioService
       .crearUsuario(usuario)
+      .pipe(finalize(() => this.cargando = false))
       .subscribe({
 
         next: () => {
@@ -309,12 +330,6 @@ export class Admin implements OnInit {
         },
 
         error: (error: any) => {
-
-          console.error(
-            'Error al crear usuario:',
-            error
-          );
-
           this.mostrarErrorHttp(
             error,
             'No se pudo crear el usuario.'
@@ -347,9 +362,45 @@ export class Admin implements OnInit {
      * seleccionado al formulario.
      */
     this.usuarioFormulario = {
-      ...usuario
+      ...usuario,
+      password: '',
+      telefonos: usuario.telefonos ?? [],
+      direcciones: usuario.direcciones ?? [],
+      correos: usuario.correos ?? []
     };
 
+    this.actualizarUbicacion();
+
+  }
+
+  actualizarUbicacion(): void {
+    const codigoPostal = this.usuarioFormulario.codigoPostal;
+
+    if (!/^\d{5}$/.test(codigoPostal)) {
+      this.usuarioFormulario = {
+        ...this.usuarioFormulario,
+        estado: '',
+        municipio: ''
+      };
+      return;
+    }
+
+    this.postaliaService.buscarCodigoPostal(codigoPostal).subscribe({
+      next: ubicacion => {
+        this.usuarioFormulario = {
+          ...this.usuarioFormulario,
+          estado: ubicacion.estado,
+          municipio: ubicacion.municipio
+        };
+      },
+      error: () => {
+        this.usuarioFormulario = {
+          ...this.usuarioFormulario,
+          estado: '',
+          municipio: ''
+        };
+      }
+    });
   }
 
 
@@ -377,11 +428,23 @@ export class Admin implements OnInit {
      ACTUALIZAR USUARIO
      ========================= */
 
-  actualizarUsuario(): void {
+  actualizarUsuario(form?: NgForm): void {
 
-    if (
-      this.usuarioEditandoId === undefined
-    ) {
+    if (this.cargando) {
+      return;
+    }
+
+    if (this.usuarioEditandoId === undefined) {
+      return;
+    }
+
+    form?.form.markAllAsTouched();
+
+    if (form?.invalid) {
+      return;
+    }
+
+    if (!this.formularioEdicionValido()) {
       return;
     }
 
@@ -390,13 +453,17 @@ export class Admin implements OnInit {
     }
 
     const usuario =
-      this.prepararUsuario();
+      this.prepararUsuario(false);
+      
+
+    this.cargando = true;
 
     this.usuarioService
       .actualizarUsuario(
         this.usuarioEditandoId,
         usuario
       )
+      .pipe(finalize(() => this.cargando = false))
       .subscribe({
 
         next: () => {
@@ -416,12 +483,6 @@ export class Admin implements OnInit {
         },
 
         error: (error: any) => {
-
-          console.error(
-            'Error al actualizar usuario:',
-            error
-          );
-
           this.mostrarErrorHttp(
             error,
             'No se pudo actualizar el usuario.'
@@ -459,8 +520,11 @@ export class Admin implements OnInit {
     id: number
   ): void {
 
+    this.cargando = true;
+
     this.usuarioService
       .eliminarUsuario(id)
+      .pipe(finalize(() => this.cargando = false))
       .subscribe({
 
         next: () => {
@@ -478,12 +542,6 @@ export class Admin implements OnInit {
         },
 
         error: (error: any) => {
-
-          console.error(
-            'Error al eliminar usuario:',
-            error
-          );
-
           this.mostrarErrorHttp(
             error,
             'No se pudo eliminar el usuario.'
@@ -517,6 +575,8 @@ export class Admin implements OnInit {
     id: number
   ): void {
 
+    this.cargando = true;
+
     /*
      * Este método requiere que
      * usuario.service.ts tenga:
@@ -526,6 +586,7 @@ export class Admin implements OnInit {
 
     this.usuarioService
       .reactivarUsuario(id)
+      .pipe(finalize(() => this.cargando = false))
       .subscribe({
 
         next: () => {
@@ -543,12 +604,6 @@ export class Admin implements OnInit {
         },
 
         error: (error: any) => {
-
-          console.error(
-            'Error al reactivar usuario:',
-            error
-          );
-
           this.mostrarErrorHttp(
             error,
             'No se pudo reactivar el usuario.'
@@ -570,8 +625,7 @@ export class Admin implements OnInit {
     mensajePredeterminado: string
   ): void {
 
-    const mensajeBackend =
-      error?.error?.mensaje;
+    const mensajeBackend = this.obtenerMensajeError(error);
 
 
     if (error.status === 400) {
@@ -646,19 +700,16 @@ export class Admin implements OnInit {
      PREPARAR DATOS
      ========================= */
 
-  private prepararUsuario():
+  private prepararUsuario(incluirPassword = true):
     UsuarioRequest {
 
-    return {
+    const usuario: UsuarioRequest = {
 
       nombre:
         this.usuarioFormulario.nombre,
 
       primerApellido:
         this.usuarioFormulario.primerApellido,
-
-      segundoApellido:
-        this.usuarioFormulario.segundoApellido,
 
       telefono:
         this.usuarioFormulario.telefono,
@@ -672,11 +723,108 @@ export class Admin implements OnInit {
       fechaNacimiento:
         this.usuarioFormulario.fechaNacimiento,
 
-      animalFavorito:
-        this.usuarioFormulario.animalFavorito
+      email:
+        this.usuarioFormulario.email,
+
+      telefonos: this.usuarioFormulario.telefonos,
+
+      direcciones: (this.usuarioFormulario.direcciones ?? []).map(direccion => ({
+        tipo: direccion.tipo,
+        valor: direccion.valor,
+        codigoPostal: direccion.codigoPostal || this.usuarioFormulario.codigoPostal
+      })),
+
+      correos: this.usuarioFormulario.correos
 
     };
 
+    if (incluirPassword) {
+      usuario.password = this.usuarioFormulario.password ?? '';
+    }
+
+    return usuario;
+
+  }
+
+  private formularioEdicionValido(): boolean {
+    const password = this.usuarioFormulario.password ?? '';
+
+    if (password && !/^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/.test(password)) {
+      this.mostrarModal('advertencia', 'Datos incorrectos', 'La contraseña debe tener 8 caracteres, una letra, un número y un símbolo.');
+      return false;
+    }
+
+    if (!this.usuarioFormulario.nombre.trim() || !this.usuarioFormulario.primerApellido.trim() ||
+        !/^\d{10}$/.test(this.usuarioFormulario.telefono) ||
+        !/^\d{5}$/.test(this.usuarioFormulario.codigoPostal) ||
+        !this.usuarioFormulario.direccion.trim() ||
+        !/^\S+@\S+\.\S+$/.test(this.usuarioFormulario.email)) {
+      this.mostrarModal('advertencia', 'Datos incorrectos', 'Revisa los campos obligatorios y sus formatos.');
+      return false;
+    }
+
+    const contactosInvalidos = [
+      ...(this.usuarioFormulario.telefonos ?? []),
+      ...(this.usuarioFormulario.direcciones ?? []),
+      ...(this.usuarioFormulario.correos ?? [])
+    ].some(contacto => !contacto.tipo?.trim() || !contacto.valor?.trim());
+
+    const direccionesConFormatoInvalido =
+      (this.usuarioFormulario.direcciones ?? []).some(direccion =>
+        !!direccion.codigoPostal && !/^\d{5}$/.test(direccion.codigoPostal)
+      );
+
+    if (contactosInvalidos || direccionesConFormatoInvalido) {
+      this.mostrarModal('advertencia', 'Datos incorrectos', 'Completa correctamente todos los teléfonos, direcciones y correos adicionales.');
+      return false;
+    }
+
+    return true;
+  }
+
+  private obtenerMensajeError(error: any): string {
+    const respuesta = error?.error;
+
+    if (typeof respuesta === 'string') {
+      return respuesta;
+    }
+
+    return respuesta?.mensaje || respuesta?.message || error?.message || '';
+  }
+
+  private filtrarUsuarios(usuarios: Usuario[], busqueda: string): Usuario[] {
+    const termino = this.normalizarTexto(busqueda);
+
+    if (!termino) {
+      return usuarios;
+    }
+
+    return usuarios.filter(usuario => {
+      const valores = [
+        usuario.id,
+        usuario.nombre,
+        usuario.primerApellido,
+        usuario.telefono,
+        usuario.codigoPostal,
+        usuario.estado,
+        usuario.municipio,
+        usuario.direccion,
+        usuario.email,
+        ...(usuario.telefonos ?? []).flatMap(contacto => [contacto.tipo, contacto.valor]),
+        ...(usuario.direcciones ?? []).flatMap(contacto => [contacto.tipo, contacto.valor, contacto.codigoPostal]),
+        ...(usuario.correos ?? []).flatMap(contacto => [contacto.tipo, contacto.valor])
+      ];
+
+      return valores.some(valor => this.normalizarTexto(String(valor ?? '')).includes(termino));
+    });
+  }
+
+  private normalizarTexto(valor: string): string {
+    return valor
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim();
   }
 
 
@@ -696,6 +844,22 @@ export class Admin implements OnInit {
 
   }
 
+  get passwordStrength(): number {
+    const password = this.usuarioFormulario.password ?? '';
+    let strength = 0;
+
+    if (password.length >= 8) strength++;
+    if (/[A-Za-z]/.test(password)) strength++;
+    if (/\d/.test(password)) strength++;
+    if (/[^A-Za-z\d]/.test(password)) strength++;
+
+    return strength;
+  }
+
+  get passwordStrengthLabel(): string {
+    return ['Muy débil', 'Débil', 'Regular', 'Fuerte', 'Muy fuerte'][this.passwordStrength];
+  }
+
 
   /* =========================
      CERRAR SESIÓN
@@ -703,11 +867,21 @@ export class Admin implements OnInit {
 
   cerrarSesion(): void {
 
-    this.authService
-      .cerrarSesion();
+    if (this.cargando) {
+      return;
+    }
 
-    this.router
-      .navigate(['/']);
+    this.cargando = true;
+
+    this.authService.cerrarSesion().pipe(
+      finalize(() => this.cargando = false)
+    ).subscribe({
+      next: () => this.router.navigate(['/login']),
+      error: () => {
+        this.authService.limpiarSesionLocal();
+        this.router.navigate(['/login']);
+      }
+    });
 
   }
 
@@ -754,6 +928,33 @@ export class Admin implements OnInit {
         (b.id ?? 0)
     );
 
+  }
+
+  private completarUbicaciones(
+    usuarios: Usuario[]
+  ): Usuario[] {
+
+    return usuarios.map(usuario => {
+      if (!usuario.codigoPostal) {
+        return usuario;
+      }
+
+      this.postaliaService.buscarCodigoPostal(usuario.codigoPostal).subscribe({
+        next: ubicacion => {
+          const actualizar = (lista: Usuario[]) => lista.map(item =>
+            item.id === usuario.id
+              ? { ...item, estado: ubicacion.estado, municipio: ubicacion.municipio }
+              : item
+          );
+
+          this.usuarios.update(actualizar);
+          this.usuariosEliminados.update(actualizar);
+        },
+        error: () => undefined
+      });
+
+      return usuario;
+    });
   }
 
 
@@ -820,7 +1021,7 @@ export class Admin implements OnInit {
 
       primerApellido: '',
 
-      segundoApellido: '',
+      password: '',
 
       telefono: '',
 
@@ -839,7 +1040,7 @@ export class Admin implements OnInit {
 
       fechaNacimiento: '',
 
-      animalFavorito: '',
+      email: '',
 
       activo: true
 

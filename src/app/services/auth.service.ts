@@ -1,108 +1,134 @@
-import {
-  Inject,
-  Injectable,
-  PLATFORM_ID
-} from '@angular/core';
-
-import {
-  isPlatformBrowser
-} from '@angular/common';
-
+import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+
+import {
+  Observable,
+  tap,
+  switchMap
+} from 'rxjs';
+
 import { environment } from '../../environments/environment';
 
 export interface LoginResponse {
-  acceso?: boolean;
-  token?: string;
-  usuario?: unknown;
+  acceso: boolean;
+
+  usuario: {
+    id: number;
+    email: string;
+    rol: string;
+  };
 }
+export interface UsuarioSesion {
+  id: number;
+  email: string;
+  rol: string;
+}
+
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
 
-  private authUrl = `${environment.apiUrl}/auth`;
+  private authUrl =
+    `${environment.apiUrl}${environment.auth.login}`;
+
+  private logoutUrl =
+    `${environment.apiUrl}${environment.auth.logout}`;
+
+  private perfilUrl =
+    `${environment.apiUrl}${environment.auth.perfil}`;
+
+  private csrfUrl =
+    `${environment.apiUrl}${environment.auth.csrf}`;
+
+  private usuarioActual: UsuarioSesion | null = null;
+
 
   constructor(
-    @Inject(PLATFORM_ID)
-    private platformId: Object,
     private http: HttpClient
   ) {}
 
-  // Conexión real al backend para iniciar sesión
-  login(credenciales: { email: string; password: string }): Observable<LoginResponse> {
+  login(
+    credenciales: {
+      identificador: string;
+      password: string;
+    }
+  ): Observable<LoginResponse> {
     const datosAEnviar = {
-      usuario: credenciales.email,
+      usuario: credenciales.identificador,
       password: credenciales.password
     };
 
-    return this.http.post<LoginResponse>(`${this.authUrl}/admin`, datosAEnviar).pipe(
-      tap(response => {
-        if (
-          isPlatformBrowser(this.platformId) &&
-          response &&
-          (response.acceso === true || response.token)
-        ) {
-          if (response.token) {
-            localStorage.setItem('token', response.token);
-          }
-          localStorage.setItem('adminSesion', 'true');
-          localStorage.setItem('usuario', JSON.stringify(response.usuario || {}));
+    return this.http
+      .post<LoginResponse>(
+        this.authUrl,
+        datosAEnviar,
+        {
+          withCredentials: true
         }
+      )
+      .pipe(
+        tap(response => {
+          if (response?.acceso === true) {
+            this.usuarioActual = response.usuario;
+          } else {
+            this.usuarioActual = null;
+          }
+        })
+      );
+  }
+
+  obtenerCsrf(): Observable<void> {
+    return this.http.get<void>(
+      this.csrfUrl,
+      {
+        withCredentials: true
+      }
+    );
+  }
+
+  verificarSesion(): Observable<UsuarioSesion> {
+    return this.http
+      .get<UsuarioSesion>(
+        this.perfilUrl,
+        {
+          withCredentials: true
+        }
+      )
+      .pipe(
+        tap(usuario => {
+          this.usuarioActual = usuario;
+        })
+      );
+  }
+
+  getUsuarioActual(): UsuarioSesion | null {
+    return this.usuarioActual;
+  }
+  haySesion(): boolean {
+    return this.usuarioActual !== null;
+  }
+
+  cerrarSesion(): Observable<void> {
+    return this.obtenerCsrf().pipe(
+      switchMap(() =>
+        this.http.post<void>(
+          this.logoutUrl,
+          {},
+          {
+            withCredentials: true
+          }
+        )
+      ),
+
+      tap(() => {
+        this.usuarioActual = null;
       })
     );
   }
 
-  iniciarSesion(): void {
-    if (
-      isPlatformBrowser(
-        this.platformId
-      )
-    ) {
-      localStorage.setItem(
-        'adminSesion',
-        'true'
-      );
-    }
+  limpiarSesionLocal(): void {
+    this.usuarioActual = null;
   }
-
-  haySesion(): boolean {
-    if (
-      !isPlatformBrowser(
-        this.platformId
-      )
-    ) {
-      return false;
-    }
-
-    return (
-      localStorage.getItem(
-        'adminSesion'
-      ) === 'true' || !!localStorage.getItem('token')
-    );
-  }
-
-  getToken(): string | null {
-    if (!isPlatformBrowser(this.platformId)) {
-      return null;
-    }
-    return localStorage.getItem('token');
-  }
-
-  cerrarSesion(): void {
-    if (
-      isPlatformBrowser(
-        this.platformId
-      )
-    ) {
-      localStorage.removeItem(
-        'adminSesion'
-      );
-      localStorage.removeItem('token');
-      localStorage.removeItem('usuario');
-    }
-  }
-
 }
