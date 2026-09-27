@@ -110,9 +110,9 @@
           <button
             type="submit"
             class="btn-submit"
-            [disabled]="cargando"
+            [disabled]="cargando()"
           >
-            {{ cargando ? 'Registrando usuario...' : 'Registrar usuario' }}
+            {{ cargando() ? 'Registrando usuario...' : 'Registrar usuario' }}
           </button>
 
         </div>
@@ -125,7 +125,7 @@
 
 </div>
 
-<div class="loading-overlay" *ngIf="cargando" aria-live="polite" aria-busy="true">
+<div class="loading-overlay" *ngIf="cargando()" aria-live="polite" aria-busy="true">
   <div class="loading-modal">
     <span class="loading-spinner" aria-hidden="true"></span>
     <strong>Registrando usuario</strong>
@@ -140,19 +140,19 @@
 
 <div
   class="mensaje-overlay"
-  *ngIf="modalVisible"
-  (click)="!esRegistroExitoso && cerrarModal()"
+  *ngIf="modalVisible()"
+  (click)="!esRegistroExitoso() && cerrarModal()"
 >
 
   <div
     class="mensaje-modal"
-    [ngClass]="modalTipo"
+    [ngClass]="modalTipo()"
     (click)="$event.stopPropagation()"
   >
 
     <!-- BOTÓN CERRAR -->
     <button
-      *ngIf="!esRegistroExitoso"
+      *ngIf="!esRegistroExitoso()"
       type="button"
       class="modal-close"
       (click)="cerrarModal()"
@@ -163,7 +163,7 @@
 
 
     <img
-      *ngIf="esRegistroExitoso"
+      *ngIf="esRegistroExitoso()"
       src="gatito.jpg"
       alt="Registro completado"
       class="modal-success-image"
@@ -192,17 +192,17 @@
 
 
     <!-- ICONO SEGÚN EL TIPO -->
-    <div class="modal-icon" *ngIf="!esRegistroExitoso">
+    <div class="modal-icon" *ngIf="!esRegistroExitoso()">
 
-      <span *ngIf="modalTipo === 'exito'">
+      <span *ngIf="modalTipo() === 'exito'">
         ✓
       </span>
 
-      <span *ngIf="modalTipo === 'advertencia'">
+      <span *ngIf="modalTipo() === 'advertencia'">
         !
       </span>
 
-      <span *ngIf="modalTipo === 'error'">
+      <span *ngIf="modalTipo() === 'error'">
         !
       </span>
 
@@ -211,19 +211,19 @@
 
     <!-- TÍTULO -->
     <h2>
-      {{ modalTitulo }}
+      {{ modalTitulo() }}
     </h2>
 
 
     <!-- MENSAJE -->
     <p>
-      {{ modalMensaje }}
+      {{ modalMensaje() }}
     </p>
 
 
     <!-- BOTÓN -->
     <button
-      *ngIf="!esRegistroExitoso"
+      *ngIf="!esRegistroExitoso()"
       type="button"
       class="modal-aceptar"
       (click)="cerrarModal()"

@@ -8,6 +8,12 @@
   font-size: 11px;
 }
 
+.field-hint {
+  display: block;
+  color: #707d91;
+  font-size: 11px;
+}
+
 .contacto-item {
   display: grid;
   grid-template-columns: minmax(130px, 170px) minmax(0, 1fr) minmax(110px, 130px) auto;

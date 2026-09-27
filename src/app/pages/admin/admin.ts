@@ -7,19 +7,19 @@ import {
   signal
 } from '@angular/core';
 
-import { FormsModule, NgForm } from '@angular/forms';
+import { FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import { Usuario } from '../../models/usuario.model';
 
-import {
-  UsuarioService,
-  UsuarioRequest
-} from '../../services/usuario.service';
+import { UsuarioService } from '../../services/usuario.service';
 
 import { AuthService } from '../../services/auth.service';
 import { PostaliaService } from '../../services/postalia.service';
+import { UsuarioFormService } from '../../services/usuario-form.service';
+import { DatosPersonalesComponent } from '../../components/datos-personales/datos-personales.component';
+import { DatosContactoComponent } from '../../components/datos-contacto/datos-contacto.component';
 
 type TipoModal =
   | 'exito'
@@ -33,7 +33,10 @@ type TipoModal =
 
   imports: [
     CommonModule,
-    FormsModule
+    FormsModule,
+    ReactiveFormsModule,
+    DatosPersonalesComponent,
+    DatosContactoComponent
   ],
 
   templateUrl: './admin.html',
@@ -77,29 +80,28 @@ export class Admin implements OnInit {
      MODAL DE EDICIÓN
      ========================= */
 
-  editando = false;
+  editando = signal(false);
 
-  modalEditarAbierto = false;
+  modalEditarAbierto = signal(false);
 
-  usuarioEditandoId?: number;
+  usuarioEditandoId = signal<number | undefined>(undefined);
 
-  usuarioFormulario: Usuario =
-    this.crearUsuarioVacio();
+  usuarioForm!: FormGroup;
 
 
   /* =========================
      MODAL DE MENSAJES
      ========================= */
 
-  modalMensajeVisible = false;
+  modalMensajeVisible = signal(false);
 
-  modalTipo: TipoModal = 'exito';
+  modalTipo = signal<TipoModal>('exito');
 
-  modalTitulo = '';
+  modalTitulo = signal('');
 
-  modalMensaje = '';
+  modalMensaje = signal('');
 
-  cargando = false;
+  cargando = signal(false);
 
 
   /*
@@ -110,23 +112,18 @@ export class Admin implements OnInit {
     (() => void) | null = null;
 
 
-  /* =========================
-     FECHA MÁXIMA
-     ========================= */
-
-  fechaMaximaAdulto =
-    this.obtenerFechaMaximaAdulto();
-
-
   constructor(
     private router: Router,
     private usuarioService: UsuarioService,
     private authService: AuthService,
-    private postaliaService: PostaliaService
+    private postaliaService: PostaliaService,
+    private usuarioFormService: UsuarioFormService
   ) {}
 
 
   ngOnInit(): void {
+
+    this.usuarioForm = this.usuarioFormService.crearFormulario();
 
     this.cargarUsuarios();
 
@@ -145,20 +142,20 @@ export class Admin implements OnInit {
     mensaje: string
   ): void {
 
-    this.modalTipo = tipo;
+    this.modalTipo.set(tipo);
 
-    this.modalTitulo = titulo;
+    this.modalTitulo.set(titulo);
 
-    this.modalMensaje = mensaje;
+    this.modalMensaje.set(mensaje);
 
-    this.modalMensajeVisible = true;
+    this.modalMensajeVisible.set(true);
 
   }
 
 
   cerrarModalMensaje(): void {
 
-    this.modalMensajeVisible = false;
+    this.modalMensajeVisible.set(false);
 
     this.accionConfirmada = null;
 
@@ -175,15 +172,15 @@ export class Admin implements OnInit {
     accion: () => void
   ): void {
 
-    this.modalTipo = 'confirmacion';
+    this.modalTipo.set('confirmacion');
 
-    this.modalTitulo = titulo;
+    this.modalTitulo.set(titulo);
 
-    this.modalMensaje = mensaje;
+    this.modalMensaje.set(mensaje);
 
     this.accionConfirmada = accion;
 
-    this.modalMensajeVisible = true;
+    this.modalMensajeVisible.set(true);
 
   }
 
@@ -200,7 +197,7 @@ export class Admin implements OnInit {
      * Primero cerramos el modal
      * y después ejecutamos la acción.
      */
-    this.modalMensajeVisible = false;
+    this.modalMensajeVisible.set(false);
 
     this.accionConfirmada = null;
 
@@ -211,7 +208,7 @@ export class Admin implements OnInit {
 
   cancelarConfirmacion(): void {
 
-    this.modalMensajeVisible = false;
+    this.modalMensajeVisible.set(false);
 
     this.accionConfirmada = null;
 
@@ -290,33 +287,36 @@ export class Admin implements OnInit {
     CREAR USUARIO
      ========================= */
 
-  crearUsuario(form?: NgForm): void {
+  abrirCrearUsuario(): void {
+    this.editando.set(false);
+    this.usuarioEditandoId.set(undefined);
+    this.usuarioForm = this.usuarioFormService.crearFormulario();
+    this.modalEditarAbierto.set(true);
+  }
 
-    if (this.cargando) {
+  crearUsuario(): void {
+
+    if (this.cargando()) {
       return;
     }
 
-    if (form && form.invalid) {
-      form.form.markAllAsTouched();
+    if (this.usuarioForm.invalid) {
+      this.usuarioForm.markAllAsTouched();
       return;
     }
 
-    if (!this.validarEdad()) {
-      return;
-    }
+    const usuario = this.usuarioFormService.crearRequest(this.usuarioForm);
 
-    const usuario =
-      this.prepararUsuario(true);
-
-    this.cargando = true;
+    this.cargando.set(true);
 
     this.usuarioService
       .crearUsuario(usuario)
-      .pipe(finalize(() => this.cargando = false))
+      .pipe(finalize(() => this.cargando.set(false)))
       .subscribe({
 
         next: () => {
 
+          this.modalEditarAbierto.set(false);
           this.limpiarFormulario();
 
           this.cargarUsuarios();
@@ -350,56 +350,40 @@ export class Admin implements OnInit {
     usuario: Usuario
   ): void {
 
-    this.editando = true;
+    this.editando.set(true);
 
-    this.modalEditarAbierto = true;
+    this.modalEditarAbierto.set(true);
 
-    this.usuarioEditandoId =
-      usuario.id;
+    this.usuarioEditandoId.set(usuario.id);
 
-    /*
-     * Copia los datos del usuario
-     * seleccionado al formulario.
-     */
-    this.usuarioFormulario = {
-      ...usuario,
-      password: '',
-      telefonos: usuario.telefonos ?? [],
-      direcciones: usuario.direcciones ?? [],
-      correos: usuario.correos ?? []
-    };
+    this.usuarioForm = this.usuarioFormService.crearFormulario(true);
+    this.usuarioFormService.cargarUsuario(this.usuarioForm, usuario);
 
-    this.actualizarUbicacion();
+    const estado = this.usuarioForm.get('datosContacto.estado')?.value;
+    const municipio = this.usuarioForm.get('datosContacto.municipio')?.value;
+    if (!estado || !municipio) {
+      this.actualizarUbicacion();
+    }
 
   }
 
-  actualizarUbicacion(): void {
-    const codigoPostal = this.usuarioFormulario.codigoPostal;
+  actualizarUbicacion(codigoPostal: string = this.usuarioForm.get('datosContacto.codigo_postal')?.value): void {
 
     if (!/^\d{5}$/.test(codigoPostal)) {
-      this.usuarioFormulario = {
-        ...this.usuarioFormulario,
-        estado: '',
-        municipio: ''
-      };
+      this.usuarioForm.get('datosContacto.estado')?.setValue('');
+      this.usuarioForm.get('datosContacto.municipio')?.setValue('');
       return;
     }
 
     this.postaliaService.buscarCodigoPostal(codigoPostal).subscribe({
       next: ubicacion => {
-        this.usuarioFormulario = {
-          ...this.usuarioFormulario,
-          estado: ubicacion.estado,
-          municipio: ubicacion.municipio
-        };
+        if (this.usuarioForm.get('datosContacto.codigo_postal')?.value !== codigoPostal) {
+          return;
+        }
+        this.usuarioForm.get('datosContacto.estado')?.setValue(ubicacion.estado);
+        this.usuarioForm.get('datosContacto.municipio')?.setValue(ubicacion.municipio);
       },
-      error: () => {
-        this.usuarioFormulario = {
-          ...this.usuarioFormulario,
-          estado: '',
-          municipio: ''
-        };
-      }
+      error: () => undefined
     });
   }
 
@@ -410,7 +394,7 @@ export class Admin implements OnInit {
 
   cerrarModalEditar(): void {
 
-    this.modalEditarAbierto = false;
+    this.modalEditarAbierto.set(false);
 
     this.limpiarFormulario();
 
@@ -428,47 +412,37 @@ export class Admin implements OnInit {
      ACTUALIZAR USUARIO
      ========================= */
 
-  actualizarUsuario(form?: NgForm): void {
+  actualizarUsuario(): void {
 
-    if (this.cargando) {
+    if (this.cargando()) {
       return;
     }
 
-    if (this.usuarioEditandoId === undefined) {
+    if (this.usuarioEditandoId() === undefined) {
       return;
     }
 
-    form?.form.markAllAsTouched();
-
-    if (form?.invalid) {
+    if (this.usuarioForm.invalid) {
+      this.usuarioForm.markAllAsTouched();
       return;
     }
 
-    if (!this.formularioEdicionValido()) {
-      return;
-    }
+    const usuario = this.usuarioFormService.crearRequest(this.usuarioForm, false);
 
-    if (!this.validarEdad()) {
-      return;
-    }
 
-    const usuario =
-      this.prepararUsuario(false);
-      
-
-    this.cargando = true;
+    this.cargando.set(true);
 
     this.usuarioService
       .actualizarUsuario(
-        this.usuarioEditandoId,
+        this.usuarioEditandoId()!,
         usuario
       )
-      .pipe(finalize(() => this.cargando = false))
+      .pipe(finalize(() => this.cargando.set(false)))
       .subscribe({
 
         next: () => {
 
-          this.modalEditarAbierto = false;
+          this.modalEditarAbierto.set(false);
 
           this.limpiarFormulario();
 
@@ -520,11 +494,11 @@ export class Admin implements OnInit {
     id: number
   ): void {
 
-    this.cargando = true;
+    this.cargando.set(true);
 
     this.usuarioService
       .eliminarUsuario(id)
-      .pipe(finalize(() => this.cargando = false))
+      .pipe(finalize(() => this.cargando.set(false)))
       .subscribe({
 
         next: () => {
@@ -575,7 +549,7 @@ export class Admin implements OnInit {
     id: number
   ): void {
 
-    this.cargando = true;
+    this.cargando.set(true);
 
     /*
      * Este método requiere que
@@ -586,7 +560,7 @@ export class Admin implements OnInit {
 
     this.usuarioService
       .reactivarUsuario(id)
-      .pipe(finalize(() => this.cargando = false))
+      .pipe(finalize(() => this.cargando.set(false)))
       .subscribe({
 
         next: () => {
@@ -696,92 +670,6 @@ export class Admin implements OnInit {
   }
 
 
-  /* =========================
-     PREPARAR DATOS
-     ========================= */
-
-  private prepararUsuario(incluirPassword = true):
-    UsuarioRequest {
-
-    const usuario: UsuarioRequest = {
-
-      nombre:
-        this.usuarioFormulario.nombre,
-
-      primerApellido:
-        this.usuarioFormulario.primerApellido,
-
-      telefono:
-        this.usuarioFormulario.telefono,
-
-      codigoPostal:
-        this.usuarioFormulario.codigoPostal,
-
-      direccion:
-        this.usuarioFormulario.direccion,
-
-      fechaNacimiento:
-        this.usuarioFormulario.fechaNacimiento,
-
-      email:
-        this.usuarioFormulario.email,
-
-      telefonos: this.usuarioFormulario.telefonos,
-
-      direcciones: (this.usuarioFormulario.direcciones ?? []).map(direccion => ({
-        tipo: direccion.tipo,
-        valor: direccion.valor,
-        codigoPostal: direccion.codigoPostal || this.usuarioFormulario.codigoPostal
-      })),
-
-      correos: this.usuarioFormulario.correos
-
-    };
-
-    if (incluirPassword) {
-      usuario.password = this.usuarioFormulario.password ?? '';
-    }
-
-    return usuario;
-
-  }
-
-  private formularioEdicionValido(): boolean {
-    const password = this.usuarioFormulario.password ?? '';
-
-    if (password && !/^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/.test(password)) {
-      this.mostrarModal('advertencia', 'Datos incorrectos', 'La contraseña debe tener 8 caracteres, una letra, un número y un símbolo.');
-      return false;
-    }
-
-    if (!this.usuarioFormulario.nombre.trim() || !this.usuarioFormulario.primerApellido.trim() ||
-        !/^\d{10}$/.test(this.usuarioFormulario.telefono) ||
-        !/^\d{5}$/.test(this.usuarioFormulario.codigoPostal) ||
-        !this.usuarioFormulario.direccion.trim() ||
-        !/^\S+@\S+\.\S+$/.test(this.usuarioFormulario.email)) {
-      this.mostrarModal('advertencia', 'Datos incorrectos', 'Revisa los campos obligatorios y sus formatos.');
-      return false;
-    }
-
-    const contactosInvalidos = [
-      ...(this.usuarioFormulario.telefonos ?? []),
-      ...(this.usuarioFormulario.direcciones ?? []),
-      ...(this.usuarioFormulario.correos ?? [])
-    ].some(contacto => !contacto.tipo?.trim() || !contacto.valor?.trim());
-
-    const direccionesConFormatoInvalido =
-      (this.usuarioFormulario.direcciones ?? []).some(direccion =>
-        !!direccion.codigoPostal && !/^\d{5}$/.test(direccion.codigoPostal)
-      );
-
-    if (contactosInvalidos || direccionesConFormatoInvalido) {
-      this.mostrarModal('advertencia', 'Datos incorrectos', 'Completa correctamente todos los teléfonos, direcciones y correos adicionales.');
-      return false;
-    }
-
-    return true;
-  }
-
   private obtenerMensajeError(error: any): string {
     const respuesta = error?.error;
 
@@ -834,30 +722,11 @@ export class Admin implements OnInit {
 
   limpiarFormulario(): void {
 
-    this.editando = false;
+    this.editando.set(false);
 
-    this.usuarioEditandoId =
-      undefined;
+    this.usuarioEditandoId.set(undefined);
 
-    this.usuarioFormulario =
-      this.crearUsuarioVacio();
-
-  }
-
-  get passwordStrength(): number {
-    const password = this.usuarioFormulario.password ?? '';
-    let strength = 0;
-
-    if (password.length >= 8) strength++;
-    if (/[A-Za-z]/.test(password)) strength++;
-    if (/\d/.test(password)) strength++;
-    if (/[^A-Za-z\d]/.test(password)) strength++;
-
-    return strength;
-  }
-
-  get passwordStrengthLabel(): string {
-    return ['Muy débil', 'Débil', 'Regular', 'Fuerte', 'Muy fuerte'][this.passwordStrength];
+    this.usuarioForm = this.usuarioFormService.crearFormulario();
   }
 
 
@@ -867,14 +736,14 @@ export class Admin implements OnInit {
 
   cerrarSesion(): void {
 
-    if (this.cargando) {
+    if (this.cargando()) {
       return;
     }
 
-    this.cargando = true;
+    this.cargando.set(true);
 
     this.authService.cerrarSesion().pipe(
-      finalize(() => this.cargando = false)
+      finalize(() => this.cargando.set(false))
     ).subscribe({
       next: () => this.router.navigate(['/login']),
       error: () => {
@@ -882,34 +751,6 @@ export class Admin implements OnInit {
         this.router.navigate(['/login']);
       }
     });
-
-  }
-
-
-  /* =========================
-     VALIDAR EDAD
-     ========================= */
-
-  private validarEdad(): boolean {
-
-    if (
-      this.esMayorDeEdad(
-        this.usuarioFormulario
-          .fechaNacimiento
-      )
-    ) {
-
-      return true;
-
-    }
-
-    this.mostrarModal(
-      'advertencia',
-      'Edad no válida',
-      'El usuario debe tener al menos 18 años.'
-    );
-
-    return false;
 
   }
 
@@ -957,95 +798,5 @@ export class Admin implements OnInit {
     });
   }
 
-
-  /* =========================
-     FECHA MÁXIMA
-     ========================= */
-
-  private obtenerFechaMaximaAdulto():
-    string {
-
-    const hoy = new Date();
-
-    const fecha = new Date(
-      hoy.getFullYear() - 18,
-      hoy.getMonth(),
-      hoy.getDate()
-    );
-
-    const anio =
-      fecha.getFullYear();
-
-    const mes =
-      String(
-        fecha.getMonth() + 1
-      ).padStart(2, '0');
-
-    const dia =
-      String(
-        fecha.getDate()
-      ).padStart(2, '0');
-
-    return `${anio}-${mes}-${dia}`;
-
-  }
-
-
-  /* =========================
-     COMPROBAR EDAD
-     ========================= */
-
-  private esMayorDeEdad(
-    fechaNacimiento: string
-  ): boolean {
-
-    return (
-      !!fechaNacimiento &&
-      fechaNacimiento <=
-        this.fechaMaximaAdulto
-    );
-
-  }
-
-
-  /* =========================
-     USUARIO VACÍO
-     ========================= */
-
-  private crearUsuarioVacio():
-    Usuario {
-
-    return {
-
-      nombre: '',
-
-      primerApellido: '',
-
-      password: '',
-
-      telefono: '',
-
-      codigoPostal: '',
-
-      /*
-       * Se conservan porque Usuario
-       * los utiliza para mostrar
-       * información recibida del backend.
-       */
-      estado: '',
-
-      municipio: '',
-
-      direccion: '',
-
-      fechaNacimiento: '',
-
-      email: '',
-
-      activo: true
-
-    };
-
-  }
 
 }

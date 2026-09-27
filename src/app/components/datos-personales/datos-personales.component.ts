@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AbstractControl, ControlContainer, FormGroupName, ReactiveFormsModule } from '@angular/forms';
 
@@ -13,6 +13,7 @@ import { AbstractControl, ControlContainer, FormGroupName, ReactiveFormsModule }
   ]
 })
 export class DatosPersonalesComponent {
+  @Input() passwordOpcional = false;
   mostrarPassword = false;
 
   constructor(public controlContainer: ControlContainer) {}

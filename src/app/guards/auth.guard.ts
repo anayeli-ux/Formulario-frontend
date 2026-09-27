@@ -1,13 +1,13 @@
 import { inject } from '@angular/core';
 import { Router, CanActivateFn } from '@angular/router';
 import { catchError, map, of } from 'rxjs';
-import { UsuarioService } from '../services/usuario.service';
+import { AuthService } from '../services/auth.service';
 
-export const authGuard: CanActivateFn = (route, state) => {
-    const usuarioService = inject(UsuarioService);
+export const authGuard: CanActivateFn = () => {
+    const authService = inject(AuthService);
     const router = inject(Router);
 
-    return usuarioService.obtenerMiPerfil().pipe(
+    return authService.obtenerSesion().pipe(
         map(usuario =>
             usuario?.rol === 'ADMIN'
                 ? router.parseUrl('/admin')

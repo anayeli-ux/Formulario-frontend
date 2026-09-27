@@ -199,82 +199,9 @@
   font-size: 13px;
 }
 
-/* =========================
-  ESTILOS PARA COMPONENTES
-  HIJOS
-   ========================= */
-fieldset,
-.section-container {
-  border: none;
-  padding: 0;
-  margin: 0;
-}
 h3 {
   color:
     var(--vino);
-}
-label {
-  display: block;
-  margin-bottom: 6px;
-  color:
-    var(--vino);
-  font-size: 14px;
-  font-weight: 650;
-}
-input,
-select {
-  width: 100%;
-  padding: 12px 14px;
-  margin-bottom: 16px;
-  border:
-    1px solid var(--borde);
-  border-radius: 6px;
-
-  background: white;
-
-  color:
-    var(--texto);
-
-  font-size: 15px;
-
-  outline: none;
-
-  box-sizing:
-    border-box;
-
-  transition:
-    border-color 0.2s,
-    box-shadow 0.2s;
-}
-
-input:hover,
-select:hover {
-  border-color:
-    var(--dorado);
-}
-
-input:focus,
-select:focus {
-  border-color:
-    var(--vino);
-
-  box-shadow:
-    0 0 0 3px
-    rgba(123, 23, 52, 0.09);
-  transform: translateY(-1px);
-}
-
-/* Campos deshabilitados */
-input:disabled,
-select:disabled {
-  background:
-    #f4f1ee;
-
-  color:
-    #8a8285;
-
-  cursor:
-    not-allowed;
 }
 
 /* =========================
@@ -388,12 +315,6 @@ select:disabled {
 @keyframes registroPulso {
   from { transform: translate3d(0, 0, 0) scale(1); }
   to { transform: translate3d(-20px, 22px, 0) scale(1.08); }
-}
-
-.mensaje-error {
-  color: #d32f2f;
-  font-size: 0.9rem;
-  margin: 12px 0;
 }
 
 .mensaje-overlay {

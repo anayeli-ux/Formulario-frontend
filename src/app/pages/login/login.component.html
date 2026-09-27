@@ -51,7 +51,7 @@
             type="text"
             id="identificador"
             formControlName="identificador"
-            [class.input-error]="(loginForm.get('identificador')?.touched && loginForm.get('identificador')?.invalid) || loginError?.campo === 'identificador'"
+            [class.input-error]="(loginForm.get('identificador')?.touched && loginForm.get('identificador')?.invalid) || loginError()?.campo === 'identificador'"
             placeholder="correo@ejemplo.com"
           >
 
@@ -72,7 +72,7 @@
             type="password"
             id="password"
             formControlName="password"
-            [class.input-error]="(loginForm.get('password')?.touched && loginForm.get('password')?.invalid) || loginError?.campo === 'password'"
+            [class.input-error]="(loginForm.get('password')?.touched && loginForm.get('password')?.invalid) || loginError()?.campo === 'password'"
             placeholder="Tu contraseña"
           >
 
@@ -86,17 +86,17 @@
 
         <div
           class="mensaje-error mensaje-error-general"
-          *ngIf="loginError"
+          *ngIf="loginError()"
           role="alert"
         >
-          {{ loginError.mensaje }}
+          {{ loginError()?.mensaje }}
         </div>
 
         <button
           type="submit"
-          [disabled]="loginForm.invalid || cargando"
+          [disabled]="loginForm.invalid || cargando()"
         >
-          {{ cargando ? 'Iniciando sesión...' : 'Iniciar sesión' }}
+          {{ cargando() ? 'Iniciando sesión...' : 'Iniciar sesión' }}
         </button>
 
       </form>
@@ -115,7 +115,7 @@
 
 </div>
 
-<div class="loading-overlay" *ngIf="cargando" aria-live="polite" aria-busy="true">
+<div class="loading-overlay" *ngIf="cargando()" aria-live="polite" aria-busy="true">
   <div class="loading-modal">
     <span class="loading-spinner" aria-hidden="true"></span>
     <strong>Iniciando sesión</strong>

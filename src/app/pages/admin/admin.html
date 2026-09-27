@@ -6,7 +6,7 @@
       <p>Administra los registros activos y eliminados.</p>
     </div>
 
-    <button type="button" class="logout-button" (click)="cerrarSesion()" [disabled]="cargando">
+    <button type="button" class="logout-button" (click)="cerrarSesion()" [disabled]="cargando()">
       Cerrar sesión
     </button>
   </header>
@@ -14,71 +14,12 @@
   <section class="admin-card">
     <div class="admin-card-header">
       <div>
-        <span class="admin-label">NUEVO REGISTRO</span>
-        <h2>Crear usuario</h2>
-      </div>
-      <span class="admin-count">{{ totalUsuariosActivos() }} activos</span>
-    </div>
-
-    <form class="create-form" #formCrear="ngForm" (ngSubmit)="crearUsuario(formCrear)">
-      <div class="admin-field">
-        <label for="crearNombre">Nombre <span class="required-mark">*</span></label>
-        <input id="crearNombre" name="crearNombre" [(ngModel)]="usuarioFormulario.nombre" required minlength="2" maxlength="50">
-        <small class="field-error" *ngIf="formCrear.submitted && formCrear.controls['crearNombre']?.invalid">Este campo es obligatorio.</small>
-      </div>
-      <div class="admin-field">
-        <label for="crearPrimerApellido">Primer apellido <span class="required-mark">*</span></label>
-        <input id="crearPrimerApellido" name="crearPrimerApellido" [(ngModel)]="usuarioFormulario.primerApellido" required maxlength="50">
-        <small class="field-error" *ngIf="formCrear.submitted && formCrear.controls['crearPrimerApellido']?.invalid">Este campo es obligatorio.</small>
-      </div>
-      <div class="admin-field">
-        <label for="crearPassword">Contraseña *</label>
-        <input id="crearPassword" type="password" name="crearPassword" [(ngModel)]="usuarioFormulario.password" required minlength="8" pattern="^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z\d]).+$">
-        <div class="admin-password-strength" *ngIf="usuarioFormulario.password">
-          <div class="admin-password-strength-bar">
-            <span [style.width.%]="passwordStrength * 25" [class]="'strength-' + passwordStrength"></span>
-          </div>
-          <small>{{ passwordStrengthLabel }}</small>
-        </div>
-        <small class="field-error" *ngIf="formCrear.submitted && formCrear.controls['crearPassword']?.invalid">Usa 8 caracteres, una letra, un número y un símbolo.</small>
-      </div>
-      <div class="admin-field">
-        <label for="crearTelefono">Teléfono <span class="required-mark">*</span></label>
-        <input id="crearTelefono" name="crearTelefono" [(ngModel)]="usuarioFormulario.telefono" required pattern="[0-9]{10}" maxlength="10" inputmode="numeric">
-        <small class="field-error" *ngIf="formCrear.submitted && formCrear.controls['crearTelefono']?.invalid">Ingresa un teléfono de 10 dígitos.</small>
-      </div>
-      <div class="admin-field">
-        <label for="crearCodigoPostal">Código postal <span class="required-mark">*</span></label>
-        <input id="crearCodigoPostal" name="crearCodigoPostal" [(ngModel)]="usuarioFormulario.codigoPostal" required pattern="[0-9]{5}" maxlength="5" inputmode="numeric">
-        <small class="field-error" *ngIf="formCrear.submitted && formCrear.controls['crearCodigoPostal']?.invalid">Ingresa un código postal de 5 dígitos.</small>
-      </div>
-      <div class="admin-field">
-        <label for="crearFechaNacimiento">Fecha de nacimiento <span class="required-mark">*</span></label>
-        <input id="crearFechaNacimiento" type="date" name="crearFechaNacimiento" [(ngModel)]="usuarioFormulario.fechaNacimiento" [max]="fechaMaximaAdulto" required>
-        <small class="field-error" *ngIf="formCrear.submitted && formCrear.controls['crearFechaNacimiento']?.invalid">Este campo es obligatorio.</small>
-      </div>
-      <div class="admin-field">
-        <label for="crearDireccion">Dirección <span class="required-mark">*</span></label>
-        <input id="crearDireccion" name="crearDireccion" [(ngModel)]="usuarioFormulario.direccion" required maxlength="150">
-        <small class="field-error" *ngIf="formCrear.submitted && formCrear.controls['crearDireccion']?.invalid">Este campo es obligatorio.</small>
-      </div>
-      <div class="admin-field">
-        <label for="crearEmail">Correo electrónico *</label>
-        <input id="crearEmail" type="email" name="crearEmail" [(ngModel)]="usuarioFormulario.email" required email maxlength="150">
-        <small class="field-error" *ngIf="formCrear.submitted && formCrear.controls['crearEmail']?.invalid">Ingresa un correo electrónico válido.</small>
-      </div>
-      <div class="admin-form-actions">
-        <button type="submit" class="admin-primary" [disabled]="cargando">Crear usuario</button>
-        <button type="button" class="admin-secondary" (click)="limpiarFormulario()" [disabled]="cargando">Limpiar</button>
-      </div>
-    </form>
-  </section>
-
-  <section class="admin-card">
-    <div class="admin-card-header">
-      <div>
         <span class="admin-label">USUARIOS ACTIVOS</span>
         <h2>Registros actuales</h2>
+      </div>
+      <div class="active-users-actions">
+        <span class="admin-count">{{ totalUsuariosActivos() }} activos</span>
+        <button type="button" class="admin-primary" (click)="abrirCrearUsuario()" [disabled]="cargando()">Registrar usuario</button>
       </div>
     </div>
 
@@ -107,8 +48,8 @@
             <td>{{ usuario.codigoPostal }}</td>
             <td>{{ usuario.municipio }}</td>
             <td class="table-actions">
-              <button type="button" class="table-edit" (click)="editarUsuario(usuario)" [disabled]="cargando">Editar</button>
-              <button type="button" class="table-delete" (click)="eliminarUsuario(usuario.id!)" [disabled]="cargando">Eliminar</button>
+              <button type="button" class="table-edit" (click)="editarUsuario(usuario)" [disabled]="cargando()">Editar</button>
+              <button type="button" class="table-delete" (click)="eliminarUsuario(usuario.id!)" [disabled]="cargando()">Eliminar</button>
             </td>
           </tr>
           <tr *ngIf="usuariosFiltrados().length === 0">
@@ -151,7 +92,7 @@
             <td>{{ usuario.telefono }}</td>
             <td>{{ usuario.codigoPostal }}</td>
             <td>
-              <button type="button" class="table-edit" (click)="reactivarUsuario(usuario.id!)" [disabled]="cargando">Reactivar</button>
+              <button type="button" class="table-edit" (click)="reactivarUsuario(usuario.id!)" [disabled]="cargando()">Reactivar</button>
             </td>
           </tr>
           <tr *ngIf="usuariosEliminadosFiltrados().length === 0">
@@ -164,12 +105,12 @@
 </main>
 
 <!-- =====================================================
-    MODAL DE EDICIÓN
+    MODAL DE USUARIO
     ===================================================== -->
 
 <div
   class="modal-overlay"
-  *ngIf="modalEditarAbierto"
+  *ngIf="modalEditarAbierto()"
 >
   <div class="modal-card">
 
@@ -182,7 +123,7 @@
         </span>
 
         <h2>
-          Editar usuario
+          {{ editando() ? 'Editar usuario' : 'Registrar usuario' }}
         </h2>
       </div>
 
@@ -199,237 +140,49 @@
 
 
     <!-- FORMULARIO -->
-    <form
-      class="user-form"
-      #formEditar="ngForm"
-      (ngSubmit)="actualizarUsuario(formEditar)"
-    >
-
-      <!-- NOMBRE -->
-      <div class="field">
-        <label>Nombre</label>
-
-        <input
-          type="text"
-          name="modalNombre"
-          [(ngModel)]="usuarioFormulario.nombre"
-          minlength="2"
-          maxlength="50"
-          required
-        >
-        <small class="field-error" *ngIf="formEditar.submitted && formEditar.controls['modalNombre']?.invalid">Ingresa un nombre válido.</small>
-      </div>
-
-
-      <!-- PRIMER APELLIDO -->
-      <div class="field">
-        <label>Primer apellido</label>
-
-        <input
-          type="text"
-          name="modalPrimerApellido"
-          [(ngModel)]="usuarioFormulario.primerApellido"
-          maxlength="50"
-          required
-        >
-        <small class="field-error" *ngIf="formEditar.submitted && formEditar.controls['modalPrimerApellido']?.invalid">Ingresa un apellido válido.</small>
-      </div>
-
-
-      <!-- CONTRASEÑA -->
-      <div class="field">
-        <label>Contraseña</label>
-
-        <input
-          type="password"
-          name="modalPassword"
-          [(ngModel)]="usuarioFormulario.password"
-          minlength="8"
-          pattern="^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z\d]).+$"
-        >
-        <small>Déjala vacía para conservar la contraseña actual.</small>
-        <small class="field-error" *ngIf="formEditar.submitted && formEditar.controls['modalPassword']?.invalid">Usa 8 caracteres, una letra, un número y un símbolo.</small>
-      </div>
-
-
-      <!-- TELÉFONO -->
-      <div class="field">
-        <label>Teléfono</label>
-
-        <input
-          type="tel"
-          name="modalTelefono"
-          [(ngModel)]="usuarioFormulario.telefono"
-          maxlength="10"
-          minlength="10"
-          pattern="[0-9]{10}"
-          inputmode="numeric"
-          required
-        >
-
-        <small>
-          Debe contener 10 dígitos.
-        </small>
-        <small class="field-error" *ngIf="formEditar.submitted && formEditar.controls['modalTelefono']?.invalid">Ingresa un teléfono de 10 dígitos.</small>
-      </div>
-
-
-      <!-- CÓDIGO POSTAL -->
-      <div class="field">
-        <label>Código postal</label>
-
-        <input
-          type="text"
-          name="modalCodigoPostal"
-          [(ngModel)]="usuarioFormulario.codigoPostal"
-          (ngModelChange)="actualizarUbicacion()"
-          maxlength="5"
-          minlength="5"
-          pattern="[0-9]{5}"
-          inputmode="numeric"
-          required
-        >
-
-        <small>
-          Debe contener 5 dígitos.
-        </small>
-        <small class="field-error" *ngIf="formEditar.submitted && formEditar.controls['modalCodigoPostal']?.invalid">Ingresa un código postal de 5 dígitos.</small>
-      </div>
-
-
-      <!-- FECHA DE NACIMIENTO -->
-      <div class="field">
-        <label>Fecha de nacimiento</label>
-
-        <input
-          type="date"
-          name="modalFechaNacimiento"
-          [(ngModel)]="usuarioFormulario.fechaNacimiento"
-          [max]="fechaMaximaAdulto"
-          required
-        >
-
-        <small>
-          Debe tener al menos 18 años.
-        </small>
-        <small class="field-error" *ngIf="formEditar.submitted && formEditar.controls['modalFechaNacimiento']?.invalid">Ingresa una fecha válida.</small>
-      </div>
-
-
-      <!-- ESTADO -->
-      <div class="field">
-        <label>Estado actual</label>
-
-        <input
-          type="text"
-          name="modalEstado"
-          [(ngModel)]="usuarioFormulario.estado"
-          readonly
-        >
-
-        <small>
-          Se actualizará automáticamente según el código postal.
-        </small>
-      </div>
-
-
-      <!-- MUNICIPIO -->
-      <div class="field">
-        <label>Municipio actual</label>
-
-        <input
-          type="text"
-          name="modalMunicipio"
-          [(ngModel)]="usuarioFormulario.municipio"
-          readonly
-        >
-
-        <small>
-          Se actualizará automáticamente según el código postal.
-        </small>
-      </div>
-
-
-      <!-- DIRECCIÓN -->
-      <div class="field full">
-        <label>Dirección</label>
-
-        <input
-          type="text"
-          name="modalDireccion"
-          [(ngModel)]="usuarioFormulario.direccion"
-          maxlength="150"
-          required
-        >
-        <small class="field-error" *ngIf="formEditar.submitted && formEditar.controls['modalDireccion']?.invalid">La dirección es obligatoria.</small>
-      </div>
-
-
-      <!-- CORREO ELECTRÓNICO -->
-      <div class="field">
-        <label>Correo electrónico</label>
-
-        <input
-          type="email"
-          name="modalEmail"
-          [(ngModel)]="usuarioFormulario.email"
-          maxlength="150"
-          email
-          required
-        >
-        <small *ngIf="formEditar.submitted && formEditar.controls['modalEmail']?.invalid">Ingresa un correo electrónico válido.</small>
-      </div>
-
-      <div class="contactos-edicion full">
-        <h3>Teléfonos adicionales</h3>
-        <div class="contacto-edicion" *ngFor="let contacto of usuarioFormulario.telefonos; let i = index">
-          <input [name]="'modalTelefonoTipo' + i" [(ngModel)]="contacto.tipo" placeholder="Tipo">
-          <input [name]="'modalTelefonoValor' + i" [(ngModel)]="contacto.valor" placeholder="Teléfono">
+    <form class="user-form" [formGroup]="usuarioForm" (ngSubmit)="editando() ? actualizarUsuario() : crearUsuario()">
+      <section class="form-section">
+        <div class="section-header">
+          <span class="section-number">01</span>
+          <div>
+            <h3>Datos personales</h3>
+            <p>Información general del usuario.</p>
+          </div>
         </div>
+        <app-datos-personales
+          formGroupName="datosPersonales"
+          [passwordOpcional]="editando()"
+        ></app-datos-personales>
+      </section>
 
-        <h3>Direcciones adicionales</h3>
-        <div class="contacto-edicion" *ngFor="let contacto of usuarioFormulario.direcciones; let i = index">
-          <input [name]="'modalDireccionTipo' + i" [(ngModel)]="contacto.tipo" placeholder="Tipo">
-          <input [name]="'modalDireccionValor' + i" [(ngModel)]="contacto.valor" placeholder="Dirección">
-          <input [name]="'modalDireccionCodigoPostal' + i" [(ngModel)]="contacto.codigoPostal" placeholder="Código postal" maxlength="5" pattern="[0-9]{5}">
+      <section class="form-section">
+        <div class="section-header">
+          <span class="section-number">02</span>
+          <div>
+            <h3>Datos de contacto</h3>
+            <p>Información de contacto y ubicación.</p>
+          </div>
         </div>
+        <app-datos-contacto
+          formGroupName="datosContacto"
+          (codigoPostalChange)="actualizarUbicacion($event)"
+        ></app-datos-contacto>
+      </section>
 
-        <h3>Correos adicionales</h3>
-        <div class="contacto-edicion" *ngFor="let contacto of usuarioFormulario.correos; let i = index">
-          <input [name]="'modalCorreoTipo' + i" [(ngModel)]="contacto.tipo" placeholder="Tipo">
-          <input [name]="'modalCorreoValor' + i" [(ngModel)]="contacto.valor" placeholder="Correo" email>
-        </div>
-      </div>
-
-
-      <!-- BOTONES -->
       <div class="actions full">
-
-        <button
-          class="save"
-          type="submit"
-          [disabled]="cargando"
-        >
-          Actualizar usuario
+        <button class="save" type="submit" [disabled]="cargando()">
+          {{ cargando() ? 'Guardando usuario...' : (editando() ? 'Actualizar usuario' : 'Registrar usuario') }}
         </button>
-
-        <button
-          class="cancel"
-          type="button"
-          (click)="cerrarModalEditar()"
-          [disabled]="cargando"
-        >
+        <button class="cancel" type="button" (click)="cerrarModalEditar()" [disabled]="cargando()">
           Cancelar
         </button>
-
       </div>
-
     </form>
 
   </div>
 </div>
 
-<div class="mensaje-overlay" *ngIf="cargando" aria-live="polite" aria-busy="true">
+<div class="mensaje-overlay" *ngIf="cargando()" aria-live="polite" aria-busy="true">
   <div class="mensaje-modal">
     <div class="mensaje-icon">...</div>
     <h2>Procesando solicitud</h2>
@@ -446,9 +199,9 @@
 
 <div
   class="mensaje-overlay"
-  *ngIf="modalMensajeVisible"
+  *ngIf="modalMensajeVisible()"
   (click)="
-    modalTipo === 'confirmacion'
+    modalTipo() === 'confirmacion'
       ? cancelarConfirmacion()
       : cerrarModalMensaje()
   "
@@ -456,7 +209,7 @@
 
   <div
     class="mensaje-modal"
-    [ngClass]="modalTipo"
+    [ngClass]="modalTipo()"
     (click)="$event.stopPropagation()"
   >
 
@@ -466,7 +219,7 @@
       class="mensaje-close"
       aria-label="Cerrar"
       (click)="
-        modalTipo === 'confirmacion'
+        modalTipo() === 'confirmacion'
           ? cancelarConfirmacion()
           : cerrarModalMensaje()
       "
@@ -503,7 +256,7 @@
 
     <div
       class="mensaje-icon"
-      *ngIf="modalTipo === 'exito'"
+      *ngIf="modalTipo() === 'exito'"
     >
       ✓
     </div>
@@ -515,7 +268,7 @@
 
     <div
       class="mensaje-icon"
-      *ngIf="modalTipo === 'advertencia'"
+      *ngIf="modalTipo() === 'advertencia'"
     >
       !
     </div>
@@ -527,7 +280,7 @@
 
     <div
       class="mensaje-icon"
-      *ngIf="modalTipo === 'error'"
+      *ngIf="modalTipo() === 'error'"
     >
       !
     </div>
@@ -539,7 +292,7 @@
 
     <div
       class="mensaje-icon"
-      *ngIf="modalTipo === 'confirmacion'"
+      *ngIf="modalTipo() === 'confirmacion'"
     >
       ?
     </div>
@@ -547,13 +300,13 @@
 
     <!-- TÍTULO -->
     <h2>
-      {{ modalTitulo }}
+      {{ modalTitulo() }}
     </h2>
 
 
     <!-- MENSAJE -->
     <p>
-      {{ modalMensaje }}
+      {{ modalMensaje() }}
     </p>
 
 
@@ -563,7 +316,7 @@
 
     <div
       class="mensaje-actions"
-      *ngIf="modalTipo !== 'confirmacion'"
+      *ngIf="modalTipo() !== 'confirmacion'"
     >
 
       <button
@@ -583,7 +336,7 @@
 
     <div
       class="mensaje-actions confirmacion-actions"
-      *ngIf="modalTipo === 'confirmacion'"
+      *ngIf="modalTipo() === 'confirmacion'"
     >
 
       <button

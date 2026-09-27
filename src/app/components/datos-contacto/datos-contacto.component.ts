@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, EventEmitter, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AbstractControl, ControlContainer, FormArray, FormBuilder, FormControl, FormGroup, FormGroupName, ReactiveFormsModule, Validators } from '@angular/forms';
 
@@ -13,6 +13,8 @@ import { AbstractControl, ControlContainer, FormArray, FormBuilder, FormControl,
   ]
 })
 export class DatosContactoComponent {
+  @Output() codigoPostalChange = new EventEmitter<string>();
+
   readonly tiposPredeterminados = ['Personal', 'Trabajo', 'Casa', 'Emergencia'];
 
   constructor(
@@ -36,17 +38,20 @@ export class DatosContactoComponent {
     return (this.controlContainer.control?.get('direcciones') as FormArray) ?? new FormArray([]);
   }
 
-  nuevoContacto(tipo = 'Personal'): FormGroup {
+  nuevoContacto(tipo = 'Personal', correo = false): FormGroup {
     return this.fb.group({
       tipo: new FormControl(tipo, Validators.required),
-      valor: new FormControl('', Validators.required)
+      valor: new FormControl('', correo
+        ? [Validators.required, Validators.email, Validators.maxLength(150)]
+        : [Validators.required, Validators.pattern(/^\d{10}$/)]
+      )
     });
   }
 
   nuevoDireccion(tipo = 'Personal'): FormGroup {
     return this.fb.group({
       tipo: new FormControl(tipo, Validators.required),
-      valor: new FormControl('', Validators.required),
+      valor: new FormControl('', [Validators.required, Validators.maxLength(150)]),
       codigoPostal: new FormControl('', [Validators.required, Validators.pattern(/^\d{5}$/)])
     });
   }
@@ -56,7 +61,7 @@ export class DatosContactoComponent {
   }
 
   agregarCorreo(): void {
-    this.correos.push(this.nuevoContacto('Personal'));
+    this.correos.push(this.nuevoContacto('Personal', true));
   }
 
   agregarDireccion(): void {

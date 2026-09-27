@@ -1,10 +1,13 @@
-import { Injectable } from '@angular/core';
+import { computed, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
 import {
   Observable,
   tap,
-  switchMap
+  switchMap,
+  catchError,
+  throwError,
+  of
 } from 'rxjs';
 
 import { environment } from '../../environments/environment';
@@ -42,7 +45,9 @@ export class AuthService {
   private csrfUrl =
     `${environment.apiUrl}${environment.auth.csrf}`;
 
-  private usuarioActual: UsuarioSesion | null = null;
+  private readonly estadoUsuarioActual = signal<UsuarioSesion | null>(null);
+  readonly usuarioActual = this.estadoUsuarioActual.asReadonly();
+  readonly haySesion = computed(() => this.usuarioActual() !== null);
 
 
   constructor(
@@ -70,11 +75,7 @@ export class AuthService {
       )
       .pipe(
         tap(response => {
-          if (response?.acceso === true) {
-            this.usuarioActual = response.usuario;
-          } else {
-            this.usuarioActual = null;
-          }
+          this.estadoUsuarioActual.set(response?.acceso === true ? response.usuario : null);
         })
       );
   }
@@ -98,16 +99,18 @@ export class AuthService {
       )
       .pipe(
         tap(usuario => {
-          this.usuarioActual = usuario;
+          this.estadoUsuarioActual.set(usuario);
+        }),
+        catchError(error => {
+          this.estadoUsuarioActual.set(null);
+          return throwError(() => error);
         })
       );
   }
 
-  getUsuarioActual(): UsuarioSesion | null {
-    return this.usuarioActual;
-  }
-  haySesion(): boolean {
-    return this.usuarioActual !== null;
+  obtenerSesion(): Observable<UsuarioSesion> {
+    const usuario = this.usuarioActual();
+    return usuario ? of(usuario) : this.verificarSesion();
   }
 
   cerrarSesion(): Observable<void> {
@@ -123,12 +126,12 @@ export class AuthService {
       ),
 
       tap(() => {
-        this.usuarioActual = null;
+        this.estadoUsuarioActual.set(null);
       })
     );
   }
 
   limpiarSesionLocal(): void {
-    this.usuarioActual = null;
+    this.estadoUsuarioActual.set(null);
   }
 }

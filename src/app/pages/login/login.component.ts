@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -15,9 +15,8 @@ import { LoginError, LoginErrorField } from '../../models/login.model';
 })
 export class LoginComponent implements OnInit {
   loginForm!: FormGroup;
-  errorMensaje = '';
-  loginError: LoginError | null = null;
-  cargando = false;
+  loginError = signal<LoginError | null>(null);
+  cargando = signal(false);
 
   constructor(
     private fb: FormBuilder,
@@ -49,17 +48,15 @@ export class LoginComponent implements OnInit {
   }
 
   setLoginError(mensaje: string, campo: LoginErrorField = 'general'): void {
-    this.loginError = { mensaje, campo };
-    this.errorMensaje = mensaje;
+    this.loginError.set({ mensaje, campo });
   }
 
   clearLoginError(): void {
-    this.loginError = null;
-    this.errorMensaje = '';
+    this.loginError.set(null);
   }
 
   onLogin(): void {
-    if (this.cargando) {
+    if (this.cargando()) {
       return;
     }
 
@@ -78,14 +75,14 @@ export class LoginComponent implements OnInit {
       return;
     }
 
-    this.cargando = true;
+    this.cargando.set(true);
     const credenciales = {
       identificador: this.loginForm.value.identificador.trim(),
       password: this.loginForm.value.password
     };
 
     this.authService.login(credenciales).pipe(
-      finalize(() => this.cargando = false)
+      finalize(() => this.cargando.set(false))
     ).subscribe({
       next: (response) => {
         if (response.acceso === false) {

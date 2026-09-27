@@ -1,12 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 import { Usuario } from '../../models/usuario.model';
 import { AuthService } from '../../services/auth.service';
 import { PostaliaService } from '../../services/postalia.service';
 import { UsuarioService } from '../../services/usuario.service';
-import { finalize } from 'rxjs';
+import { catchError, finalize, map, of, switchMap } from 'rxjs';
 
 @Component({
   selector: 'app-usuario-perfil',
@@ -19,10 +19,10 @@ export class UsuarioPerfilComponent implements OnInit {
   private readonly enlaceCambioDeRol =
     'https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&rel=0';
 
-  usuario?: Usuario;
-  cargando = true;
-  errorMensaje = '';
-  modalVisible = false;
+  usuario = signal<Usuario | undefined>(undefined);
+  cargando = signal(true);
+  errorMensaje = signal('');
+  modalVisible = signal(false);
   youtubeEmbedUrl: SafeResourceUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.enlaceCambioDeRol);
 
   constructor(
@@ -34,45 +34,37 @@ export class UsuarioPerfilComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.usuarioService.obtenerMiPerfil().subscribe({
-      next: usuario => {
-        this.usuario = usuario;
-
+    this.usuarioService.obtenerMiPerfil().pipe(
+      switchMap(usuario => {
         if (!usuario.codigoPostal) {
-          this.cargando = false;
-          return;
+          return of(usuario);
         }
 
-        this.postaliaService.buscarCodigoPostal(usuario.codigoPostal).subscribe({
-          next: ubicacion => {
-            this.usuario = {
-              ...usuario,
-              estado: ubicacion.estado,
-              municipio: ubicacion.municipio
-            };
-            this.cargando = false;
-          },
-          error: () => {
-            this.cargando = false;
-          }
-        });
-      },
-      error: () => {
-        this.errorMensaje = 'No fue posible cargar tus datos.';
-        this.cargando = false;
-      }
+        return this.postaliaService.buscarCodigoPostal(usuario.codigoPostal).pipe(
+          map(ubicacion => ({
+            ...usuario,
+            estado: ubicacion.estado,
+            municipio: ubicacion.municipio
+          })),
+          catchError(() => of(usuario))
+        );
+      }),
+      finalize(() => this.cargando.set(false))
+    ).subscribe({
+      next: usuario => this.usuario.set(usuario),
+      error: () => this.errorMensaje.set('No fue posible cargar tus datos.')
     });
   }
 
   cerrarSesion(): void {
-    if (this.cargando) {
+    if (this.cargando()) {
       return;
     }
 
-    this.cargando = true;
+    this.cargando.set(true);
 
     this.authService.cerrarSesion().pipe(
-      finalize(() => this.cargando = false)
+      finalize(() => this.cargando.set(false))
     ).subscribe({
       next: () => this.router.navigate(['/login']),
       error: () => {
@@ -83,10 +75,10 @@ export class UsuarioPerfilComponent implements OnInit {
   }
 
   cambiarDeRol(): void {
-    this.modalVisible = true;
+    this.modalVisible.set(true);
   }
 
   cerrarVideo(): void {
-    this.modalVisible = false;
+    this.modalVisible.set(false);
   }
 }
