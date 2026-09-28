@@ -1,9 +1,13 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
 import {
+  finalize,
+  of,
   Observable,
-  switchMap
+  shareReplay,
+  switchMap,
+  tap
 } from 'rxjs';
 
 import { Usuario } from '../models/usuario.model';
@@ -63,6 +67,11 @@ export class UsuarioService {
   private apiUrl =
     `${environment.apiUrl}/usuarios`;
 
+  private readonly cacheUsuariosActivos = signal<Usuario[] | null>(null);
+  private readonly cacheUsuariosEliminados = signal<Usuario[] | null>(null);
+  private solicitudUsuariosActivos?: Observable<Usuario[]>;
+  private solicitudUsuariosEliminados?: Observable<Usuario[]>;
+
 
   constructor(
     private http: HttpClient,
@@ -75,13 +84,28 @@ export class UsuarioService {
   // =========================
 
   listarUsuarios(): Observable<Usuario[]> {
+    const cache = this.cacheUsuariosActivos();
+    if (cache) {
+      return of(cache);
+    }
 
-    return this.http.get<Usuario[]>(
+    if (this.solicitudUsuariosActivos) {
+      return this.solicitudUsuariosActivos;
+    }
+
+    const solicitud = this.http.get<Usuario[]>(
       this.apiUrl,
       {
         withCredentials: true
       }
+    ).pipe(
+      tap(usuarios => this.cacheUsuariosActivos.set(usuarios)),
+      finalize(() => this.solicitudUsuariosActivos = undefined),
+      shareReplay({ bufferSize: 1, refCount: false })
     );
+
+    this.solicitudUsuariosActivos = solicitud;
+    return solicitud;
 
   }
 
@@ -91,14 +115,35 @@ export class UsuarioService {
   // =========================
 
   listarUsuariosEliminados(): Observable<Usuario[]> {
+    const cache = this.cacheUsuariosEliminados();
+    if (cache) {
+      return of(cache);
+    }
 
-    return this.http.get<Usuario[]>(
+    if (this.solicitudUsuariosEliminados) {
+      return this.solicitudUsuariosEliminados;
+    }
+
+    const solicitud = this.http.get<Usuario[]>(
       `${this.apiUrl}/eliminados`,
       {
         withCredentials: true
       }
+    ).pipe(
+      tap(usuarios => this.cacheUsuariosEliminados.set(usuarios)),
+      finalize(() => this.solicitudUsuariosEliminados = undefined),
+      shareReplay({ bufferSize: 1, refCount: false })
     );
 
+    this.solicitudUsuariosEliminados = solicitud;
+    return solicitud;
+  }
+
+  invalidarCacheListas(): void {
+    this.cacheUsuariosActivos.set(null);
+    this.cacheUsuariosEliminados.set(null);
+    this.solicitudUsuariosActivos = undefined;
+    this.solicitudUsuariosEliminados = undefined;
   }
 
 
@@ -140,9 +185,7 @@ export class UsuarioService {
   ): Observable<Usuario> {
 
     return this.authService.obtenerCsrf().pipe(
-
       switchMap(() =>
-
         this.http.post<Usuario>(
           this.apiUrl,
           usuario,
@@ -150,9 +193,11 @@ export class UsuarioService {
             withCredentials: true
           }
         )
-
       )
-
+    ).pipe(
+      tap(usuarioCreado => {
+        this.cacheUsuariosActivos.update(usuarios => usuarios ? [...usuarios, usuarioCreado] : null);
+      })
     );
 
   }
@@ -173,9 +218,7 @@ export class UsuarioService {
   ): Observable<Usuario> {
 
     return this.authService.obtenerCsrf().pipe(
-
       switchMap(() =>
-
         this.http.put<Usuario>(
           `${this.apiUrl}/${id}`,
           usuario,
@@ -183,9 +226,16 @@ export class UsuarioService {
             withCredentials: true
           }
         )
-
       )
+    ).pipe(
+      tap(usuarioActualizado => {
+        const actualizado = { ...usuarioActualizado, id: usuarioActualizado.id ?? id };
+        const actualizarLista = (usuarios: Usuario[] | null) =>
+          usuarios?.map(item => item.id === id ? { ...item, ...actualizado } : item) ?? null;
 
+        this.cacheUsuariosActivos.update(actualizarLista);
+        this.cacheUsuariosEliminados.update(actualizarLista);
+      })
     );
 
   }
@@ -205,18 +255,34 @@ export class UsuarioService {
   ): Observable<void> {
 
     return this.authService.obtenerCsrf().pipe(
-
       switchMap(() =>
-
         this.http.delete<void>(
           `${this.apiUrl}/${id}`,
           {
             withCredentials: true
           }
         )
-
       )
+    ).pipe(
+      tap(() => {
+        const usuarioEliminado = this.cacheUsuariosActivos()
+          ?.find(usuario => usuario.id === id);
 
+        this.cacheUsuariosActivos.update(usuarios =>
+          usuarios?.filter(usuario => usuario.id !== id) ?? null
+        );
+
+        if (usuarioEliminado) {
+          this.cacheUsuariosEliminados.update(usuarios => {
+            if (!usuarios) {
+              return null;
+            }
+            return usuarios.some(usuario => usuario.id === id)
+              ? usuarios.map(usuario => usuario.id === id ? { ...usuario, activo: false } : usuario)
+              : [...usuarios, { ...usuarioEliminado, activo: false }];
+          });
+        }
+      })
     );
 
   }
@@ -237,9 +303,7 @@ export class UsuarioService {
   ): Observable<Usuario> {
 
     return this.authService.obtenerCsrf().pipe(
-
       switchMap(() =>
-
         this.http.put<Usuario>(
           `${this.apiUrl}/${id}/reactivar`,
           {},
@@ -247,9 +311,22 @@ export class UsuarioService {
             withCredentials: true
           }
         )
-
       )
-
+    ).pipe(
+      tap(usuario => {
+        const reactivado = { ...usuario, id: usuario.id ?? id, activo: true };
+        this.cacheUsuariosEliminados.update(usuarios =>
+          usuarios?.filter(item => item.id !== id) ?? null
+        );
+        this.cacheUsuariosActivos.update(usuarios => {
+          if (!usuarios) {
+            return null;
+          }
+          return usuarios.some(item => item.id === id)
+            ? usuarios.map(item => item.id === id ? { ...item, ...reactivado } : item)
+            : [...usuarios, reactivado];
+        });
+      })
     );
 
   }

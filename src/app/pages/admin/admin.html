@@ -13,101 +13,28 @@
 
   <div class="admin-content-layout">
   <div class="admin-main-column">
-  <section class="admin-card">
-    <div class="admin-card-header">
-      <div>
-        <span class="admin-label">USUARIOS ACTIVOS</span>
-        <h2>Registros actuales</h2>
-      </div>
-      <div class="active-users-actions">
-        <span class="admin-count">{{ totalUsuariosActivos() }} activos</span>
-        <button type="button" class="admin-primary" (click)="abrirCrearUsuario()" [disabled]="cargando()">Registrar usuario</button>
-      </div>
-    </div>
+  <app-usuarios-tabla
+    [usuarios]="usuariosFiltrados()"
+    [busqueda]="busquedaUsuarios()"
+    [total]="totalUsuariosActivos()"
+    [cargando]="cargando()"
+    (busquedaChange)="busquedaUsuarios.set($event)"
+    (registrar)="abrirCrearUsuario()"
+    (ver)="abrirInformacion($event)"
+    (editar)="editarUsuario($event)"
+    (eliminar)="eliminarUsuario($event)"
+  ></app-usuarios-tabla>
 
-    <div class="search-field">
-      <label for="buscarUsuarios">Buscar usuarios activos</label>
-      <input id="buscarUsuarios" type="search" [ngModel]="busquedaUsuarios()" (ngModelChange)="busquedaUsuarios.set($event)" name="buscarUsuarios" placeholder="Nombre, apellido, teléfono, dirección o código postal">
-    </div>
-
-    <div class="table-wrapper">
-      <table class="admin-table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Teléfono</th>
-            <th>Código postal</th>
-            <th>Municipio</th>
-            <th>Información adicional</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let usuario of usuariosFiltrados()">
-            <td>{{ usuario.id }}</td>
-            <td>{{ usuario.nombre }} {{ usuario.primerApellido }}</td>
-            <td>{{ obtenerTelefonoPrincipal(usuario) }}</td>
-            <td>{{ obtenerCodigoPostalPrincipal(usuario) }}</td>
-            <td>{{ usuario.municipio }}</td>
-            <td><button type="button" class="table-edit" (click)="abrirInformacion(usuario)">Ver datos</button></td>
-            <td class="table-actions">
-              <button type="button" class="table-edit" (click)="editarUsuario(usuario)" [disabled]="cargando()">Editar</button>
-              <button type="button" class="table-delete" (click)="eliminarUsuario(usuario.id!)" [disabled]="cargando()">Eliminar</button>
-            </td>
-          </tr>
-          <tr *ngIf="usuariosFiltrados().length === 0">
-            <td colspan="7" class="empty-row">{{ busquedaUsuarios() ? 'No hay coincidencias.' : 'No hay usuarios activos.' }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
-
-  <section class="admin-card">
-    <div class="admin-card-header">
-      <div>
-        <span class="admin-label">USUARIOS ELIMINADOS</span>
-        <h2>Registros inactivos</h2>
-      </div>
-      <span class="admin-count">{{ totalUsuariosEliminados() }} eliminados</span>
-    </div>
-
-    <div class="search-field">
-      <label for="buscarUsuariosEliminados">Buscar usuarios eliminados</label>
-      <input id="buscarUsuariosEliminados" type="search" [ngModel]="busquedaUsuariosEliminados()" (ngModelChange)="busquedaUsuariosEliminados.set($event)" name="buscarUsuariosEliminados" placeholder="Nombre, apellido, teléfono, dirección o código postal">
-    </div>
-
-    <div class="table-wrapper">
-      <table class="admin-table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Teléfono</th>
-            <th>Código postal</th>
-            <th>Información adicional</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let usuario of usuariosEliminadosFiltrados()">
-            <td>{{ usuario.id }}</td>
-            <td>{{ usuario.nombre }} {{ usuario.primerApellido }}</td>
-            <td>{{ obtenerTelefonoPrincipal(usuario) }}</td>
-            <td>{{ obtenerCodigoPostalPrincipal(usuario) }}</td>
-            <td><button type="button" class="table-edit" (click)="abrirInformacion(usuario)">Ver datos</button></td>
-            <td>
-              <button type="button" class="table-edit" (click)="reactivarUsuario(usuario.id!)" [disabled]="cargando()">Reactivar</button>
-            </td>
-          </tr>
-          <tr *ngIf="usuariosEliminadosFiltrados().length === 0">
-            <td colspan="6" class="empty-row">{{ busquedaUsuariosEliminados() ? 'No hay coincidencias.' : 'No hay usuarios eliminados.' }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
+  <app-usuarios-tabla
+    [usuarios]="usuariosEliminadosFiltrados()"
+    [busqueda]="busquedaUsuariosEliminados()"
+    [total]="totalUsuariosEliminados()"
+    [cargando]="cargando()"
+    [inactivos]="true"
+    (busquedaChange)="busquedaUsuariosEliminados.set($event)"
+    (ver)="abrirInformacion($event)"
+    (reactivar)="reactivarUsuario($event)"
+  ></app-usuarios-tabla>
   </div>
   <aside class="admin-roster" aria-labelledby="admin-roster-title">
     <span class="admin-label">ACCESO ADMINISTRATIVO</span>
@@ -145,27 +72,7 @@
       </div>
       <button type="button" class="modal-close" (click)="cerrarInformacion()" aria-label="Cerrar información">×</button>
     </header>
-    <div class="user-contacts-content">
-      <section class="contact-group contact-group-phones">
-        <h3>Teléfonos</h3>
-        <p class="contact-entry" *ngFor="let telefono of usuario.telefonos ?? []"><strong>{{ telefono.tipo }}</strong><span>{{ telefono.valor }}</span></p>
-        <p class="contact-empty" *ngIf="!(usuario.telefonos ?? []).length">Sin teléfonos registrados.</p>
-      </section>
-      <section class="contact-group contact-group-emails">
-        <h3>Correos</h3>
-        <p class="contact-entry" *ngFor="let correo of usuario.correos ?? []"><strong>{{ correo.tipo }}</strong><span>{{ correo.valor }}</span></p>
-        <p class="contact-empty" *ngIf="!(usuario.correos ?? []).length">Sin correos registrados.</p>
-      </section>
-      <section class="contact-group contact-group-addresses">
-        <h3>Direcciones</h3>
-        <p class="contact-entry" *ngFor="let direccion of usuario.direcciones ?? []">
-          <strong>{{ direccion.tipo }}</strong>
-          <span>{{ direccion.valor }}</span>
-          <small>Código postal: {{ direccion.codigoPostal }}</small>
-        </p>
-        <p class="contact-empty" *ngIf="!(usuario.direcciones ?? []).length">Sin direcciones registradas.</p>
-      </section>
-    </div>
+    <app-contactos-usuario [usuario]="usuario" presentacion="modal"></app-contactos-usuario>
   </section>
 </div>
 
@@ -206,9 +113,6 @@
 
     <!-- FORMULARIO -->
     <form class="user-form" [formGroup]="usuarioForm" (ngSubmit)="editando() ? actualizarUsuario() : crearUsuario()">
-      <p class="field-error" *ngIf="usuarioForm.get('datosContacto')?.hasError('principalContactoInconsistente')">
-        No se puede guardar este usuario: cada lista debe tener exactamente un contacto PRINCIPAL. Cierra y vuelve a abrir la edición después de corregir los datos en el backend.
-      </p>
       <section class="form-section">
         <div class="section-header">
           <span class="section-number">01</span>

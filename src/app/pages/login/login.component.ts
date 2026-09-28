@@ -5,11 +5,12 @@ import { CommonModule } from '@angular/common';
 import { finalize } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { LoginError, LoginErrorField } from '../../models/login.model';
+import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, LoadingOverlayComponent],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
 })

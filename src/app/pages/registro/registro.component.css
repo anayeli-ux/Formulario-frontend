@@ -251,47 +251,6 @@ h3 {
     not-allowed;
 }
 
-.loading-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 2000;
-  display: grid;
-  place-items: center;
-  background: rgba(35, 24, 28, .7);
-  backdrop-filter: blur(4px);
-}
-
-.loading-modal {
-  display: grid;
-  gap: 10px;
-  min-width: 230px;
-  padding: 28px;
-  border-radius: 12px;
-  background: var(--blanco);
-  color: var(--texto);
-  text-align: center;
-  box-shadow: 0 22px 65px rgba(40, 15, 23, .32);
-}
-
-.loading-modal span:last-child {
-  color: var(--texto-secundario);
-  font-size: 13px;
-}
-
-.loading-spinner {
-  width: 32px;
-  height: 32px;
-  margin: 0 auto 4px;
-  border: 3px solid #d9e2f7;
-  border-top-color: var(--vino);
-  border-radius: 50%;
-  animation: girarRegistro .8s linear infinite;
-}
-
-@keyframes girarRegistro {
-  to { transform: rotate(360deg); }
-}
-
 @keyframes registroEntrada {
   from { opacity: 0; }
   to { opacity: 1; }

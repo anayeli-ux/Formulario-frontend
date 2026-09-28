@@ -1,0 +1,64 @@
+<div
+  class="contactos-listas"
+  [class.contactos-modal]="presentacion === 'modal'"
+  [class.contactos-perfil]="presentacion === 'perfil'"
+>
+  <section class="contactos-grupo grupo-telefonos" aria-label="Teléfonos">
+    <h3>Teléfonos</h3>
+    <ng-container *ngIf="(usuario.telefonos ?? []).length; else sinTelefonos">
+      <ul *ngIf="presentacion === 'perfil'; else telefonosModal">
+        <li *ngFor="let telefono of usuario.telefonos ?? []">
+          <span class="contacto-tipo">{{ telefono.tipo || 'Sin tipo' }}</span>
+          <strong>{{ telefono.valor }}</strong>
+        </li>
+      </ul>
+      <ng-template #telefonosModal>
+        <p class="contacto-modal-entry" *ngFor="let telefono of usuario.telefonos ?? []">
+          <strong>{{ telefono.tipo || 'Sin tipo' }}</strong>
+          <span>{{ telefono.valor }}</span>
+        </p>
+      </ng-template>
+    </ng-container>
+    <ng-template #sinTelefonos><p class="contactos-vacios">Sin teléfonos registrados.</p></ng-template>
+  </section>
+
+  <section class="contactos-grupo grupo-correos" aria-label="Correos electrónicos">
+    <h3>Correos</h3>
+    <ng-container *ngIf="(usuario.correos ?? []).length; else sinCorreos">
+      <ul *ngIf="presentacion === 'perfil'; else correosModal">
+        <li *ngFor="let correo of usuario.correos ?? []">
+          <span class="contacto-tipo">{{ correo.tipo || 'Sin tipo' }}</span>
+          <strong>{{ correo.valor }}</strong>
+        </li>
+      </ul>
+      <ng-template #correosModal>
+        <p class="contacto-modal-entry" *ngFor="let correo of usuario.correos ?? []">
+          <strong>{{ correo.tipo || 'Sin tipo' }}</strong>
+          <span>{{ correo.valor }}</span>
+        </p>
+      </ng-template>
+    </ng-container>
+    <ng-template #sinCorreos><p class="contactos-vacios">Sin correos registrados.</p></ng-template>
+  </section>
+
+  <section class="contactos-grupo grupo-direcciones" aria-label="Direcciones">
+    <h3>Direcciones</h3>
+    <ng-container *ngIf="(usuario.direcciones ?? []).length; else sinDirecciones">
+      <ul *ngIf="presentacion === 'perfil'; else direccionesModal">
+        <li *ngFor="let direccion of usuario.direcciones ?? []">
+          <span class="contacto-tipo">{{ direccion.tipo || 'Sin tipo' }}</span>
+          <strong>{{ direccion.valor }}</strong>
+          <span class="codigo-postal">Código postal: {{ direccion.codigoPostal }}</span>
+        </li>
+      </ul>
+      <ng-template #direccionesModal>
+        <p class="contacto-modal-entry" *ngFor="let direccion of usuario.direcciones ?? []">
+          <strong>{{ direccion.tipo || 'Sin tipo' }}</strong>
+          <span>{{ direccion.valor }}</span>
+          <small>Código postal: {{ direccion.codigoPostal }}</small>
+        </p>
+      </ng-template>
+    </ng-container>
+    <ng-template #sinDirecciones><p class="contactos-vacios">Sin direcciones registradas.</p></ng-template>
+  </section>
+</div>

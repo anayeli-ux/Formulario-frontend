@@ -115,10 +115,4 @@
 
 </div>
 
-<div class="loading-overlay" *ngIf="cargando()" aria-live="polite" aria-busy="true">
-  <div class="loading-modal">
-    <span class="loading-spinner" aria-hidden="true"></span>
-    <strong>Iniciando sesión</strong>
-    <span>Espera un momento...</span>
-  </div>
-</div>
+<app-loading-overlay *ngIf="cargando()" mensaje="Iniciando sesión"></app-loading-overlay>

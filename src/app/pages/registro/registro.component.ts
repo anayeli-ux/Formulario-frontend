@@ -21,6 +21,7 @@ import {
 import {
   DatosContactoComponent
 } from '../../components/datos-contacto/datos-contacto.component';
+import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
 
 
 
@@ -40,6 +41,7 @@ type TipoModal =
     ReactiveFormsModule,
     DatosPersonalesComponent,
     DatosContactoComponent,
+    LoadingOverlayComponent,
   ],
 
   templateUrl: './registro.component.html',

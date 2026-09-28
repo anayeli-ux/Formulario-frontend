@@ -7,7 +7,7 @@ import {
   signal
 } from '@angular/core';
 
-import { FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
 
@@ -20,6 +20,9 @@ import { PostaliaService } from '../../services/postalia.service';
 import { UsuarioFormService } from '../../services/usuario-form.service';
 import { DatosPersonalesComponent } from '../../components/datos-personales/datos-personales.component';
 import { DatosContactoComponent } from '../../components/datos-contacto/datos-contacto.component';
+import { UsuariosTablaComponent } from '../../components/usuarios-tabla/usuarios-tabla.component';
+import { ContactosUsuarioComponent } from '../../components/contactos-usuario/contactos-usuario.component';
+import { obtenerContactoPrincipal } from '../../utils/contactos.util';
 
 type TipoModal =
   | 'exito'
@@ -33,10 +36,11 @@ type TipoModal =
 
   imports: [
     CommonModule,
-    FormsModule,
     ReactiveFormsModule,
     DatosPersonalesComponent,
-    DatosContactoComponent
+    DatosContactoComponent,
+    UsuariosTablaComponent,
+    ContactosUsuarioComponent
   ],
 
   templateUrl: './admin.html',
@@ -244,9 +248,7 @@ export class Admin implements OnInit {
         next: (usuarios: Usuario[]) => {
 
           this.usuarios.set(
-            this.ordenarPorId(
-              this.completarUbicaciones(usuarios)
-            )
+            this.ordenarPorId(usuarios)
           );
 
         },
@@ -278,9 +280,7 @@ export class Admin implements OnInit {
         next: (usuarios: Usuario[]) => {
 
           this.usuariosEliminados.set(
-            this.ordenarPorId(
-              this.completarUbicaciones(usuarios)
-            )
+            this.ordenarPorId(usuarios)
           );
 
         },
@@ -733,16 +733,8 @@ export class Admin implements OnInit {
     });
   }
 
-  obtenerTelefonoPrincipal(usuario: Usuario): string {
-    return usuario.telefonos?.find(contacto => contacto.tipo === 'PRINCIPAL')?.valor ?? '';
-  }
-
   obtenerCorreoPrincipal(usuario: Usuario): string {
-    return usuario.correos?.find(contacto => contacto.tipo === 'PRINCIPAL')?.valor ?? '';
-  }
-
-  obtenerDireccionPrincipal(usuario: Usuario): string {
-    return usuario.direcciones?.find(direccion => direccion.tipo === 'PRINCIPAL')?.valor ?? '';
+    return obtenerContactoPrincipal(usuario.correos)?.valor ?? '';
   }
 
   obtenerCodigoPostalPrincipal(usuario: Usuario): string {
@@ -795,8 +787,12 @@ export class Admin implements OnInit {
     this.authService.cerrarSesion().pipe(
       finalize(() => this.cargando.set(false))
     ).subscribe({
-      next: () => this.router.navigate(['/login']),
+      next: () => {
+        this.usuarioService.invalidarCacheListas();
+        this.router.navigate(['/login']);
+      },
       error: () => {
+        this.usuarioService.invalidarCacheListas();
         this.authService.limpiarSesionLocal();
         this.router.navigate(['/login']);
       }
@@ -820,34 +816,5 @@ export class Admin implements OnInit {
     );
 
   }
-
-  private completarUbicaciones(
-    usuarios: Usuario[]
-  ): Usuario[] {
-
-    return usuarios.map(usuario => {
-      const codigoPostal = this.obtenerCodigoPostalPrincipal(usuario);
-      if (!codigoPostal) {
-        return usuario;
-      }
-
-      this.postaliaService.buscarCodigoPostal(codigoPostal).subscribe({
-        next: ubicacion => {
-          const actualizar = (lista: Usuario[]) => lista.map(item =>
-            item.id === usuario.id
-              ? { ...item, estado: ubicacion.estado, municipio: ubicacion.municipio }
-              : item
-          );
-
-          this.usuarios.update(actualizar);
-          this.usuariosEliminados.update(actualizar);
-        },
-        error: () => undefined
-      });
-
-      return usuario;
-    });
-  }
-
 
 }

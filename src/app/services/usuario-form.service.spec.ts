@@ -88,7 +88,7 @@ describe('UsuarioFormService', () => {
     expect(form.valid).toBeTrue();
   });
 
-  it('should block edits when any contact list has a missing or duplicate principal', () => {
+  it('should allow editing users with missing or duplicate principal contacts', () => {
     const user: Usuario = {
       nombre: 'Ana',
       primerApellido: 'Lopez',
@@ -98,16 +98,24 @@ describe('UsuarioFormService', () => {
         { tipo: 'PRINCIPAL', valor: '7717654321' }
       ],
       direcciones: [{ tipo: 'PRINCIPAL', valor: 'Calle Principal 10', codigoPostal: '42000' }],
-      correos: []
+      correos: [{ tipo: 'TRABAJO', valor: 'ana@example.com' }]
     };
     const form = service.crearFormulario(true);
 
     service.cargarUsuario(form, user);
 
-    expect(form.get('datosContacto')?.hasError('principalContactoInconsistente')).toBeTrue();
-    expect(form.invalid).toBeTrue();
-    expect(form.get('datosContacto.telefono')?.value).toBe('');
-    expect(form.get('datosPersonales.email')?.value).toBe('');
-    expect(() => service.crearRequest(form, false)).toThrowError(/inconsistentes/);
+    expect(form.valid).toBeTrue();
+    expect(form.get('datosContacto.telefono')?.value).toBe('7711234567');
+    expect(form.get('datosPersonales.email')?.value).toBe('ana@example.com');
+
+    const request = service.crearRequest(form, false);
+
+    expect(request.telefonos).toEqual([
+      { tipo: 'PRINCIPAL', valor: '7711234567' },
+      { tipo: 'PERSONAL', valor: '7717654321' }
+    ]);
+    expect(request.correos).toEqual([
+      { tipo: 'PRINCIPAL', valor: 'ana@example.com' }
+    ]);
   });
 });

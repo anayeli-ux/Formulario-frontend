@@ -27,12 +27,7 @@ export class UsuarioFormService {
         municipio: ['', Validators.maxLength(100)],
         direccion: ['', [Validators.required, Validators.maxLength(150)]],
         direcciones: this.fb.array([]),
-        correos: this.fb.array([]),
-        principalInconsistente: [false]
-      }, {
-        validators: control => control.get('principalInconsistente')?.value
-          ? { principalContactoInconsistente: true }
-          : null
+        correos: this.fb.array([])
       })
     });
   }
@@ -41,11 +36,9 @@ export class UsuarioFormService {
     const telefonos = usuario.telefonos ?? [];
     const correos = usuario.correos ?? [];
     const direcciones = usuario.direcciones ?? [];
-    const telefonosPrincipales = telefonos.filter(contacto => contacto.tipo === 'PRINCIPAL');
-    const correosPrincipales = correos.filter(contacto => contacto.tipo === 'PRINCIPAL');
-    const direccionesPrincipales = direcciones.filter(direccion => direccion.tipo === 'PRINCIPAL');
-    const tienePrincipalesUnicos = [telefonosPrincipales, correosPrincipales, direccionesPrincipales]
-      .every(principales => principales.length === 1);
+    const telefonoPrincipal = this.seleccionarPrincipal(telefonos);
+    const correoPrincipal = this.seleccionarPrincipal(correos);
+    const direccionPrincipal = this.seleccionarPrincipal(direcciones);
 
     form.patchValue({
       datosPersonales: {
@@ -53,38 +46,34 @@ export class UsuarioFormService {
         primer_apellido: usuario.primerApellido,
         password: '',
         fecha_nacimiento: usuario.fechaNacimiento,
-        email: correosPrincipales.length === 1 ? correosPrincipales[0].valor : ''
+        email: correoPrincipal?.valor ?? ''
       },
       datosContacto: {
-        telefono: telefonosPrincipales.length === 1 ? telefonosPrincipales[0].valor : '',
-        codigo_postal: direccionesPrincipales.length === 1 ? direccionesPrincipales[0].codigoPostal : '',
+        telefono: telefonoPrincipal?.valor ?? '',
+        codigo_postal: direccionPrincipal?.codigoPostal ?? '',
         estado: usuario.estado ?? '',
         municipio: usuario.municipio ?? '',
-        direccion: direccionesPrincipales.length === 1 ? direccionesPrincipales[0].valor : '',
-        principalInconsistente: !tienePrincipalesUnicos
+        direccion: direccionPrincipal?.valor ?? ''
       }
     });
 
     const datosContacto = form.get('datosContacto') as FormGroup;
-    this.reemplazarFilas(datosContacto.get('telefonos') as FormArray, telefonos.filter(contacto => contacto.tipo !== 'PRINCIPAL'), 'telefono');
+    this.reemplazarFilas(datosContacto.get('telefonos') as FormArray, this.obtenerAdicionales(telefonos, telefonoPrincipal), 'telefono');
     this.reemplazarFilas(
       datosContacto.get('direcciones') as FormArray,
-      direcciones.filter(direccion => direccion.tipo !== 'PRINCIPAL').map(direccion => ({
+      this.obtenerAdicionales(direcciones, direccionPrincipal).map(direccion => ({
         ...direccion,
         codigoPostal: direccion.codigoPostal || ''
       })),
       'direccion'
     );
-    this.reemplazarFilas(datosContacto.get('correos') as FormArray, correos.filter(contacto => contacto.tipo !== 'PRINCIPAL'), 'correo');
+    this.reemplazarFilas(datosContacto.get('correos') as FormArray, this.obtenerAdicionales(correos, correoPrincipal), 'correo');
   }
 
   crearRequest(form: FormGroup): UsuarioRequest;
   crearRequest(form: FormGroup, incluirPassword: false): UsuarioActualizarRequest;
   crearRequest(form: FormGroup, incluirPassword = true): UsuarioRequest | UsuarioActualizarRequest {
     const { datosPersonales, datosContacto } = form.getRawValue();
-    if (datosContacto.principalInconsistente) {
-      throw new Error('No se puede guardar el usuario: sus contactos principales son inconsistentes.');
-    }
 
     const request: Omit<UsuarioRequest, 'password'> = {
       nombre: datosPersonales.nombre,
@@ -115,6 +104,24 @@ export class UsuarioFormService {
     }
 
     return datosPersonales.password ? { ...request, password: datosPersonales.password } : request;
+  }
+
+  private seleccionarPrincipal<T extends { tipo: string }>(contactos: T[]): T | undefined {
+    return contactos.find(contacto => contacto.tipo === 'PRINCIPAL') ?? contactos[0];
+  }
+
+  private obtenerAdicionales<T extends { tipo: string }>(contactos: T[], principal?: T): T[] {
+    let principalOmitido = false;
+    return contactos.filter(contacto => {
+      if (contacto === principal && !principalOmitido) {
+        principalOmitido = true;
+        return false;
+      }
+      return true;
+    }).map(contacto => contacto.tipo === 'PRINCIPAL'
+      ? { ...contacto, tipo: 'Personal' }
+      : contacto
+    );
   }
 
   private reemplazarFilas(array: FormArray, filas: Array<{ tipo: string; valor: string; codigoPostal?: string }>, tipoFila: 'telefono' | 'direccion' | 'correo'): void {

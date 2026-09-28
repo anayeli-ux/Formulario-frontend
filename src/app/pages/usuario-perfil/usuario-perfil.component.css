@@ -175,58 +175,6 @@
   transform: translateX(4px);
 }
 
-.contactos-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 24px 32px;
-  margin-top: 30px;
-  padding-top: 24px;
-  border-top: 1px solid #dce4ef;
-}
-
-.contacto-lista h3 {
-  margin: 0 0 12px;
-  color: #203047;
-  font-size: 16px;
-}
-
-.contacto-lista ul {
-  display: grid;
-  gap: 10px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.contacto-lista li {
-  display: grid;
-  gap: 4px;
-  min-width: 0;
-}
-
-.contacto-tipo,
-.codigo-postal {
-  color: #5270a1;
-  font-size: 12px;
-}
-
-.contacto-lista li strong {
-  color: #263b58;
-  font-size: 14px;
-  font-weight: 600;
-  overflow-wrap: anywhere;
-}
-
-.direcciones-lista {
-  grid-column: 1 / -1;
-}
-
-.sin-contactos {
-  margin: 0;
-  color: #707d91;
-  font-size: 14px;
-}
-
 .status-message {
   margin: 0;
   color: #5270a1;
@@ -421,15 +369,6 @@
   .datos-grid {
     grid-template-columns: 1fr;
     gap: 20px;
-  }
-
-  .contactos-grid {
-    grid-template-columns: 1fr;
-    gap: 22px;
-  }
-
-  .direcciones-lista {
-    grid-column: auto;
   }
 
   .edit-notice-overlay {

@@ -1,0 +1,62 @@
+<section class="admin-card">
+  <div class="admin-card-header">
+    <div>
+      <span class="admin-label">{{ inactivos ? 'USUARIOS ELIMINADOS' : 'USUARIOS ACTIVOS' }}</span>
+      <h2>{{ inactivos ? 'Registros inactivos' : 'Registros actuales' }}</h2>
+    </div>
+    <div class="active-users-actions">
+      <span class="admin-count">{{ total }} {{ inactivos ? 'eliminados' : 'activos' }}</span>
+      <button *ngIf="!inactivos" type="button" class="admin-primary" (click)="registrar.emit()" [disabled]="cargando">Registrar usuario</button>
+    </div>
+  </div>
+
+  <div class="search-field">
+    <label [for]="inactivos ? 'buscarUsuariosEliminados' : 'buscarUsuarios'">Buscar usuarios {{ inactivos ? 'eliminados' : 'activos' }}</label>
+    <input
+      [id]="inactivos ? 'buscarUsuariosEliminados' : 'buscarUsuarios'"
+      type="search"
+      [value]="busqueda"
+      (input)="actualizarBusqueda($event)"
+      [name]="inactivos ? 'buscarUsuariosEliminados' : 'buscarUsuarios'"
+      placeholder="Nombre, apellido, teléfono, dirección o código postal"
+    >
+  </div>
+
+  <div class="table-wrapper">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nombre</th>
+          <th>Teléfono</th>
+          <th>Código postal</th>
+          <th *ngIf="!inactivos">Correo electrónico</th>
+          <th>Información adicional</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let usuario of usuarios">
+          <td>{{ usuario.id }}</td>
+          <td>{{ usuario.nombre }} {{ usuario.primerApellido }}</td>
+          <td>{{ obtenerTelefonoPrincipal(usuario) }}</td>
+          <td>{{ obtenerCodigoPostalPrincipal(usuario) }}</td>
+          <td *ngIf="!inactivos">{{ obtenerCorreoPrincipal(usuario) }}</td>
+          <td><button type="button" class="table-edit" (click)="ver.emit(usuario)">Ver datos</button></td>
+          <td class="table-actions" *ngIf="!inactivos">
+            <button type="button" class="table-edit" (click)="editar.emit(usuario)" [disabled]="cargando">Editar</button>
+            <button type="button" class="table-delete" (click)="eliminar.emit(usuario.id!)" [disabled]="cargando">Eliminar</button>
+          </td>
+          <td *ngIf="inactivos">
+            <button type="button" class="table-edit" (click)="reactivar.emit(usuario.id!)" [disabled]="cargando">Reactivar</button>
+          </td>
+        </tr>
+        <tr *ngIf="usuarios.length === 0">
+          <td [attr.colspan]="inactivos ? 6 : 7" class="empty-row">
+            {{ busqueda ? 'No hay coincidencias.' : (inactivos ? 'No hay usuarios eliminados.' : 'No hay usuarios activos.') }}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
