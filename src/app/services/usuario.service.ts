@@ -16,43 +16,38 @@ import { AuthService } from './auth.service';
  * Datos que Spring Boot permite recibir
  * para crear o actualizar un usuario.
  */
-export interface UsuarioRequest {
+interface UsuarioRequestBase {
 
   nombre: string;
 
   primerApellido: string;
 
-  password?: string;
-
-  telefono: string;
-
-  codigoPostal: string;
-
-  direccion: string;
-
   fechaNacimiento: string;
 
-  email: string;
-
-
-  telefonos?: Array<{
+  telefonos: Array<{
     tipo: string;
     valor: string;
   }>;
 
-
-  correos?: Array<{
+  correos: Array<{
     tipo: string;
     valor: string;
   }>;
 
-
-  direcciones?: Array<{
+  direcciones: Array<{
     tipo: string;
     valor: string;
     codigoPostal: string;
   }>;
 
+}
+
+export interface UsuarioRequest extends UsuarioRequestBase {
+  password: string;
+}
+
+export interface UsuarioActualizarRequest extends UsuarioRequestBase {
+  password?: string;
 }
 
 
@@ -174,7 +169,7 @@ export class UsuarioService {
    */
   actualizarUsuario(
     id: number,
-    usuario: UsuarioRequest
+    usuario: UsuarioActualizarRequest
   ): Observable<Usuario> {
 
     return this.authService.obtenerCsrf().pipe(

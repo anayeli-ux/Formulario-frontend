@@ -692,12 +692,8 @@ export class Admin implements OnInit {
         usuario.id,
         usuario.nombre,
         usuario.primerApellido,
-        usuario.telefono,
-        usuario.codigoPostal,
         usuario.estado,
         usuario.municipio,
-        usuario.direccion,
-        usuario.email,
         ...(usuario.telefonos ?? []).flatMap(contacto => [contacto.tipo, contacto.valor]),
         ...(usuario.direcciones ?? []).flatMap(contacto => [contacto.tipo, contacto.valor, contacto.codigoPostal]),
         ...(usuario.correos ?? []).flatMap(contacto => [contacto.tipo, contacto.valor])
@@ -705,6 +701,22 @@ export class Admin implements OnInit {
 
       return valores.some(valor => this.normalizarTexto(String(valor ?? '')).includes(termino));
     });
+  }
+
+  obtenerTelefonoPrincipal(usuario: Usuario): string {
+    return usuario.telefonos?.find(contacto => contacto.tipo === 'PRINCIPAL')?.valor ?? '';
+  }
+
+  obtenerCorreoPrincipal(usuario: Usuario): string {
+    return usuario.correos?.find(contacto => contacto.tipo === 'PRINCIPAL')?.valor ?? '';
+  }
+
+  obtenerDireccionPrincipal(usuario: Usuario): string {
+    return usuario.direcciones?.find(direccion => direccion.tipo === 'PRINCIPAL')?.valor ?? '';
+  }
+
+  obtenerCodigoPostalPrincipal(usuario: Usuario): string {
+    return usuario.direcciones?.find(direccion => direccion.tipo === 'PRINCIPAL')?.codigoPostal ?? '';
   }
 
   private normalizarTexto(valor: string): string {
@@ -776,11 +788,12 @@ export class Admin implements OnInit {
   ): Usuario[] {
 
     return usuarios.map(usuario => {
-      if (!usuario.codigoPostal) {
+      const codigoPostal = this.obtenerCodigoPostalPrincipal(usuario);
+      if (!codigoPostal) {
         return usuario;
       }
 
-      this.postaliaService.buscarCodigoPostal(usuario.codigoPostal).subscribe({
+      this.postaliaService.buscarCodigoPostal(codigoPostal).subscribe({
         next: ubicacion => {
           const actualizar = (lista: Usuario[]) => lista.map(item =>
             item.id === usuario.id

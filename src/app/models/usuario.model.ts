@@ -12,16 +12,12 @@ export interface Usuario {
   nombre: string;
   primerApellido: string;
   password?: string;
-  telefono: string;
-  codigoPostal: string;
-  estado: string;
-  municipio: string;
-  direccion: string;
   fechaNacimiento: string;
-  email: string;
+  estado?: string;
+  municipio?: string;
   activo?: boolean;
   rol?: string;
-  telefonos?: ContactoItem[];
-  correos?: ContactoItem[];
-  direcciones?: DireccionItem[];
+  telefonos: ContactoItem[];
+  correos: ContactoItem[];
+  direcciones: DireccionItem[];
 }

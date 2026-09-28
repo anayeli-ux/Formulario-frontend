@@ -36,11 +36,14 @@ export class UsuarioPerfilComponent implements OnInit {
   ngOnInit(): void {
     this.usuarioService.obtenerMiPerfil().pipe(
       switchMap(usuario => {
-        if (!usuario.codigoPostal) {
-          return of(usuario);
+        const codigoPostal = usuario.direcciones
+          ?.find(direccion => direccion.tipo === 'PRINCIPAL')
+          ?.codigoPostal;
+        if (!codigoPostal) {
+          return of({ ...usuario, estado: '', municipio: '' });
         }
 
-        return this.postaliaService.buscarCodigoPostal(usuario.codigoPostal).pipe(
+        return this.postaliaService.buscarCodigoPostal(codigoPostal).pipe(
           map(ubicacion => ({
             ...usuario,
             estado: ubicacion.estado,
@@ -54,6 +57,22 @@ export class UsuarioPerfilComponent implements OnInit {
       next: usuario => this.usuario.set(usuario),
       error: () => this.errorMensaje.set('No fue posible cargar tus datos.')
     });
+  }
+
+  obtenerTelefonoPrincipal(): string {
+    return this.usuario()?.telefonos?.find(contacto => contacto.tipo === 'PRINCIPAL')?.valor ?? '';
+  }
+
+  obtenerCorreoPrincipal(): string {
+    return this.usuario()?.correos?.find(contacto => contacto.tipo === 'PRINCIPAL')?.valor ?? '';
+  }
+
+  obtenerDireccionPrincipal(): string {
+    return this.usuario()?.direcciones?.find(direccion => direccion.tipo === 'PRINCIPAL')?.valor ?? '';
+  }
+
+  obtenerCodigoPostalPrincipal(): string {
+    return this.usuario()?.direcciones?.find(direccion => direccion.tipo === 'PRINCIPAL')?.codigoPostal ?? '';
   }
 
   cerrarSesion(): void {

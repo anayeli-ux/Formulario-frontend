@@ -35,11 +35,11 @@
       <div class="datos-grid">
         <div class="dato">
           <span class="dato-label">Correo electrónico</span>
-          <strong>{{ usuario()!.email }}</strong>
+          <strong>{{ obtenerCorreoPrincipal() }}</strong>
         </div>
         <div class="dato">
           <span class="dato-label">Teléfono</span>
-          <strong>{{ usuario()!.telefono }}</strong>
+          <strong>{{ obtenerTelefonoPrincipal() }}</strong>
         </div>
         <div class="dato">
           <span class="dato-label">Fecha de nacimiento</span>
@@ -47,7 +47,7 @@
         </div>
         <div class="dato">
           <span class="dato-label">Código postal</span>
-          <strong>{{ usuario()!.codigoPostal }}</strong>
+          <strong>{{ obtenerCodigoPostalPrincipal() }}</strong>
         </div>
         <div class="dato">
           <span class="dato-label">Estado</span>
@@ -59,7 +59,7 @@
         </div>
         <div class="dato dato-completo">
           <span class="dato-label">Dirección</span>
-          <strong>{{ usuario()!.direccion }}</strong>
+          <strong>{{ obtenerDireccionPrincipal() }}</strong>
         </div>
       </div>
     </section>

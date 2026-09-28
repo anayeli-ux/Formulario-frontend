@@ -44,8 +44,8 @@
           <tr *ngFor="let usuario of usuariosFiltrados()">
             <td>{{ usuario.id }}</td>
             <td>{{ usuario.nombre }} {{ usuario.primerApellido }}</td>
-            <td>{{ usuario.telefono }}</td>
-            <td>{{ usuario.codigoPostal }}</td>
+            <td>{{ obtenerTelefonoPrincipal(usuario) }}</td>
+            <td>{{ obtenerCodigoPostalPrincipal(usuario) }}</td>
             <td>{{ usuario.municipio }}</td>
             <td class="table-actions">
               <button type="button" class="table-edit" (click)="editarUsuario(usuario)" [disabled]="cargando()">Editar</button>
@@ -89,8 +89,8 @@
           <tr *ngFor="let usuario of usuariosEliminadosFiltrados()">
             <td>{{ usuario.id }}</td>
             <td>{{ usuario.nombre }} {{ usuario.primerApellido }}</td>
-            <td>{{ usuario.telefono }}</td>
-            <td>{{ usuario.codigoPostal }}</td>
+            <td>{{ obtenerTelefonoPrincipal(usuario) }}</td>
+            <td>{{ obtenerCodigoPostalPrincipal(usuario) }}</td>
             <td>
               <button type="button" class="table-edit" (click)="reactivarUsuario(usuario.id!)" [disabled]="cargando()">Reactivar</button>
             </td>
@@ -141,6 +141,9 @@
 
     <!-- FORMULARIO -->
     <form class="user-form" [formGroup]="usuarioForm" (ngSubmit)="editando() ? actualizarUsuario() : crearUsuario()">
+      <p class="field-error" *ngIf="usuarioForm.get('datosContacto')?.hasError('principalContactoInconsistente')">
+        No se puede guardar este usuario: cada lista debe tener exactamente un contacto PRINCIPAL. Cierra y vuelve a abrir la edición después de corregir los datos en el backend.
+      </p>
       <section class="form-section">
         <div class="section-header">
           <span class="section-number">01</span>

@@ -20,16 +20,19 @@ describe('UsuarioFormService', () => {
       id: 12,
       nombre: 'Ana',
       primerApellido: 'Lopez',
-      telefono: '7711234567',
-      codigoPostal: '42000',
-      estado: 'Hidalgo',
-      municipio: 'Pachuca',
-      direccion: 'Calle Principal 10',
       fechaNacimiento: '1990-05-15',
-      email: 'ana@example.com',
-      telefonos: [{ tipo: 'Trabajo', valor: '7717654321' }],
-      direcciones: [{ tipo: 'Trabajo', valor: 'Calle Secundaria 20', codigoPostal: '42010' }],
-      correos: [{ tipo: 'Trabajo', valor: 'ana.trabajo@example.com' }]
+      telefonos: [
+        { tipo: 'PRINCIPAL', valor: '7711234567' },
+        { tipo: 'TRABAJO', valor: '7717654321' }
+      ],
+      direcciones: [
+        { tipo: 'PRINCIPAL', valor: 'Calle Principal 10', codigoPostal: '42000' },
+        { tipo: 'TRABAJO', valor: 'Calle Secundaria 20', codigoPostal: '42010' }
+      ],
+      correos: [
+        { tipo: 'PRINCIPAL', valor: 'ana@example.com' },
+        { tipo: 'TRABAJO', valor: 'ana.trabajo@example.com' }
+      ]
     };
     const form = service.crearFormulario(true);
 
@@ -41,9 +44,26 @@ describe('UsuarioFormService', () => {
     const request = service.crearRequest(form, false);
 
     expect(request.password).toBeUndefined();
-    expect(request.telefonos).toContain({ tipo: 'Trabajo', valor: '7717654321' });
-    expect(request.direcciones).toContain({ tipo: 'Trabajo', valor: 'Calle Secundaria 20', codigoPostal: '42010' });
-    expect(request.correos).toContain({ tipo: 'Trabajo', valor: 'ana.trabajo@example.com' });
+    expect(request.telefonos).toEqual([
+      { tipo: 'PRINCIPAL', valor: '7711234567' },
+      { tipo: 'TRABAJO', valor: '7717654321' }
+    ]);
+    expect(request.direcciones).toEqual([
+      { tipo: 'PRINCIPAL', valor: 'Calle Principal 10', codigoPostal: '42000' },
+      { tipo: 'TRABAJO', valor: 'Calle Secundaria 20', codigoPostal: '42010' }
+    ]);
+    expect(request.correos).toEqual([
+      { tipo: 'PRINCIPAL', valor: 'ana@example.com' },
+      { tipo: 'TRABAJO', valor: 'ana.trabajo@example.com' }
+    ]);
+    expect(request).not.toEqual(jasmine.objectContaining({
+      telefono: jasmine.anything(),
+      email: jasmine.anything(),
+      direccion: jasmine.anything(),
+      codigoPostal: jasmine.anything(),
+      estado: jasmine.anything(),
+      municipio: jasmine.anything()
+    }));
   });
 
   it('should require a password when creating a user', () => {
@@ -56,18 +76,38 @@ describe('UsuarioFormService', () => {
     const user: Usuario = {
       nombre: 'Ana',
       primerApellido: 'Lopez',
-      telefono: '7711234567',
-      codigoPostal: '42000',
-      estado: '',
-      municipio: '',
-      direccion: 'Calle Principal 10',
       fechaNacimiento: '1990-05-15',
-      email: 'ana@example.com'
+      telefonos: [{ tipo: 'PRINCIPAL', valor: '7711234567' }],
+      direcciones: [{ tipo: 'PRINCIPAL', valor: 'Calle Principal 10', codigoPostal: '42000' }],
+      correos: [{ tipo: 'PRINCIPAL', valor: 'ana@example.com' }]
     };
     const form = service.crearFormulario(true);
 
     service.cargarUsuario(form, user);
 
     expect(form.valid).toBeTrue();
+  });
+
+  it('should block edits when any contact list has a missing or duplicate principal', () => {
+    const user: Usuario = {
+      nombre: 'Ana',
+      primerApellido: 'Lopez',
+      fechaNacimiento: '1990-05-15',
+      telefonos: [
+        { tipo: 'PRINCIPAL', valor: '7711234567' },
+        { tipo: 'PRINCIPAL', valor: '7717654321' }
+      ],
+      direcciones: [{ tipo: 'PRINCIPAL', valor: 'Calle Principal 10', codigoPostal: '42000' }],
+      correos: []
+    };
+    const form = service.crearFormulario(true);
+
+    service.cargarUsuario(form, user);
+
+    expect(form.get('datosContacto')?.hasError('principalContactoInconsistente')).toBeTrue();
+    expect(form.invalid).toBeTrue();
+    expect(form.get('datosContacto.telefono')?.value).toBe('');
+    expect(form.get('datosPersonales.email')?.value).toBe('');
+    expect(() => service.crearRequest(form, false)).toThrowError(/inconsistentes/);
   });
 });
