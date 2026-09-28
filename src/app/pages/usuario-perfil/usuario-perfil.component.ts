@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, computed, signal } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Router } from '@angular/router';
-import { Usuario } from '../../models/usuario.model';
+import { ContactoItem, DireccionItem, Usuario } from '../../models/usuario.model';
 import { AuthService } from '../../services/auth.service';
 import { PostaliaService } from '../../services/postalia.service';
 import { UsuarioService } from '../../services/usuario.service';
@@ -20,6 +20,26 @@ export class UsuarioPerfilComponent implements OnInit {
     'https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&rel=0';
 
   usuario = signal<Usuario | undefined>(undefined);
+  telefonosMostrar = computed<ContactoItem[]>(() => {
+    const usuario = this.usuario();
+    if (!usuario) return [];
+    if (usuario.telefonos?.length) return usuario.telefonos;
+    return usuario.telefono ? [{ tipo: 'Principal', valor: usuario.telefono }] : [];
+  });
+  correosMostrar = computed<ContactoItem[]>(() => {
+    const usuario = this.usuario();
+    if (!usuario) return [];
+    if (usuario.correos?.length) return usuario.correos;
+    return usuario.email ? [{ tipo: 'Principal', valor: usuario.email }] : [];
+  });
+  direccionesMostrar = computed<DireccionItem[]>(() => {
+    const usuario = this.usuario();
+    if (!usuario) return [];
+    if (usuario.direcciones?.length) return usuario.direcciones;
+    return usuario.direccion
+      ? [{ tipo: 'Principal', valor: usuario.direccion, codigoPostal: usuario.codigoPostal }]
+      : [];
+  });
   cargando = signal(true);
   errorMensaje = signal('');
   modalVisible = signal(false);

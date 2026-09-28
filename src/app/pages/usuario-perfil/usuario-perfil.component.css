@@ -164,6 +164,45 @@
   grid-column: 1 / -1;
 }
 
+.contact-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.contact-list li {
+  display: grid;
+  grid-template-columns: minmax(90px, 130px) minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 8px 16px;
+  padding-bottom: 9px;
+  border-bottom: 1px solid #dce4ef;
+}
+
+.contact-list li:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.contact-type,
+.contact-postal {
+  color: #5270a1;
+  font-size: 13px;
+}
+
+.contact-list strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.contact-empty {
+  grid-template-columns: 1fr !important;
+  color: #69788d;
+  font-size: 14px;
+}
+
 .status-message {
   margin: 0;
   color: #5270a1;
@@ -277,6 +316,11 @@
   .datos-grid {
     grid-template-columns: 1fr;
     gap: 20px;
+  }
+
+  .contact-list li {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
   }
 
   .dato-completo {

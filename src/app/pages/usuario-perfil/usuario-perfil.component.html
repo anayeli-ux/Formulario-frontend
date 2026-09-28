@@ -33,21 +33,31 @@
       </div>
 
       <div class="datos-grid">
-        <div class="dato">
-          <span class="dato-label">Correo electrónico</span>
-          <strong>{{ usuario()!.email }}</strong>
+        <div class="dato dato-completo">
+          <span class="dato-label">Correos electrónicos</span>
+          <ul class="contact-list" aria-label="Correos electrónicos registrados">
+            <li *ngFor="let correo of correosMostrar()">
+              <span class="contact-type">{{ correo.tipo }}</span>
+              <strong>{{ correo.valor }}</strong>
+            </li>
+            <li *ngIf="correosMostrar().length === 0" class="contact-empty">Sin correos registrados</li>
+          </ul>
         </div>
-        <div class="dato">
-          <span class="dato-label">Teléfono</span>
-          <strong>{{ usuario()!.telefono }}</strong>
+
+        <div class="dato dato-completo">
+          <span class="dato-label">Teléfonos</span>
+          <ul class="contact-list" aria-label="Teléfonos registrados">
+            <li *ngFor="let telefono of telefonosMostrar()">
+              <span class="contact-type">{{ telefono.tipo }}</span>
+              <strong>{{ telefono.valor }}</strong>
+            </li>
+            <li *ngIf="telefonosMostrar().length === 0" class="contact-empty">Sin teléfonos registrados</li>
+          </ul>
         </div>
+
         <div class="dato">
           <span class="dato-label">Fecha de nacimiento</span>
           <strong>{{ usuario()!.fechaNacimiento }}</strong>
-        </div>
-        <div class="dato">
-          <span class="dato-label">Código postal</span>
-          <strong>{{ usuario()!.codigoPostal }}</strong>
         </div>
         <div class="dato">
           <span class="dato-label">Estado</span>
@@ -58,8 +68,15 @@
           <strong>{{ usuario()!.municipio }}</strong>
         </div>
         <div class="dato dato-completo">
-          <span class="dato-label">Dirección</span>
-          <strong>{{ usuario()!.direccion }}</strong>
+          <span class="dato-label">Direcciones</span>
+          <ul class="contact-list" aria-label="Direcciones registradas">
+            <li *ngFor="let direccion of direccionesMostrar()">
+              <span class="contact-type">{{ direccion.tipo }}</span>
+              <strong>{{ direccion.valor }}</strong>
+              <span class="contact-postal">C.P. {{ direccion.codigoPostal }}</span>
+            </li>
+            <li *ngIf="direccionesMostrar().length === 0" class="contact-empty">Sin direcciones registradas</li>
+          </ul>
         </div>
       </div>
     </section>
