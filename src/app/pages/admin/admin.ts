@@ -629,6 +629,20 @@ export class Admin implements OnInit {
 
     }
 
+    else if (error.status === 403) {
+
+      const detalle = typeof error.error === 'string'
+        ? error.error
+        : error.error?.mensaje || error.error?.message || '';
+
+      this.mostrarModal(
+        'error',
+        'Acceso denegado',
+        detalle || 'El servidor rechazó la actualización. Verifica que la sesión tenga permisos de administrador y que el backend permita actualizar este usuario.'
+      );
+
+    }
+
     else if (error.status === 404) {
 
       this.mostrarModal(
