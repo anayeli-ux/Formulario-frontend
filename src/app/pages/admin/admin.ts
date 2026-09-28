@@ -53,26 +53,42 @@ export class Admin implements OnInit {
   usuariosEliminados =
     signal<Usuario[]>([]);
 
+  usuarioInformacion = signal<Usuario | null>(null);
+
   busquedaUsuarios = signal('');
 
   busquedaUsuariosEliminados = signal('');
 
   usuariosFiltrados = computed(() =>
-    this.filtrarUsuarios(this.usuarios(), this.busquedaUsuarios())
+    this.filtrarUsuarios(
+      this.usuarios().filter(usuario => usuario.rol !== 'ADMIN'),
+      this.busquedaUsuarios()
+    )
+  );
+
+  administradoresActivos = computed(() =>
+    this.usuarios().filter(usuario => usuario.rol === 'ADMIN')
+  );
+
+  administradoresEliminados = computed(() =>
+    this.usuariosEliminados().filter(usuario => usuario.rol === 'ADMIN')
   );
 
   usuariosEliminadosFiltrados = computed(() =>
-    this.filtrarUsuarios(this.usuariosEliminados(), this.busquedaUsuariosEliminados())
+    this.filtrarUsuarios(
+      this.usuariosEliminados().filter(usuario => usuario.rol !== 'ADMIN'),
+      this.busquedaUsuariosEliminados()
+    )
   );
 
   totalUsuariosActivos =
     computed(
-      () => this.usuarios().length
+      () => this.usuarios().filter(usuario => usuario.rol !== 'ADMIN').length
     );
 
   totalUsuariosEliminados =
     computed(
-      () => this.usuariosEliminados().length
+      () => this.usuariosEliminados().filter(usuario => usuario.rol !== 'ADMIN').length
     );
 
 
@@ -717,6 +733,14 @@ export class Admin implements OnInit {
 
   obtenerCodigoPostalPrincipal(usuario: Usuario): string {
     return usuario.direcciones?.find(direccion => direccion.tipo === 'PRINCIPAL')?.codigoPostal ?? '';
+  }
+
+  abrirInformacion(usuario: Usuario): void {
+    this.usuarioInformacion.set(usuario);
+  }
+
+  cerrarInformacion(): void {
+    this.usuarioInformacion.set(null);
   }
 
   private normalizarTexto(valor: string): string {

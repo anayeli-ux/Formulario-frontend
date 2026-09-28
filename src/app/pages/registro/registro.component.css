@@ -18,11 +18,6 @@
   padding: 35px 20px;
   background:
     url('/fondo-registro.jpg') center / cover fixed no-repeat;
-  font-family:
-    "Montserrat",
-    "Segoe UI",
-    Arial,
-    sans-serif;
   color: var(--texto);
   overflow: hidden;
   isolation: isolate;

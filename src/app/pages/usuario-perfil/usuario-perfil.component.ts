@@ -59,22 +59,6 @@ export class UsuarioPerfilComponent implements OnInit {
     });
   }
 
-  obtenerTelefonoPrincipal(): string {
-    return this.usuario()?.telefonos?.find(contacto => contacto.tipo === 'PRINCIPAL')?.valor ?? '';
-  }
-
-  obtenerCorreoPrincipal(): string {
-    return this.usuario()?.correos?.find(contacto => contacto.tipo === 'PRINCIPAL')?.valor ?? '';
-  }
-
-  obtenerDireccionPrincipal(): string {
-    return this.usuario()?.direcciones?.find(direccion => direccion.tipo === 'PRINCIPAL')?.valor ?? '';
-  }
-
-  obtenerCodigoPostalPrincipal(): string {
-    return this.usuario()?.direcciones?.find(direccion => direccion.tipo === 'PRINCIPAL')?.codigoPostal ?? '';
-  }
-
   cerrarSesion(): void {
     if (this.cargando()) {
       return;

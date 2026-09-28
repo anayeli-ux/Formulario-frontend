@@ -11,6 +11,8 @@
     </button>
   </header>
 
+  <div class="admin-content-layout">
+  <div class="admin-main-column">
   <section class="admin-card">
     <div class="admin-card-header">
       <div>
@@ -37,6 +39,7 @@
             <th>Teléfono</th>
             <th>Código postal</th>
             <th>Municipio</th>
+            <th>Información adicional</th>
             <th>Acciones</th>
           </tr>
         </thead>
@@ -47,13 +50,14 @@
             <td>{{ obtenerTelefonoPrincipal(usuario) }}</td>
             <td>{{ obtenerCodigoPostalPrincipal(usuario) }}</td>
             <td>{{ usuario.municipio }}</td>
+            <td><button type="button" class="table-edit" (click)="abrirInformacion(usuario)">Ver datos</button></td>
             <td class="table-actions">
               <button type="button" class="table-edit" (click)="editarUsuario(usuario)" [disabled]="cargando()">Editar</button>
               <button type="button" class="table-delete" (click)="eliminarUsuario(usuario.id!)" [disabled]="cargando()">Eliminar</button>
             </td>
           </tr>
           <tr *ngIf="usuariosFiltrados().length === 0">
-            <td colspan="6" class="empty-row">{{ busquedaUsuarios() ? 'No hay coincidencias.' : 'No hay usuarios activos.' }}</td>
+            <td colspan="7" class="empty-row">{{ busquedaUsuarios() ? 'No hay coincidencias.' : 'No hay usuarios activos.' }}</td>
           </tr>
         </tbody>
       </table>
@@ -82,6 +86,7 @@
             <th>Nombre</th>
             <th>Teléfono</th>
             <th>Código postal</th>
+            <th>Información adicional</th>
             <th>Acciones</th>
           </tr>
         </thead>
@@ -91,18 +96,78 @@
             <td>{{ usuario.nombre }} {{ usuario.primerApellido }}</td>
             <td>{{ obtenerTelefonoPrincipal(usuario) }}</td>
             <td>{{ obtenerCodigoPostalPrincipal(usuario) }}</td>
+            <td><button type="button" class="table-edit" (click)="abrirInformacion(usuario)">Ver datos</button></td>
             <td>
               <button type="button" class="table-edit" (click)="reactivarUsuario(usuario.id!)" [disabled]="cargando()">Reactivar</button>
             </td>
           </tr>
           <tr *ngIf="usuariosEliminadosFiltrados().length === 0">
-            <td colspan="5" class="empty-row">{{ busquedaUsuariosEliminados() ? 'No hay coincidencias.' : 'No hay usuarios eliminados.' }}</td>
+            <td colspan="6" class="empty-row">{{ busquedaUsuariosEliminados() ? 'No hay coincidencias.' : 'No hay usuarios eliminados.' }}</td>
           </tr>
         </tbody>
       </table>
     </div>
   </section>
+  </div>
+  <aside class="admin-roster" aria-labelledby="admin-roster-title">
+    <span class="admin-label">ACCESO ADMINISTRATIVO</span>
+    <h3 id="admin-roster-title">Administradores</h3>
+    <p class="admin-count">{{ administradoresActivos().length }} cuentas activas</p>
+    <ul *ngIf="administradoresActivos().length; else sinAdministradores">
+      <li *ngFor="let administrador of administradoresActivos()">
+        <strong>{{ administrador.nombre }} {{ administrador.primerApellido }}</strong>
+        <span>{{ obtenerCorreoPrincipal(administrador) || 'Sin correo principal' }}</span>
+        <small>ID {{ administrador.id }}</small>
+        <div class="admin-roster-actions">
+          <button type="button" class="table-edit" (click)="editarUsuario(administrador)" [disabled]="cargando()">Editar</button>
+          <button type="button" class="table-delete" (click)="eliminarUsuario(administrador.id!)" [disabled]="cargando()">Eliminar</button>
+        </div>
+      </li>
+    </ul>
+    <ng-template #sinAdministradores><p>No hay administradores activos.</p></ng-template>
+    <section class="admin-roster-inactive" *ngIf="administradoresEliminados().length">
+      <h4>Administradores eliminados</h4>
+      <div *ngFor="let administrador of administradoresEliminados()">
+        <strong>{{ administrador.nombre }} {{ administrador.primerApellido }}</strong>
+        <button type="button" class="table-edit" (click)="reactivarUsuario(administrador.id!)" [disabled]="cargando()">Reactivar</button>
+      </div>
+    </section>
+  </aside>
+  </div>
 </main>
+
+<div class="modal-overlay" *ngIf="usuarioInformacion() as usuario" (click)="cerrarInformacion()">
+  <section class="modal-card contacts-modal" role="dialog" aria-modal="true" aria-labelledby="contacts-modal-title" (click)="$event.stopPropagation()">
+    <header class="modal-header">
+      <div>
+        <span class="modal-section-label">INFORMACIÓN ADICIONAL</span>
+        <h2 id="contacts-modal-title">{{ usuario.nombre }} {{ usuario.primerApellido }}</h2>
+      </div>
+      <button type="button" class="modal-close" (click)="cerrarInformacion()" aria-label="Cerrar información">×</button>
+    </header>
+    <div class="user-contacts-content">
+      <section class="contact-group contact-group-phones">
+        <h3>Teléfonos</h3>
+        <p class="contact-entry" *ngFor="let telefono of usuario.telefonos ?? []"><strong>{{ telefono.tipo }}</strong><span>{{ telefono.valor }}</span></p>
+        <p class="contact-empty" *ngIf="!(usuario.telefonos ?? []).length">Sin teléfonos registrados.</p>
+      </section>
+      <section class="contact-group contact-group-emails">
+        <h3>Correos</h3>
+        <p class="contact-entry" *ngFor="let correo of usuario.correos ?? []"><strong>{{ correo.tipo }}</strong><span>{{ correo.valor }}</span></p>
+        <p class="contact-empty" *ngIf="!(usuario.correos ?? []).length">Sin correos registrados.</p>
+      </section>
+      <section class="contact-group contact-group-addresses">
+        <h3>Direcciones</h3>
+        <p class="contact-entry" *ngFor="let direccion of usuario.direcciones ?? []">
+          <strong>{{ direccion.tipo }}</strong>
+          <span>{{ direccion.valor }}</span>
+          <small>Código postal: {{ direccion.codigoPostal }}</small>
+        </p>
+        <p class="contact-empty" *ngIf="!(usuario.direcciones ?? []).length">Sin direcciones registradas.</p>
+      </section>
+    </div>
+  </section>
+</div>
 
 <!-- =====================================================
     MODAL DE USUARIO

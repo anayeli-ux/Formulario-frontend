@@ -30,7 +30,6 @@
   padding: 32px 20px 48px;
   background: url('/fondo-admin.jpg') center / cover fixed no-repeat;
   color: #26364f;
-  font-family: "Montserrat", "Segoe UI", Arial, sans-serif;
 }
 
 .admin-page,
@@ -40,7 +39,12 @@
   box-sizing: border-box;
 }
 
-.admin-header,
+.admin-header {
+  width: 100%;
+  max-width: 1480px;
+  margin: 0 auto 24px;
+}
+
 .admin-card {
   width: 100%;
   max-width: 1180px;
@@ -365,6 +369,173 @@
   text-align: center !important;
 }
 
+.admin-content-layout {
+  width: 100%;
+  max-width: 1480px;
+  margin: 0 auto 24px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 250px;
+  align-items: start;
+  gap: 20px;
+}
+
+.admin-main-column {
+  display: grid;
+  gap: 20px;
+  min-width: 0;
+}
+
+.admin-main-column > .admin-card {
+  max-width: none;
+  margin: 0;
+}
+
+.admin-roster {
+  padding: 14px;
+  border: 1px solid #d9e0ea;
+  border-left: 3px solid #43866d;
+  border-radius: 5px;
+  background: rgba(250, 252, 255, .88);
+}
+
+.admin-roster h3 {
+  margin: 6px 0 3px;
+  color: #26364f;
+  font-size: 18px;
+}
+
+.admin-roster ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-roster li {
+  display: grid;
+  gap: 3px;
+  padding: 9px 0;
+  border-top: 1px solid #d9e0ea;
+}
+
+.admin-roster li span,
+.admin-roster li small {
+  overflow-wrap: anywhere;
+}
+
+.admin-roster-actions {
+  display: flex;
+  gap: 4px;
+  margin-top: 3px;
+}
+
+.admin-roster-actions button,
+.admin-roster-inactive button {
+  padding: 6px 8px;
+  font-size: 11px;
+}
+
+.admin-roster-inactive {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid #d9e0ea;
+}
+
+.admin-roster-inactive h4 {
+  margin: 0 0 8px;
+  color: #26364f;
+  font-size: 13px;
+}
+
+.admin-roster-inactive div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 0;
+}
+
+.admin-roster-inactive strong {
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.contacts-modal {
+  width: min(760px, 100%);
+}
+
+.user-contacts-content {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.contact-group {
+  min-width: 0;
+  padding-top: 10px;
+  border-top: 3px solid #3159c7;
+}
+
+.contact-group-emails {
+  border-top-color: #43866d;
+}
+
+.contact-group-addresses {
+  border-top-color: #bb8540;
+}
+
+.user-contacts-content h3 {
+  margin: 0 0 9px;
+  color: #26364f;
+  font-size: 14px;
+}
+
+.user-contacts-content .contact-entry {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 10px 0;
+  border-bottom: 1px solid #e1e6ef;
+  overflow-wrap: anywhere;
+}
+
+.contact-entry strong {
+  color: #3159c7;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.contact-entry span {
+  color: #26364f;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.contact-entry small {
+  color: #707d91;
+  font-size: 12px;
+}
+
+.contact-empty {
+  margin: 0;
+  color: #707d91;
+  font-size: 13px;
+}
+
+@media (max-width: 1180px) {
+  .admin-content-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-roster {
+    border-left: 1px solid #d9e0ea;
+    border-top: 3px solid #43866d;
+  }
+
+  .user-contacts-content {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 800px) {
   .admin-page {
     padding: 24px 14px 36px;
@@ -479,12 +650,6 @@
 
   text-align:
     center;
-
-  font-family:
-    "Montserrat",
-    "Segoe UI",
-    Arial,
-    sans-serif;
 
   animation:
     aparecerMensaje 0.22s ease;

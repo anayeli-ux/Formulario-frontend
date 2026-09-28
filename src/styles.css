@@ -1,4 +1,4 @@
-:host {
+:root {
     --color-primary: #4163ad;
     --color-primary-hover: #35589f;
     --color-primary-active: #2f4f92;
@@ -13,12 +13,12 @@
     --color-text-on-primary: #ffffff;
     --color-error: #d64545;
 
-    font-family: "Inter", "Segoe UI", Arial, sans-serif;
 }
 
 body {
     margin: 0;
     background: var(--color-background);
+    font-family: "Inter", "Segoe UI", Arial, sans-serif;
 }
 
 /* Contenedor general de la página de registro */

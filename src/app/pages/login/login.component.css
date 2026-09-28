@@ -18,7 +18,6 @@
   background:
     linear-gradient(rgba(16, 28, 39, .28), rgba(16, 28, 39, .28)),
     url('/fondo-login.jpg') center / cover no-repeat;
-  font-family: "Inter", "Segoe UI", Arial, sans-serif;
   overflow: hidden;
   isolation: isolate;
   animation: loginEntrada .7s ease both;

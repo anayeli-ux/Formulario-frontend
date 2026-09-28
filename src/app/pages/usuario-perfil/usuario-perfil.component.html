@@ -34,20 +34,8 @@
 
       <div class="datos-grid">
         <div class="dato">
-          <span class="dato-label">Correo electrónico</span>
-          <strong>{{ obtenerCorreoPrincipal() }}</strong>
-        </div>
-        <div class="dato">
-          <span class="dato-label">Teléfono</span>
-          <strong>{{ obtenerTelefonoPrincipal() }}</strong>
-        </div>
-        <div class="dato">
           <span class="dato-label">Fecha de nacimiento</span>
           <strong>{{ usuario()!.fechaNacimiento }}</strong>
-        </div>
-        <div class="dato">
-          <span class="dato-label">Código postal</span>
-          <strong>{{ obtenerCodigoPostalPrincipal() }}</strong>
         </div>
         <div class="dato">
           <span class="dato-label">Estado</span>
@@ -57,10 +45,42 @@
           <span class="dato-label">Municipio</span>
           <strong>{{ usuario()!.municipio }}</strong>
         </div>
-        <div class="dato dato-completo">
-          <span class="dato-label">Dirección</span>
-          <strong>{{ obtenerDireccionPrincipal() }}</strong>
-        </div>
+      </div>
+
+      <div class="contactos-grid">
+        <section class="contacto-lista" aria-label="Correos electrónicos">
+          <h3>Correos electrónicos</h3>
+          <ul *ngIf="(usuario()!.correos ?? []).length; else sinCorreos">
+            <li *ngFor="let correo of usuario()!.correos ?? []">
+              <span class="contacto-tipo">{{ correo.tipo }}</span>
+              <strong>{{ correo.valor }}</strong>
+            </li>
+          </ul>
+          <ng-template #sinCorreos><p class="sin-contactos">Sin correos registrados.</p></ng-template>
+        </section>
+
+        <section class="contacto-lista" aria-label="Teléfonos">
+          <h3>Teléfonos</h3>
+          <ul *ngIf="(usuario()!.telefonos ?? []).length; else sinTelefonos">
+            <li *ngFor="let telefono of usuario()!.telefonos ?? []">
+              <span class="contacto-tipo">{{ telefono.tipo }}</span>
+              <strong>{{ telefono.valor }}</strong>
+            </li>
+          </ul>
+          <ng-template #sinTelefonos><p class="sin-contactos">Sin teléfonos registrados.</p></ng-template>
+        </section>
+
+        <section class="contacto-lista direcciones-lista" aria-label="Direcciones">
+          <h3>Direcciones</h3>
+          <ul *ngIf="(usuario()!.direcciones ?? []).length; else sinDirecciones">
+            <li *ngFor="let direccion of usuario()!.direcciones ?? []">
+              <span class="contacto-tipo">{{ direccion.tipo }}</span>
+              <strong>{{ direccion.valor }}</strong>
+              <span class="codigo-postal">Código postal: {{ direccion.codigoPostal }}</span>
+            </li>
+          </ul>
+          <ng-template #sinDirecciones><p class="sin-contactos">Sin direcciones registradas.</p></ng-template>
+        </section>
       </div>
     </section>
   </section>
