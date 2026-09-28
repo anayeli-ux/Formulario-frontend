@@ -17,4 +17,4 @@ export const environment = {
         perfil: '/usuarios/me',
         csrf: '/auth/csrf'
     }
-};
+};    /*confirmacion de cambios*/
