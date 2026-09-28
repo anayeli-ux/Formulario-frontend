@@ -76,6 +76,7 @@
 }
 
 .role-button,
+.edit-profile-button,
 .logout-button {
   flex: 0 0 auto;
   min-height: 42px;
@@ -86,6 +87,21 @@
   color: #fff;
   font: inherit;
   cursor: pointer;
+}
+
+.edit-profile-button {
+  border-color: #fff;
+  background: #fff;
+  color: #203047;
+}
+
+.edit-profile-button:hover:not(:disabled) {
+  background: #e8eef8;
+}
+
+.edit-profile-button:disabled {
+  cursor: not-allowed;
+  opacity: .65;
 }
 
 .role-button {
@@ -221,6 +237,83 @@
   color: #a43131;
 }
 
+.edit-notice-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(10, 20, 34, .68);
+  backdrop-filter: blur(4px);
+}
+
+.edit-notice-modal {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: min(440px, 100%);
+  padding: 30px 32px;
+  border: 1px solid rgba(255, 255, 255, .72);
+  border-top: 4px solid #3159c7;
+  border-radius: 8px;
+  background: rgba(250, 252, 255, .98);
+  box-shadow: 0 22px 65px rgba(10, 24, 42, .3);
+  text-align: center;
+}
+
+.edit-notice-image {
+  display: block;
+  width: min(230px, 80%);
+  aspect-ratio: 1;
+  margin: 4px auto 20px;
+  object-fit: contain;
+}
+
+.edit-notice-modal h2 {
+  margin: 8px 0;
+  color: #203047;
+  font-size: 23px;
+}
+
+.edit-notice-modal p {
+  max-width: 340px;
+  margin: 0 0 22px;
+  color: #53647d;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.edit-notice-close {
+  position: absolute;
+  top: 9px;
+  right: 10px;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  background: transparent;
+  color: #707d91;
+  font-size: 26px;
+  cursor: pointer;
+}
+
+.edit-notice-button {
+  min-height: 42px;
+  padding: 0 24px;
+  border: 0;
+  border-radius: 4px;
+  background: #3159c7;
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.edit-notice-button:hover {
+  background: #264aa9;
+}
+
 .video-modal-backdrop {
   position: fixed;
   inset: 0;
@@ -317,6 +410,10 @@
     width: 100%;
   }
 
+  .edit-profile-button {
+    width: 100%;
+  }
+
   .perfil-card {
     padding: 26px 20px;
   }
@@ -333,5 +430,13 @@
 
   .direcciones-lista {
     grid-column: auto;
+  }
+
+  .edit-notice-overlay {
+    padding: 10px;
+  }
+
+  .edit-notice-modal {
+    padding: 26px 20px;
   }
 }

@@ -12,6 +12,10 @@
         ADMINISTRADOR
         </button>
 
+        <button class="edit-profile-button" type="button" (click)="mostrarAvisoEdicion()" [disabled]="cargando()">
+          Editar mis datos
+        </button>
+
         <button class="logout-button" type="button" (click)="cerrarSesion()">
           Cerrar sesión
         </button>
@@ -85,6 +89,17 @@
     </section>
   </section>
 </main>
+
+<div class="edit-notice-overlay" *ngIf="avisoEdicionVisible()" (click)="cerrarAvisoEdicion()">
+  <section class="edit-notice-modal" role="dialog" aria-modal="true" aria-labelledby="edit-notice-title" (click)="$event.stopPropagation()">
+    <button class="edit-notice-close" type="button" (click)="cerrarAvisoEdicion()" aria-label="Cerrar aviso">×</button>
+    <img class="edit-notice-image" src="/estamos-trabajando.png" alt="Ilustración de una opción en desarrollo">
+    <span class="card-kicker">Área personal</span>
+    <h2 id="edit-notice-title">Opción en construcción</h2>
+    <p>La edición de tus datos está en fase de desarrollo. Por ahora puedes consultar la información de tu perfil.</p>
+    <button class="edit-notice-button" type="button" (click)="cerrarAvisoEdicion()">Entendido</button>
+  </section>
+</div>
 
 <div class="video-modal-backdrop" *ngIf="modalVisible()" (click)="cerrarVideo()">
   <div

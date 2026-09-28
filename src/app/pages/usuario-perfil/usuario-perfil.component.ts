@@ -22,6 +22,7 @@ export class UsuarioPerfilComponent implements OnInit {
   usuario = signal<Usuario | undefined>(undefined);
   cargando = signal(true);
   errorMensaje = signal('');
+  avisoEdicionVisible = signal(false);
   modalVisible = signal(false);
   youtubeEmbedUrl: SafeResourceUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.enlaceCambioDeRol);
 
@@ -34,6 +35,10 @@ export class UsuarioPerfilComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.cargarPerfil();
+  }
+
+  private cargarPerfil(): void {
     this.usuarioService.obtenerMiPerfil().pipe(
       switchMap(usuario => {
         const codigoPostal = usuario.direcciones
@@ -57,6 +62,14 @@ export class UsuarioPerfilComponent implements OnInit {
       next: usuario => this.usuario.set(usuario),
       error: () => this.errorMensaje.set('No fue posible cargar tus datos.')
     });
+  }
+
+  mostrarAvisoEdicion(): void {
+    this.avisoEdicionVisible.set(true);
+  }
+
+  cerrarAvisoEdicion(): void {
+    this.avisoEdicionVisible.set(false);
   }
 
   cerrarSesion(): void {
