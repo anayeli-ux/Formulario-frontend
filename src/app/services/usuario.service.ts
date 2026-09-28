@@ -14,6 +14,13 @@ import { Usuario } from '../models/usuario.model';
 import { environment } from '../../environments/environment';
 
 import { AuthService } from './auth.service';
+import { USUARIO_CACHE_STORAGE_PREFIX } from './usuario-cache.storage';
+
+interface CacheUsuariosPersistida {
+  usuarioId: number;
+  guardadoEn: number;
+  usuarios: Usuario[];
+}
 
 
 /**
@@ -71,6 +78,7 @@ export class UsuarioService {
   private readonly cacheUsuariosEliminados = signal<Usuario[] | null>(null);
   private solicitudUsuariosActivos?: Observable<Usuario[]>;
   private solicitudUsuariosEliminados?: Observable<Usuario[]>;
+  private readonly cacheTtlMs = 5 * 60 * 1000;
 
 
   constructor(
@@ -84,8 +92,9 @@ export class UsuarioService {
   // =========================
 
   listarUsuarios(): Observable<Usuario[]> {
-    const cache = this.cacheUsuariosActivos();
+    const cache = this.cacheUsuariosActivos() ?? this.leerCachePersistida('activos');
     if (cache) {
+      this.cacheUsuariosActivos.set(cache);
       return of(cache);
     }
 
@@ -99,7 +108,10 @@ export class UsuarioService {
         withCredentials: true
       }
     ).pipe(
-      tap(usuarios => this.cacheUsuariosActivos.set(usuarios)),
+      tap(usuarios => {
+        this.cacheUsuariosActivos.set(usuarios);
+        this.guardarCachePersistida('activos', usuarios);
+      }),
       finalize(() => this.solicitudUsuariosActivos = undefined),
       shareReplay({ bufferSize: 1, refCount: false })
     );
@@ -115,8 +127,9 @@ export class UsuarioService {
   // =========================
 
   listarUsuariosEliminados(): Observable<Usuario[]> {
-    const cache = this.cacheUsuariosEliminados();
+    const cache = this.cacheUsuariosEliminados() ?? this.leerCachePersistida('eliminados');
     if (cache) {
+      this.cacheUsuariosEliminados.set(cache);
       return of(cache);
     }
 
@@ -130,7 +143,10 @@ export class UsuarioService {
         withCredentials: true
       }
     ).pipe(
-      tap(usuarios => this.cacheUsuariosEliminados.set(usuarios)),
+      tap(usuarios => {
+        this.cacheUsuariosEliminados.set(usuarios);
+        this.guardarCachePersistida('eliminados', usuarios);
+      }),
       finalize(() => this.solicitudUsuariosEliminados = undefined),
       shareReplay({ bufferSize: 1, refCount: false })
     );
@@ -144,6 +160,8 @@ export class UsuarioService {
     this.cacheUsuariosEliminados.set(null);
     this.solicitudUsuariosActivos = undefined;
     this.solicitudUsuariosEliminados = undefined;
+    this.eliminarCachePersistida('activos');
+    this.eliminarCachePersistida('eliminados');
   }
 
 
@@ -196,7 +214,14 @@ export class UsuarioService {
       )
     ).pipe(
       tap(usuarioCreado => {
-        this.cacheUsuariosActivos.update(usuarios => usuarios ? [...usuarios, usuarioCreado] : null);
+        this.cacheUsuariosActivos.update(usuarios => {
+          if (!usuarios) {
+            return null;
+          }
+          const actualizados = [...usuarios, usuarioCreado];
+          this.guardarCachePersistida('activos', actualizados);
+          return actualizados;
+        });
       })
     );
 
@@ -235,6 +260,7 @@ export class UsuarioService {
 
         this.cacheUsuariosActivos.update(actualizarLista);
         this.cacheUsuariosEliminados.update(actualizarLista);
+        this.persistirCacheActual();
       })
     );
 
@@ -282,6 +308,7 @@ export class UsuarioService {
               : [...usuarios, { ...usuarioEliminado, activo: false }];
           });
         }
+        this.persistirCacheActual();
       })
     );
 
@@ -326,9 +353,96 @@ export class UsuarioService {
             ? usuarios.map(item => item.id === id ? { ...item, ...reactivado } : item)
             : [...usuarios, reactivado];
         });
+        this.persistirCacheActual();
       })
     );
 
+  }
+
+  private leerCachePersistida(tipo: 'activos' | 'eliminados'): Usuario[] | null {
+    const usuarioId = this.authService.usuarioActual()?.id;
+    const clave = this.obtenerClaveCache(tipo, usuarioId);
+
+    if (!clave || typeof window === 'undefined') {
+      return null;
+    }
+
+    try {
+      const serializado = window.sessionStorage.getItem(clave);
+      if (!serializado) {
+        return null;
+      }
+
+      const cache = JSON.parse(serializado) as CacheUsuariosPersistida;
+      const vigente = cache.usuarioId === usuarioId
+        && Date.now() - cache.guardadoEn < this.cacheTtlMs
+        && Array.isArray(cache.usuarios);
+
+      if (!vigente) {
+        window.sessionStorage.removeItem(clave);
+        return null;
+      }
+
+      return cache.usuarios;
+    } catch {
+      try {
+        window.sessionStorage.removeItem(clave);
+      } catch {
+        return null;
+      }
+      return null;
+    }
+  }
+
+  private guardarCachePersistida(tipo: 'activos' | 'eliminados', usuarios: Usuario[]): void {
+    const usuarioId = this.authService.usuarioActual()?.id;
+    const clave = this.obtenerClaveCache(tipo, usuarioId);
+
+    if (!clave || typeof window === 'undefined') {
+      return;
+    }
+
+    try {
+      const cache: CacheUsuariosPersistida = {
+        usuarioId: usuarioId!,
+        guardadoEn: Date.now(),
+        usuarios
+      };
+      window.sessionStorage.setItem(clave, JSON.stringify(cache));
+    } catch {
+      // El cache en memoria sigue disponible aunque falle el almacenamiento.
+    }
+  }
+
+  private eliminarCachePersistida(tipo: 'activos' | 'eliminados'): void {
+    const clave = this.obtenerClaveCache(tipo, this.authService.usuarioActual()?.id);
+    if (!clave || typeof window === 'undefined') {
+      return;
+    }
+
+    try {
+      window.sessionStorage.removeItem(clave);
+    } catch {
+      // El cache en memoria se limpia aunque falle el almacenamiento.
+    }
+  }
+
+  private obtenerClaveCache(tipo: 'activos' | 'eliminados', usuarioId?: number): string | null {
+    return usuarioId === undefined
+      ? null
+      : `${USUARIO_CACHE_STORAGE_PREFIX}${usuarioId}:${tipo}`;
+  }
+
+  private persistirCacheActual(): void {
+    const activos = this.cacheUsuariosActivos();
+    const eliminados = this.cacheUsuariosEliminados();
+
+    if (activos) {
+      this.guardarCachePersistida('activos', activos);
+    }
+    if (eliminados) {
+      this.guardarCachePersistida('eliminados', eliminados);
+    }
   }
 
 }
