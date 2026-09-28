@@ -1,0 +1,364 @@
+<main class="admin-page">
+  <header class="admin-header">
+    <div>
+      <span class="admin-label">SISTEMA DE ADMINISTRACIÓN</span>
+      <h1>Gestión de usuarios</h1>
+      <p>Administra los registros activos y eliminados.</p>
+    </div>
+
+    <button type="button" class="logout-button" (click)="cerrarSesion()" [disabled]="cargando()">
+      Cerrar sesión
+    </button>
+  </header>
+
+  <section class="admin-card">
+    <div class="admin-card-header">
+      <div>
+        <span class="admin-label">USUARIOS ACTIVOS</span>
+        <h2>Registros actuales</h2>
+      </div>
+      <div class="active-users-actions">
+        <span class="admin-count">{{ totalUsuariosActivos() }} activos</span>
+        <button type="button" class="admin-primary" (click)="abrirCrearUsuario()" [disabled]="cargando()">Registrar usuario</button>
+      </div>
+    </div>
+
+    <div class="search-field">
+      <label for="buscarUsuarios">Buscar usuarios activos</label>
+      <input id="buscarUsuarios" type="search" [ngModel]="busquedaUsuarios()" (ngModelChange)="busquedaUsuarios.set($event)" name="buscarUsuarios" placeholder="Nombre, apellido, teléfono, dirección o código postal">
+    </div>
+
+    <div class="table-wrapper">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Teléfono</th>
+            <th>Código postal</th>
+            <th>Municipio</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let usuario of usuariosFiltrados()">
+            <td>{{ usuario.id }}</td>
+            <td>{{ usuario.nombre }} {{ usuario.primerApellido }}</td>
+            <td>{{ obtenerTelefonoPrincipal(usuario) }}</td>
+            <td>{{ obtenerCodigoPostalPrincipal(usuario) }}</td>
+            <td>{{ usuario.municipio }}</td>
+            <td class="table-actions">
+              <button type="button" class="table-edit" (click)="editarUsuario(usuario)" [disabled]="cargando()">Editar</button>
+              <button type="button" class="table-delete" (click)="eliminarUsuario(usuario.id!)" [disabled]="cargando()">Eliminar</button>
+            </td>
+          </tr>
+          <tr *ngIf="usuariosFiltrados().length === 0">
+            <td colspan="6" class="empty-row">{{ busquedaUsuarios() ? 'No hay coincidencias.' : 'No hay usuarios activos.' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="admin-card">
+    <div class="admin-card-header">
+      <div>
+        <span class="admin-label">USUARIOS ELIMINADOS</span>
+        <h2>Registros inactivos</h2>
+      </div>
+      <span class="admin-count">{{ totalUsuariosEliminados() }} eliminados</span>
+    </div>
+
+    <div class="search-field">
+      <label for="buscarUsuariosEliminados">Buscar usuarios eliminados</label>
+      <input id="buscarUsuariosEliminados" type="search" [ngModel]="busquedaUsuariosEliminados()" (ngModelChange)="busquedaUsuariosEliminados.set($event)" name="buscarUsuariosEliminados" placeholder="Nombre, apellido, teléfono, dirección o código postal">
+    </div>
+
+    <div class="table-wrapper">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Teléfono</th>
+            <th>Código postal</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let usuario of usuariosEliminadosFiltrados()">
+            <td>{{ usuario.id }}</td>
+            <td>{{ usuario.nombre }} {{ usuario.primerApellido }}</td>
+            <td>{{ obtenerTelefonoPrincipal(usuario) }}</td>
+            <td>{{ obtenerCodigoPostalPrincipal(usuario) }}</td>
+            <td>
+              <button type="button" class="table-edit" (click)="reactivarUsuario(usuario.id!)" [disabled]="cargando()">Reactivar</button>
+            </td>
+          </tr>
+          <tr *ngIf="usuariosEliminadosFiltrados().length === 0">
+            <td colspan="5" class="empty-row">{{ busquedaUsuariosEliminados() ? 'No hay coincidencias.' : 'No hay usuarios eliminados.' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<!-- =====================================================
+    MODAL DE USUARIO
+    ===================================================== -->
+
+<div
+  class="modal-overlay"
+  *ngIf="modalEditarAbierto()"
+>
+  <div class="modal-card">
+
+    <!-- ENCABEZADO -->
+    <div class="modal-header">
+
+      <div>
+        <span class="modal-section-label">
+          ADMINISTRACIÓN
+        </span>
+
+        <h2>
+          {{ editando() ? 'Editar usuario' : 'Registrar usuario' }}
+        </h2>
+      </div>
+
+      <button
+        type="button"
+        class="modal-close"
+        (click)="cerrarModalEditar()"
+        aria-label="Cerrar"
+      >
+        ×
+      </button>
+
+    </div>
+
+
+    <!-- FORMULARIO -->
+    <form class="user-form" [formGroup]="usuarioForm" (ngSubmit)="editando() ? actualizarUsuario() : crearUsuario()">
+      <p class="field-error" *ngIf="usuarioForm.get('datosContacto')?.hasError('principalContactoInconsistente')">
+        No se puede guardar este usuario: cada lista debe tener exactamente un contacto PRINCIPAL. Cierra y vuelve a abrir la edición después de corregir los datos en el backend.
+      </p>
+      <section class="form-section">
+        <div class="section-header">
+          <span class="section-number">01</span>
+          <div>
+            <h3>Datos personales</h3>
+            <p>Información general del usuario.</p>
+          </div>
+        </div>
+        <app-datos-personales
+          formGroupName="datosPersonales"
+          [passwordOpcional]="editando()"
+        ></app-datos-personales>
+      </section>
+
+      <section class="form-section">
+        <div class="section-header">
+          <span class="section-number">02</span>
+          <div>
+            <h3>Datos de contacto</h3>
+            <p>Información de contacto y ubicación.</p>
+          </div>
+        </div>
+        <app-datos-contacto
+          formGroupName="datosContacto"
+          (codigoPostalChange)="actualizarUbicacion($event)"
+        ></app-datos-contacto>
+      </section>
+
+      <div class="actions full">
+        <button class="save" type="submit" [disabled]="cargando()">
+          {{ cargando() ? 'Guardando usuario...' : (editando() ? 'Actualizar usuario' : 'Registrar usuario') }}
+        </button>
+        <button class="cancel" type="button" (click)="cerrarModalEditar()" [disabled]="cargando()">
+          Cancelar
+        </button>
+      </div>
+    </form>
+
+  </div>
+</div>
+
+<div class="mensaje-overlay" *ngIf="cargando()" aria-live="polite" aria-busy="true">
+  <div class="mensaje-modal">
+    <div class="mensaje-icon">...</div>
+    <h2>Procesando solicitud</h2>
+    <p>Espera un momento...</p>
+  </div>
+</div>
+
+
+
+<!-- =====================================================
+    MODAL GENERAL DEL CRUD
+    ÉXITO / ERROR / ADVERTENCIA / CONFIRMACIÓN
+    ===================================================== -->
+
+<div
+  class="mensaje-overlay"
+  *ngIf="modalMensajeVisible()"
+  (click)="
+    modalTipo() === 'confirmacion'
+      ? cancelarConfirmacion()
+      : cerrarModalMensaje()
+  "
+>
+
+  <div
+    class="mensaje-modal"
+    [ngClass]="modalTipo()"
+    (click)="$event.stopPropagation()"
+  >
+
+    <!-- BOTÓN X -->
+    <button
+      type="button"
+      class="mensaje-close"
+      aria-label="Cerrar"
+      (click)="
+        modalTipo() === 'confirmacion'
+          ? cancelarConfirmacion()
+          : cerrarModalMensaje()
+      "
+    >
+      ×
+    </button>
+
+
+    <!-- IDENTIDAD VISUAL -->
+    <div class="mensaje-brand">
+
+      <div class="mensaje-logo">
+        H
+      </div>
+
+      <div class="mensaje-brand-text">
+
+        <span>
+          Sistema de Administración
+        </span>
+
+        <strong>
+          Hidalgo
+        </strong>
+
+      </div>
+
+    </div>
+
+
+    <!-- =========================
+        ICONO DE ÉXITO
+        ========================= -->
+
+    <div
+      class="mensaje-icon"
+      *ngIf="modalTipo() === 'exito'"
+    >
+      ✓
+    </div>
+
+
+    <!-- =========================
+        ICONO DE ADVERTENCIA
+        ======================== -->
+
+    <div
+      class="mensaje-icon"
+      *ngIf="modalTipo() === 'advertencia'"
+    >
+      !
+    </div>
+
+
+    <!-- =========================
+        ICONO DE ERROR
+        ========================= -->
+
+    <div
+      class="mensaje-icon"
+      *ngIf="modalTipo() === 'error'"
+    >
+      !
+    </div>
+
+
+    <!-- =========================
+        ICONO DE CONFIRMACIÓN
+        ========================= -->
+
+    <div
+      class="mensaje-icon"
+      *ngIf="modalTipo() === 'confirmacion'"
+    >
+      ?
+    </div>
+
+
+    <!-- TÍTULO -->
+    <h2>
+      {{ modalTitulo() }}
+    </h2>
+
+
+    <!-- MENSAJE -->
+    <p>
+      {{ modalMensaje() }}
+    </p>
+
+
+    <!-- =========================
+        BOTÓN NORMAL
+        ========================= -->
+
+    <div
+      class="mensaje-actions"
+      *ngIf="modalTipo() !== 'confirmacion'"
+    >
+
+      <button
+        type="button"
+        class="mensaje-aceptar"
+        (click)="cerrarModalMensaje()"
+      >
+        Aceptar
+      </button>
+
+    </div>
+
+
+    <!-- =========================
+        BOTONES DE CONFIRMACIÓN
+        ========================= -->
+
+    <div
+      class="mensaje-actions confirmacion-actions"
+      *ngIf="modalTipo() === 'confirmacion'"
+    >
+
+      <button
+        type="button"
+        class="mensaje-cancelar"
+        (click)="cancelarConfirmacion()"
+      >
+        Cancelar
+      </button>
+
+      <button
+        type="button"
+        class="mensaje-confirmar"
+        (click)="confirmarAccion()"
+      >
+        Confirmar
+      </button>
+
+    </div>
+
+  </div>
+</div>

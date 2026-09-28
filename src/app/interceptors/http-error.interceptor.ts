@@ -16,12 +16,6 @@ export const httpErrorInterceptor: HttpInterceptorFn =
       timeout(10000),
 
       catchError(error => {
-
-        console.error(
-          'Error HTTP:',
-          error
-        );
-
         return throwError(
           () => error
         );

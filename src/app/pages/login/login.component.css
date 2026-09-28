@@ -1,346 +1,287 @@
 :host {
-  --vino: #7b1734;
-  --vino-oscuro: #641129;
-  --dorado: #c59a52;
-  --dorado-claro: #d6b77d;
-  --fondo: #f7f5f2;
-  --blanco: #ffffff;
-  --texto: #292929;
-  --texto-secundario: #746d70;
-  --borde: #ded6ce;
+  --azul: #3159c7;
+  --azul-oscuro: #264aa9;
+  --texto: #161616;
+  --texto-secundario: #8b8b8b;
+  --fondo-input: #f0f0f0;
+  display: block;
 }
 
-/* =========================
-   PÁGINA
-   ========================= */
-
 .login-page {
+  position: relative;
   min-height: 100vh;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
-  padding: 30px;
-
+  padding: 48px 24px;
+  box-sizing: border-box;
   background:
-    linear-gradient(
-      180deg,
-      #ffffff 0%,
-      var(--fondo) 100%
-    );
-
-  font-family:
-    "Montserrat",
-    "Segoe UI",
-    Arial,
-    sans-serif;
+    linear-gradient(rgba(16, 28, 39, .28), rgba(16, 28, 39, .28)),
+    url('/fondo-login.jpg') center / cover no-repeat;
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
+  overflow: hidden;
+  isolation: isolate;
+  animation: loginEntrada .7s ease both;
 }
 
-/* =========================
-   CONTENEDOR GENERAL
-   ========================= */
+.login-page::before,
+.login-page::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  width: 32vw;
+  height: 32vw;
+  min-width: 220px;
+  min-height: 220px;
+  border: 1px solid rgba(255, 255, 255, .2);
+  border-radius: 50%;
+  animation: orbitar 14s ease-in-out infinite alternate;
+}
+
+.login-page::before {
+  top: -12vw;
+  left: -8vw;
+}
+
+.login-page::after {
+  right: -10vw;
+  bottom: -14vw;
+  animation-delay: -5s;
+}
 
 .login-shell {
   width: 100%;
-  max-width: 520px;
+  max-width: 440px;
 }
 
-/* =========================
-   MARCA / ENCABEZADO
-   ========================= */
-
-.login-brand {
-  display: flex;
-  align-items: center;
-
-  gap: 16px;
-
-  margin-bottom: 18px;
-}
-
-.brand-mark {
-  width: 55px;
-  height: 55px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  flex-shrink: 0;
-
-  border-radius: 50%;
-
-  border:
-    2px solid var(--dorado);
-
-  background: var(--vino);
-
-  color: white;
-
-  font-size: 24px;
-  font-weight: 700;
-}
-
-.brand-label {
-  display: block;
-
-  margin-bottom: 3px;
-
-  color: var(--dorado);
-
-  font-size: 11px;
-  font-weight: 700;
-
-  letter-spacing: 1.3px;
-
-  text-transform: uppercase;
-}
-
-.login-brand h1 {
-  margin: 0;
-
-  color: var(--vino);
-
-  font-size: 20px;
-  font-weight: 700;
-}
-
-/* =========================
-   LÍNEA DORADA
-   ========================= */
-
+.login-brand,
 .login-accent {
-  width: 90px;
-  height: 4px;
-
-  margin-bottom: 20px;
-
-  background: var(--dorado);
-
-  border-radius: 20px;
+  display: none;
 }
-
-/* =========================
-   TARJETA LOGIN
-   ========================= */
 
 .login-container {
+  position: relative;
   width: 100%;
-
-  padding: 32px;
-
-  background: var(--blanco);
-
-  border:
-    1px solid #eee7df;
-
-  border-top:
-    5px solid var(--vino);
-
-  border-radius: 12px;
-
-  box-shadow:
-    0 12px 35px rgba(80, 30, 45, 0.12);
-
+  box-sizing: border-box;
+  padding: 88px 64px 46px;
+  background: rgba(246, 249, 255, .88);
+  border: 1px solid rgba(255, 255, 255, .72);
+  border-radius: 32px;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, .22);
+  backdrop-filter: blur(12px);
+  animation: tarjetaEntrada .65s .08s ease both;
   color: var(--texto);
 }
 
-/* =========================
-   ENCABEZADO LOGIN
-   ========================= */
+.login-container::before {
+  content: '♙';
+  position: absolute;
+  top: -21px;
+  left: 50%;
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateX(-50%);
+  border: 1px solid rgba(255, 255, 255, .5);
+  border-radius: 50%;
+  background: var(--azul);
+  color: white;
+  font-size: 36px;
+  line-height: 1;
+}
 
 .login-header {
-  margin-bottom: 26px;
+  margin-bottom: 27px;
+  text-align: center;
 }
 
 .section-label {
-  color: var(--dorado);
-
-  font-size: 11px;
-  font-weight: 700;
-
-  letter-spacing: 1.4px;
+  display: none;
 }
 
 .login-header h2 {
-  margin:
-    5px 0 7px;
-
-  color: var(--vino);
-
-  font-size: 27px;
-  font-weight: 700;
+  margin: 0;
+  color: var(--texto);
+  font-size: 28px;
+  font-weight: 750;
 }
 
 .login-header p {
-  margin: 0;
-
+  margin: 9px 0 0;
   color: var(--texto-secundario);
-
   font-size: 14px;
 }
 
-/* =========================
-   CAMPOS
-   ========================= */
-
 .campo {
-  margin-bottom: 18px;
+  margin-bottom: 22px;
 }
 
 .login-container label {
   display: block;
-
-  margin-bottom: 7px;
-
-  color: var(--vino);
-
-  font-size: 14px;
-  font-weight: 650;
+  margin-bottom: 6px;
+  color: #353535;
+  font-size: 13px;
+  font-weight: 500;
 }
 
 .login-container input {
   width: 100%;
-
-  padding: 12px 14px;
-
-  border:
-    1px solid var(--borde);
-
-  border-radius: 6px;
-
-  background: white;
-
+  height: 42px;
+  box-sizing: border-box;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 0;
+  background: var(--fondo-input);
   color: var(--texto);
-
-  font-size: 15px;
-
+  font-size: 14px;
   outline: none;
-
-  transition:
-    border-color 0.2s,
-    box-shadow 0.2s;
 }
 
-.login-container input:hover {
-  border-color: var(--dorado);
+.login-container input.input-error {
+  border: 1px solid #d93025;
+  box-shadow: inset 0 -2px 0 #d93025;
+}
+
+.login-container input::placeholder {
+  color: #a4a4a4;
 }
 
 .login-container input:focus {
-  border-color: var(--vino);
-
-  box-shadow:
-    0 0 0 3px
-    rgba(123, 23, 52, 0.09);
+  box-shadow: inset 0 -2px 0 var(--azul);
+  background: #fff;
+  transform: translateY(-1px);
 }
 
-/* =========================
-   BOTÓN
-   ========================= */
+.mensaje-error {
+  margin-top: 6px;
+  color: #d93025;
+  font-size: 12px;
+  line-height: 1.4;
+}
 
-.login-container button {
+.mensaje-error-general {
+  margin: 14px 0 10px;
+  font-weight: 600;
+}
+
+.login-container form > button {
   width: 100%;
-
-  margin-top: 10px;
-
-  padding: 13px;
-
-  border: none;
-  border-radius: 6px;
-
-  background: var(--vino);
-
+  height: 42px;
+  margin-top: 2px;
+  border: 0;
+  border-radius: 0;
+  background: var(--azul);
   color: white;
-
-  font-size: 15px;
-  font-weight: 700;
-
+  font-size: 14px;
   cursor: pointer;
-
-  transition:
-    background 0.2s,
-    transform 0.2s;
+  box-shadow: 0 8px 18px rgba(49, 89, 199, .2);
+  transition: background .2s ease, transform .2s ease, box-shadow .2s ease;
 }
 
-.login-container button:hover:not(:disabled) {
-  background:
-    var(--vino-oscuro);
-
-  transform:
-    translateY(-1px);
+.login-container form > button:hover:not(:disabled) {
+  background: var(--azul-oscuro);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(49, 89, 199, .28);
 }
 
-/* Cuando el formulario no es válido */
-.login-container button:disabled {
-  background: #c9c3c5;
-
-  color: white;
-
+.login-container form > button:disabled {
+  background: #98a9dc;
   cursor: not-allowed;
 }
 
-/* =========================
-   REGISTRO
-   ========================= */
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: grid;
+  place-items: center;
+  background: rgba(16, 28, 39, .62);
+  backdrop-filter: blur(4px);
+}
+
+.loading-modal {
+  display: grid;
+  gap: 10px;
+  min-width: 220px;
+  padding: 28px;
+  border-radius: 12px;
+  background: #fff;
+  color: var(--texto);
+  text-align: center;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, .24);
+}
+
+.loading-modal span:last-child {
+  color: var(--texto-secundario);
+  font-size: 13px;
+}
+
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  margin: 0 auto 4px;
+  border: 3px solid #d9e2f7;
+  border-top-color: var(--azul);
+  border-radius: 50%;
+  animation: girar .8s linear infinite;
+}
+
+@keyframes girar {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes loginEntrada {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes tarjetaEntrada {
+  from { opacity: 0; transform: translateY(18px) scale(.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes orbitar {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to { transform: translate3d(24px, 18px, 0) scale(1.08); }
+}
 
 .register-text {
-  margin:
-    22px 0 0;
-
+  margin: 42px 0 0;
   text-align: center;
-
-  color:
-    var(--texto-secundario);
-
-  font-size: 14px;
+  color: var(--texto-secundario);
+  font-size: 13px;
+  line-height: 1.8;
 }
 
 .register-text a {
-  color: var(--vino);
-
-  font-weight: 700;
-
+  display: block;
+  color: var(--texto-secundario);
   text-decoration: none;
 }
 
 .register-text a:hover {
-  color: var(--dorado);
-
+  color: var(--azul);
   text-decoration: underline;
 }
 
-/* =========================
-   RESPONSIVE
-   ========================= */
-
-@media (max-width: 600px) {
-
+@media (max-width: 500px) {
   .login-page {
-    padding: 18px;
+    padding: 24px 14px;
   }
 
   .login-container {
-    padding: 24px 20px;
+    padding: 76px 30px 34px;
+    border-radius: 26px;
   }
+}
 
-  .login-brand {
-    align-items: flex-start;
+@media (prefers-reduced-motion: reduce) {
+  .login-page,
+  .login-page::before,
+  .login-page::after,
+  .login-container {
+    animation: none;
   }
-
-  .brand-mark {
-    width: 48px;
-    height: 48px;
-
-    font-size: 21px;
-  }
-
-  .login-brand h1 {
-    font-size: 17px;
-  }
-
-  .login-header h2 {
-    font-size: 24px;
-  }
-
 }

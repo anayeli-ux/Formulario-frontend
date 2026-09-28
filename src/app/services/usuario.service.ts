@@ -1,24 +1,53 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+
+import {
+  Observable,
+  switchMap
+} from 'rxjs';
 
 import { Usuario } from '../models/usuario.model';
 import { environment } from '../../environments/environment';
+
+import { AuthService } from './auth.service';
 
 
 /**
  * Datos que Spring Boot permite recibir
  * para crear o actualizar un usuario.
  */
-export interface UsuarioRequest {
+interface UsuarioRequestBase {
+
   nombre: string;
+
   primerApellido: string;
-  segundoApellido: string;
-  telefono: string;
-  codigoPostal: string;
-  direccion: string;
+
   fechaNacimiento: string;
-  animalFavorito: string;
+
+  telefonos: Array<{
+    tipo: string;
+    valor: string;
+  }>;
+
+  correos: Array<{
+    tipo: string;
+    valor: string;
+  }>;
+
+  direcciones: Array<{
+    tipo: string;
+    valor: string;
+    codigoPostal: string;
+  }>;
+
+}
+
+export interface UsuarioRequest extends UsuarioRequestBase {
+  password: string;
+}
+
+export interface UsuarioActualizarRequest extends UsuarioRequestBase {
+  password?: string;
 }
 
 
@@ -27,13 +56,17 @@ export interface UsuarioRequest {
 })
 export class UsuarioService {
 
-  // URL base del backend
+  // =========================
+  // URL BASE
+  // =========================
+
   private apiUrl =
     `${environment.apiUrl}/usuarios`;
 
 
   constructor(
-    private http: HttpClient
+    private http: HttpClient,
+    private authService: AuthService
   ) {}
 
 
@@ -44,7 +77,10 @@ export class UsuarioService {
   listarUsuarios(): Observable<Usuario[]> {
 
     return this.http.get<Usuario[]>(
-      this.apiUrl
+      this.apiUrl,
+      {
+        withCredentials: true
+      }
     );
 
   }
@@ -57,7 +93,34 @@ export class UsuarioService {
   listarUsuariosEliminados(): Observable<Usuario[]> {
 
     return this.http.get<Usuario[]>(
-      `${this.apiUrl}/eliminados`
+      `${this.apiUrl}/eliminados`,
+      {
+        withCredentials: true
+      }
+    );
+
+  }
+
+
+  // =========================
+  // OBTENER MI PERFIL
+  // =========================
+
+  /**
+   * GET /api/usuarios/me
+   *
+   * La cookie HttpOnly que contiene el JWT
+   * se envía automáticamente.
+   *
+   * Angular NO lee el JWT.
+   */
+  obtenerMiPerfil(): Observable<Usuario> {
+
+    return this.http.get<Usuario>(
+      `${this.apiUrl}/me`,
+      {
+        withCredentials: true
+      }
     );
 
   }
@@ -67,13 +130,29 @@ export class UsuarioService {
   // CREAR USUARIO
   // =========================
 
+  /**
+   * Primero solicita CSRF.
+   *
+   * Después realiza el POST.
+   */
   crearUsuario(
     usuario: UsuarioRequest
   ): Observable<Usuario> {
 
-    return this.http.post<Usuario>(
-      this.apiUrl,
-      usuario
+    return this.authService.obtenerCsrf().pipe(
+
+      switchMap(() =>
+
+        this.http.post<Usuario>(
+          this.apiUrl,
+          usuario,
+          {
+            withCredentials: true
+          }
+        )
+
+      )
+
     );
 
   }
@@ -83,14 +162,30 @@ export class UsuarioService {
   // ACTUALIZAR USUARIO
   // =========================
 
+  /**
+   * Primero solicita CSRF.
+   *
+   * Después realiza el PUT.
+   */
   actualizarUsuario(
     id: number,
-    usuario: UsuarioRequest
+    usuario: UsuarioActualizarRequest
   ): Observable<Usuario> {
 
-    return this.http.put<Usuario>(
-      `${this.apiUrl}/${id}`,
-      usuario
+    return this.authService.obtenerCsrf().pipe(
+
+      switchMap(() =>
+
+        this.http.put<Usuario>(
+          `${this.apiUrl}/${id}`,
+          usuario,
+          {
+            withCredentials: true
+          }
+        )
+
+      )
+
     );
 
   }
@@ -100,12 +195,28 @@ export class UsuarioService {
   // ELIMINACIÓN LÓGICA
   // =========================
 
+  /**
+   * Primero solicita CSRF.
+   *
+   * Después realiza el DELETE.
+   */
   eliminarUsuario(
     id: number
   ): Observable<void> {
 
-    return this.http.delete<void>(
-      `${this.apiUrl}/${id}`
+    return this.authService.obtenerCsrf().pipe(
+
+      switchMap(() =>
+
+        this.http.delete<void>(
+          `${this.apiUrl}/${id}`,
+          {
+            withCredentials: true
+          }
+        )
+
+      )
+
     );
 
   }
@@ -115,13 +226,30 @@ export class UsuarioService {
   // REACTIVAR USUARIO
   // =========================
 
+  /**
+   * Reactivar modifica información.
+   *
+   * Por eso también solicita primero
+   * un token CSRF.
+   */
   reactivarUsuario(
     id: number
   ): Observable<Usuario> {
 
-    return this.http.put<Usuario>(
-      `${this.apiUrl}/${id}/reactivar`,
-      {}
+    return this.authService.obtenerCsrf().pipe(
+
+      switchMap(() =>
+
+        this.http.put<Usuario>(
+          `${this.apiUrl}/${id}/reactivar`,
+          {},
+          {
+            withCredentials: true
+          }
+        )
+
+      )
+
     );
 
   }

@@ -7,17 +7,19 @@ import {
   signal
 } from '@angular/core';
 
-import { FormsModule } from '@angular/forms';
+import { FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { finalize } from 'rxjs';
 
-import { Usuario } from '../models/usuario.model';
+import { Usuario } from '../../models/usuario.model';
 
-import {
-  UsuarioService,
-  UsuarioRequest
-} from '../services/usuario.service';
+import { UsuarioService } from '../../services/usuario.service';
 
-import { AuthService } from '../services/auth.service';
+import { AuthService } from '../../services/auth.service';
+import { PostaliaService } from '../../services/postalia.service';
+import { UsuarioFormService } from '../../services/usuario-form.service';
+import { DatosPersonalesComponent } from '../../components/datos-personales/datos-personales.component';
+import { DatosContactoComponent } from '../../components/datos-contacto/datos-contacto.component';
 
 type TipoModal =
   | 'exito'
@@ -31,7 +33,10 @@ type TipoModal =
 
   imports: [
     CommonModule,
-    FormsModule
+    FormsModule,
+    ReactiveFormsModule,
+    DatosPersonalesComponent,
+    DatosContactoComponent
   ],
 
   templateUrl: './admin.html',
@@ -48,6 +53,18 @@ export class Admin implements OnInit {
   usuariosEliminados =
     signal<Usuario[]>([]);
 
+  busquedaUsuarios = signal('');
+
+  busquedaUsuariosEliminados = signal('');
+
+  usuariosFiltrados = computed(() =>
+    this.filtrarUsuarios(this.usuarios(), this.busquedaUsuarios())
+  );
+
+  usuariosEliminadosFiltrados = computed(() =>
+    this.filtrarUsuarios(this.usuariosEliminados(), this.busquedaUsuariosEliminados())
+  );
+
   totalUsuariosActivos =
     computed(
       () => this.usuarios().length
@@ -63,27 +80,28 @@ export class Admin implements OnInit {
      MODAL DE EDICIÓN
      ========================= */
 
-  editando = false;
+  editando = signal(false);
 
-  modalEditarAbierto = false;
+  modalEditarAbierto = signal(false);
 
-  usuarioEditandoId?: number;
+  usuarioEditandoId = signal<number | undefined>(undefined);
 
-  usuarioFormulario: Usuario =
-    this.crearUsuarioVacio();
+  usuarioForm!: FormGroup;
 
 
   /* =========================
      MODAL DE MENSAJES
      ========================= */
 
-  modalMensajeVisible = false;
+  modalMensajeVisible = signal(false);
 
-  modalTipo: TipoModal = 'exito';
+  modalTipo = signal<TipoModal>('exito');
 
-  modalTitulo = '';
+  modalTitulo = signal('');
 
-  modalMensaje = '';
+  modalMensaje = signal('');
+
+  cargando = signal(false);
 
 
   /*
@@ -94,22 +112,18 @@ export class Admin implements OnInit {
     (() => void) | null = null;
 
 
-  /* =========================
-     FECHA MÁXIMA
-     ========================= */
-
-  fechaMaximaAdulto =
-    this.obtenerFechaMaximaAdulto();
-
-
   constructor(
     private router: Router,
     private usuarioService: UsuarioService,
-    private authService: AuthService
+    private authService: AuthService,
+    private postaliaService: PostaliaService,
+    private usuarioFormService: UsuarioFormService
   ) {}
 
 
   ngOnInit(): void {
+
+    this.usuarioForm = this.usuarioFormService.crearFormulario();
 
     this.cargarUsuarios();
 
@@ -128,20 +142,20 @@ export class Admin implements OnInit {
     mensaje: string
   ): void {
 
-    this.modalTipo = tipo;
+    this.modalTipo.set(tipo);
 
-    this.modalTitulo = titulo;
+    this.modalTitulo.set(titulo);
 
-    this.modalMensaje = mensaje;
+    this.modalMensaje.set(mensaje);
 
-    this.modalMensajeVisible = true;
+    this.modalMensajeVisible.set(true);
 
   }
 
 
   cerrarModalMensaje(): void {
 
-    this.modalMensajeVisible = false;
+    this.modalMensajeVisible.set(false);
 
     this.accionConfirmada = null;
 
@@ -158,15 +172,15 @@ export class Admin implements OnInit {
     accion: () => void
   ): void {
 
-    this.modalTipo = 'confirmacion';
+    this.modalTipo.set('confirmacion');
 
-    this.modalTitulo = titulo;
+    this.modalTitulo.set(titulo);
 
-    this.modalMensaje = mensaje;
+    this.modalMensaje.set(mensaje);
 
     this.accionConfirmada = accion;
 
-    this.modalMensajeVisible = true;
+    this.modalMensajeVisible.set(true);
 
   }
 
@@ -183,7 +197,7 @@ export class Admin implements OnInit {
      * Primero cerramos el modal
      * y después ejecutamos la acción.
      */
-    this.modalMensajeVisible = false;
+    this.modalMensajeVisible.set(false);
 
     this.accionConfirmada = null;
 
@@ -194,7 +208,7 @@ export class Admin implements OnInit {
 
   cancelarConfirmacion(): void {
 
-    this.modalMensajeVisible = false;
+    this.modalMensajeVisible.set(false);
 
     this.accionConfirmada = null;
 
@@ -214,18 +228,14 @@ export class Admin implements OnInit {
         next: (usuarios: Usuario[]) => {
 
           this.usuarios.set(
-            this.ordenarPorId(usuarios)
+            this.ordenarPorId(
+              this.completarUbicaciones(usuarios)
+            )
           );
 
         },
 
-        error: (error: any) => {
-
-          console.error(
-            'Error al cargar usuarios:',
-            error
-          );
-
+        error: () => {
           this.mostrarModal(
             'error',
             'Error al cargar usuarios',
@@ -252,18 +262,14 @@ export class Admin implements OnInit {
         next: (usuarios: Usuario[]) => {
 
           this.usuariosEliminados.set(
-            this.ordenarPorId(usuarios)
+            this.ordenarPorId(
+              this.completarUbicaciones(usuarios)
+            )
           );
 
         },
 
-        error: (error: any) => {
-
-          console.error(
-            'Error al cargar usuarios eliminados:',
-            error
-          );
-
+        error: () => {
           this.mostrarModal(
             'error',
             'Error al cargar usuarios',
@@ -278,24 +284,39 @@ export class Admin implements OnInit {
 
 
   /* =========================
-     CREAR USUARIO
+    CREAR USUARIO
      ========================= */
+
+  abrirCrearUsuario(): void {
+    this.editando.set(false);
+    this.usuarioEditandoId.set(undefined);
+    this.usuarioForm = this.usuarioFormService.crearFormulario();
+    this.modalEditarAbierto.set(true);
+  }
 
   crearUsuario(): void {
 
-    if (!this.validarEdad()) {
+    if (this.cargando()) {
       return;
     }
 
-    const usuario =
-      this.prepararUsuario();
+    if (this.usuarioForm.invalid) {
+      this.usuarioForm.markAllAsTouched();
+      return;
+    }
+
+    const usuario = this.usuarioFormService.crearRequest(this.usuarioForm);
+
+    this.cargando.set(true);
 
     this.usuarioService
       .crearUsuario(usuario)
+      .pipe(finalize(() => this.cargando.set(false)))
       .subscribe({
 
         next: () => {
 
+          this.modalEditarAbierto.set(false);
           this.limpiarFormulario();
 
           this.cargarUsuarios();
@@ -309,12 +330,6 @@ export class Admin implements OnInit {
         },
 
         error: (error: any) => {
-
-          console.error(
-            'Error al crear usuario:',
-            error
-          );
-
           this.mostrarErrorHttp(
             error,
             'No se pudo crear el usuario.'
@@ -335,21 +350,41 @@ export class Admin implements OnInit {
     usuario: Usuario
   ): void {
 
-    this.editando = true;
+    this.editando.set(true);
 
-    this.modalEditarAbierto = true;
+    this.modalEditarAbierto.set(true);
 
-    this.usuarioEditandoId =
-      usuario.id;
+    this.usuarioEditandoId.set(usuario.id);
 
-    /*
-     * Copia los datos del usuario
-     * seleccionado al formulario.
-     */
-    this.usuarioFormulario = {
-      ...usuario
-    };
+    this.usuarioForm = this.usuarioFormService.crearFormulario(true);
+    this.usuarioFormService.cargarUsuario(this.usuarioForm, usuario);
 
+    const estado = this.usuarioForm.get('datosContacto.estado')?.value;
+    const municipio = this.usuarioForm.get('datosContacto.municipio')?.value;
+    if (!estado || !municipio) {
+      this.actualizarUbicacion();
+    }
+
+  }
+
+  actualizarUbicacion(codigoPostal: string = this.usuarioForm.get('datosContacto.codigo_postal')?.value): void {
+
+    if (!/^\d{5}$/.test(codigoPostal)) {
+      this.usuarioForm.get('datosContacto.estado')?.setValue('');
+      this.usuarioForm.get('datosContacto.municipio')?.setValue('');
+      return;
+    }
+
+    this.postaliaService.buscarCodigoPostal(codigoPostal).subscribe({
+      next: ubicacion => {
+        if (this.usuarioForm.get('datosContacto.codigo_postal')?.value !== codigoPostal) {
+          return;
+        }
+        this.usuarioForm.get('datosContacto.estado')?.setValue(ubicacion.estado);
+        this.usuarioForm.get('datosContacto.municipio')?.setValue(ubicacion.municipio);
+      },
+      error: () => undefined
+    });
   }
 
 
@@ -359,7 +394,7 @@ export class Admin implements OnInit {
 
   cerrarModalEditar(): void {
 
-    this.modalEditarAbierto = false;
+    this.modalEditarAbierto.set(false);
 
     this.limpiarFormulario();
 
@@ -379,29 +414,35 @@ export class Admin implements OnInit {
 
   actualizarUsuario(): void {
 
-    if (
-      this.usuarioEditandoId === undefined
-    ) {
+    if (this.cargando()) {
       return;
     }
 
-    if (!this.validarEdad()) {
+    if (this.usuarioEditandoId() === undefined) {
       return;
     }
 
-    const usuario =
-      this.prepararUsuario();
+    if (this.usuarioForm.invalid) {
+      this.usuarioForm.markAllAsTouched();
+      return;
+    }
+
+    const usuario = this.usuarioFormService.crearRequest(this.usuarioForm, false);
+
+
+    this.cargando.set(true);
 
     this.usuarioService
       .actualizarUsuario(
-        this.usuarioEditandoId,
+        this.usuarioEditandoId()!,
         usuario
       )
+      .pipe(finalize(() => this.cargando.set(false)))
       .subscribe({
 
         next: () => {
 
-          this.modalEditarAbierto = false;
+          this.modalEditarAbierto.set(false);
 
           this.limpiarFormulario();
 
@@ -416,12 +457,6 @@ export class Admin implements OnInit {
         },
 
         error: (error: any) => {
-
-          console.error(
-            'Error al actualizar usuario:',
-            error
-          );
-
           this.mostrarErrorHttp(
             error,
             'No se pudo actualizar el usuario.'
@@ -459,8 +494,11 @@ export class Admin implements OnInit {
     id: number
   ): void {
 
+    this.cargando.set(true);
+
     this.usuarioService
       .eliminarUsuario(id)
+      .pipe(finalize(() => this.cargando.set(false)))
       .subscribe({
 
         next: () => {
@@ -478,12 +516,6 @@ export class Admin implements OnInit {
         },
 
         error: (error: any) => {
-
-          console.error(
-            'Error al eliminar usuario:',
-            error
-          );
-
           this.mostrarErrorHttp(
             error,
             'No se pudo eliminar el usuario.'
@@ -517,6 +549,8 @@ export class Admin implements OnInit {
     id: number
   ): void {
 
+    this.cargando.set(true);
+
     /*
      * Este método requiere que
      * usuario.service.ts tenga:
@@ -526,6 +560,7 @@ export class Admin implements OnInit {
 
     this.usuarioService
       .reactivarUsuario(id)
+      .pipe(finalize(() => this.cargando.set(false)))
       .subscribe({
 
         next: () => {
@@ -543,12 +578,6 @@ export class Admin implements OnInit {
         },
 
         error: (error: any) => {
-
-          console.error(
-            'Error al reactivar usuario:',
-            error
-          );
-
           this.mostrarErrorHttp(
             error,
             'No se pudo reactivar el usuario.'
@@ -570,8 +599,7 @@ export class Admin implements OnInit {
     mensajePredeterminado: string
   ): void {
 
-    const mensajeBackend =
-      error?.error?.mensaje;
+    const mensajeBackend = this.obtenerMensajeError(error);
 
 
     if (error.status === 400) {
@@ -642,41 +670,61 @@ export class Admin implements OnInit {
   }
 
 
-  /* =========================
-     PREPARAR DATOS
-     ========================= */
+  private obtenerMensajeError(error: any): string {
+    const respuesta = error?.error;
 
-  private prepararUsuario():
-    UsuarioRequest {
+    if (typeof respuesta === 'string') {
+      return respuesta;
+    }
 
-    return {
+    return respuesta?.mensaje || respuesta?.message || error?.message || '';
+  }
 
-      nombre:
-        this.usuarioFormulario.nombre,
+  private filtrarUsuarios(usuarios: Usuario[], busqueda: string): Usuario[] {
+    const termino = this.normalizarTexto(busqueda);
 
-      primerApellido:
-        this.usuarioFormulario.primerApellido,
+    if (!termino) {
+      return usuarios;
+    }
 
-      segundoApellido:
-        this.usuarioFormulario.segundoApellido,
+    return usuarios.filter(usuario => {
+      const valores = [
+        usuario.id,
+        usuario.nombre,
+        usuario.primerApellido,
+        usuario.estado,
+        usuario.municipio,
+        ...(usuario.telefonos ?? []).flatMap(contacto => [contacto.tipo, contacto.valor]),
+        ...(usuario.direcciones ?? []).flatMap(contacto => [contacto.tipo, contacto.valor, contacto.codigoPostal]),
+        ...(usuario.correos ?? []).flatMap(contacto => [contacto.tipo, contacto.valor])
+      ];
 
-      telefono:
-        this.usuarioFormulario.telefono,
+      return valores.some(valor => this.normalizarTexto(String(valor ?? '')).includes(termino));
+    });
+  }
 
-      codigoPostal:
-        this.usuarioFormulario.codigoPostal,
+  obtenerTelefonoPrincipal(usuario: Usuario): string {
+    return usuario.telefonos?.find(contacto => contacto.tipo === 'PRINCIPAL')?.valor ?? '';
+  }
 
-      direccion:
-        this.usuarioFormulario.direccion,
+  obtenerCorreoPrincipal(usuario: Usuario): string {
+    return usuario.correos?.find(contacto => contacto.tipo === 'PRINCIPAL')?.valor ?? '';
+  }
 
-      fechaNacimiento:
-        this.usuarioFormulario.fechaNacimiento,
+  obtenerDireccionPrincipal(usuario: Usuario): string {
+    return usuario.direcciones?.find(direccion => direccion.tipo === 'PRINCIPAL')?.valor ?? '';
+  }
 
-      animalFavorito:
-        this.usuarioFormulario.animalFavorito
+  obtenerCodigoPostalPrincipal(usuario: Usuario): string {
+    return usuario.direcciones?.find(direccion => direccion.tipo === 'PRINCIPAL')?.codigoPostal ?? '';
+  }
 
-    };
-
+  private normalizarTexto(valor: string): string {
+    return valor
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim();
   }
 
 
@@ -686,14 +734,11 @@ export class Admin implements OnInit {
 
   limpiarFormulario(): void {
 
-    this.editando = false;
+    this.editando.set(false);
 
-    this.usuarioEditandoId =
-      undefined;
+    this.usuarioEditandoId.set(undefined);
 
-    this.usuarioFormulario =
-      this.crearUsuarioVacio();
-
+    this.usuarioForm = this.usuarioFormService.crearFormulario();
   }
 
 
@@ -703,39 +748,21 @@ export class Admin implements OnInit {
 
   cerrarSesion(): void {
 
-    this.authService
-      .cerrarSesion();
-
-    this.router
-      .navigate(['/']);
-
-  }
-
-
-  /* =========================
-     VALIDAR EDAD
-     ========================= */
-
-  private validarEdad(): boolean {
-
-    if (
-      this.esMayorDeEdad(
-        this.usuarioFormulario
-          .fechaNacimiento
-      )
-    ) {
-
-      return true;
-
+    if (this.cargando()) {
+      return;
     }
 
-    this.mostrarModal(
-      'advertencia',
-      'Edad no válida',
-      'El usuario debe tener al menos 18 años.'
-    );
+    this.cargando.set(true);
 
-    return false;
+    this.authService.cerrarSesion().pipe(
+      finalize(() => this.cargando.set(false))
+    ).subscribe({
+      next: () => this.router.navigate(['/login']),
+      error: () => {
+        this.authService.limpiarSesionLocal();
+        this.router.navigate(['/login']);
+      }
+    });
 
   }
 
@@ -756,95 +783,33 @@ export class Admin implements OnInit {
 
   }
 
+  private completarUbicaciones(
+    usuarios: Usuario[]
+  ): Usuario[] {
 
-  /* =========================
-     FECHA MÁXIMA
-     ========================= */
+    return usuarios.map(usuario => {
+      const codigoPostal = this.obtenerCodigoPostalPrincipal(usuario);
+      if (!codigoPostal) {
+        return usuario;
+      }
 
-  private obtenerFechaMaximaAdulto():
-    string {
+      this.postaliaService.buscarCodigoPostal(codigoPostal).subscribe({
+        next: ubicacion => {
+          const actualizar = (lista: Usuario[]) => lista.map(item =>
+            item.id === usuario.id
+              ? { ...item, estado: ubicacion.estado, municipio: ubicacion.municipio }
+              : item
+          );
 
-    const hoy = new Date();
+          this.usuarios.update(actualizar);
+          this.usuariosEliminados.update(actualizar);
+        },
+        error: () => undefined
+      });
 
-    const fecha = new Date(
-      hoy.getFullYear() - 18,
-      hoy.getMonth(),
-      hoy.getDate()
-    );
-
-    const anio =
-      fecha.getFullYear();
-
-    const mes =
-      String(
-        fecha.getMonth() + 1
-      ).padStart(2, '0');
-
-    const dia =
-      String(
-        fecha.getDate()
-      ).padStart(2, '0');
-
-    return `${anio}-${mes}-${dia}`;
-
+      return usuario;
+    });
   }
 
-
-  /* =========================
-     COMPROBAR EDAD
-     ========================= */
-
-  private esMayorDeEdad(
-    fechaNacimiento: string
-  ): boolean {
-
-    return (
-      !!fechaNacimiento &&
-      fechaNacimiento <=
-        this.fechaMaximaAdulto
-    );
-
-  }
-
-
-  /* =========================
-     USUARIO VACÍO
-     ========================= */
-
-  private crearUsuarioVacio():
-    Usuario {
-
-    return {
-
-      nombre: '',
-
-      primerApellido: '',
-
-      segundoApellido: '',
-
-      telefono: '',
-
-      codigoPostal: '',
-
-      /*
-       * Se conservan porque Usuario
-       * los utiliza para mostrar
-       * información recibida del backend.
-       */
-      estado: '',
-
-      municipio: '',
-
-      direccion: '',
-
-      fechaNacimiento: '',
-
-      animalFavorito: '',
-
-      activo: true
-
-    };
-
-  }
 
 }
