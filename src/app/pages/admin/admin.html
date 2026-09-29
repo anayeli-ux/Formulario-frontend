@@ -1,15 +1,15 @@
 <main class="admin-page">
-  <header class="admin-header">
-    <div>
-      <span class="admin-label">SISTEMA DE ADMINISTRACIÓN</span>
-      <h1>Gestión de usuarios</h1>
-      <p>Administra los registros activos y eliminados.</p>
-    </div>
-
-    <button type="button" class="logout-button" (click)="cerrarSesion()" [disabled]="cargando()">
+  <app-page-header
+    etiqueta="SISTEMA DE ADMINISTRACIÓN"
+    titulo="Gestión de usuarios"
+    descripcion="Administra los registros activos y eliminados."
+    variante="admin"
+    [nivelTitulo]="1"
+  >
+    <button pageHeaderActions type="button" class="logout-button" (click)="cerrarSesion()" [disabled]="cargando()">
       Cerrar sesión
     </button>
-  </header>
+  </app-page-header>
 
   <div class="admin-content-layout">
   <div class="admin-main-column">

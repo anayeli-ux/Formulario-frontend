@@ -113,34 +113,6 @@
 }
 
 /* =========================
-  CABECERA FORMULARIO
-  ========================= */
-.registro-header {
-  margin-bottom: 30px;
-}
-.section-label {
-  color:
-    var(--dorado);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 1.4px;
-}
-.registro-header h2 {
-  margin:
-    5px 0 7px;
-  color:
-    var(--vino);
-  font-size: 28px;
-  font-weight: 700;
-}
-.registro-header p {
-  margin: 0;
-  color:
-    var(--texto-secundario);
-  font-size: 14px;
-}
-
-/* =========================
   SECCIONES
   ========================= */
 h3 {

@@ -6,11 +6,12 @@ import { finalize } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { LoginError, LoginErrorField } from '../../models/login.model';
 import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
+import { PageHeaderComponent } from '../../components/page-header/page-header.component';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, LoadingOverlayComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, LoadingOverlayComponent, PageHeaderComponent],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
 })

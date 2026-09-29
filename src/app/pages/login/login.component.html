@@ -22,19 +22,12 @@
 
     <div class="login-container">
 
-      <div class="login-header">
-        <span class="section-label">
-          ACCESO
-        </span>
-
-        <h2>
-          Iniciar sesión
-        </h2>
-
-        <p>
-          Ingresa tus credenciales para continuar.
-        </p>
-      </div>
+      <app-page-header
+        etiqueta="ACCESO"
+        titulo="Iniciar sesión"
+        descripcion="Ingresa tus credenciales para continuar."
+        variante="login"
+      ></app-page-header>
 
       <form
         [formGroup]="loginForm"

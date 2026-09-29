@@ -45,6 +45,7 @@ import {
 import {
   FormSectionComponent
 } from '../../components/form-section/form-section.component';
+import { PageHeaderComponent } from '../../components/page-header/page-header.component';
 
 
 type TipoModal =
@@ -65,7 +66,8 @@ type TipoModal =
     DatosContactoComponent,
     LoadingOverlayComponent,
     ModalMensajeComponent,
-    FormSectionComponent
+    FormSectionComponent,
+    PageHeaderComponent
   ],
 
   templateUrl: './registro.component.html',

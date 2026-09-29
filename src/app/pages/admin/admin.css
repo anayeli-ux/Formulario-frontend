@@ -39,39 +39,12 @@
   box-sizing: border-box;
 }
 
-.admin-header {
-  width: 100%;
-  max-width: 1480px;
-  margin: 0 auto 24px;
-}
-
-.admin-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 20px;
-}
-
 .admin-label {
   display: block;
   color: #3159c7;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 1.2px;
-}
-
-.admin-header h1 {
-  margin: 6px 0;
-  color: #3159c7;
-}
-
-.admin-header h1 {
-  font-size: 30px;
-}
-
-.admin-header p {
-  margin: 0;
-  color: #707d91;
 }
 
 .logout-button,
@@ -372,14 +345,6 @@
     padding: 18px 10px 28px;
   }
 
-  .admin-header {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .admin-header h1 {
-    font-size: 24px;
-  }
 }
 
 
