@@ -13,7 +13,8 @@ describe('UsuarioService', () => {
   let httpTesting: HttpTestingController;
   const authServiceMock = {
     obtenerCsrf: () => of(undefined),
-    usuarioActual: () => ({ id: 1, email: 'admin@test.com', rol: 'ADMIN' })
+    usuarioActual: () => ({ id: 1, email: 'admin@test.com', rol: 'ADMIN' }),
+    actualizarPerfilSesion: jasmine.createSpy('actualizarPerfilSesion')
   };
 
   beforeEach(() => {
@@ -141,6 +142,7 @@ describe('UsuarioService', () => {
     httpTesting.expectOne(`${environment.apiUrl}/usuarios/1`).flush(actualizado);
 
     expect(service.usuariosActivos()).toEqual([actualizado]);
+    expect(authServiceMock.actualizarPerfilSesion).toHaveBeenCalledWith(actualizado);
     httpTesting.expectNone(`${environment.apiUrl}/usuarios`);
   });
 

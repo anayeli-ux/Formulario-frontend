@@ -71,6 +71,32 @@ describe('AuthService', () => {
     httpTesting.expectNone('http://localhost:8081/api/usuarios/me');
   });
 
+  it('should update the cached profile and session email when the logged-in user is edited', () => {
+    const perfil: Usuario = {
+      id: 1,
+      nombre: 'Ana',
+      primerApellido: 'Perez',
+      fechaNacimiento: '1990-01-01',
+      rol: 'ADMIN',
+      telefonos: [],
+      correos: [{ tipo: 'PRINCIPAL', valor: 'admin@test.com' }],
+      direcciones: []
+    };
+    const actualizado: Usuario = {
+      ...perfil,
+      nombre: 'Ana Maria',
+      correos: [{ tipo: 'PRINCIPAL', valor: 'ana.maria@test.com' }]
+    };
+
+    service.obtenerSesion().subscribe();
+    httpTesting.expectOne('http://localhost:8081/api/usuarios/me').flush(perfil);
+
+    service.actualizarPerfilSesion(actualizado);
+
+    expect(service.perfilActual()).toEqual(actualizado);
+    expect(service.usuarioActual()?.email).toBe('ana.maria@test.com');
+  });
+
   it('should not verify the same rejected session again during a redirect', () => {
     service.obtenerSesion().subscribe({ error: () => undefined });
     httpTesting.expectOne('http://localhost:8081/api/usuarios/me').flush(

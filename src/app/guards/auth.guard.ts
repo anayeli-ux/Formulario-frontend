@@ -8,11 +8,7 @@ export const authGuard: CanActivateFn = () => {
     const router = inject(Router);
 
     return authService.obtenerSesion().pipe(
-        map(usuario =>
-            usuario?.rol === 'ADMIN'
-                ? router.parseUrl('/admin')
-                : true
-        ),
+        map(usuario => usuario ? true : router.parseUrl('/login')),
         catchError(() => {
             return of(router.parseUrl('/login'));
         })

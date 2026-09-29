@@ -168,6 +168,13 @@ input:focus {
     box-shadow: 0 0 0 3px rgba(65, 99, 173, 0.15) !important;
 }
 
+input.ng-invalid.ng-touched,
+select.ng-invalid.ng-touched,
+textarea.ng-invalid.ng-touched {
+    border-color: #b2183b !important;
+    box-shadow: 0 0 0 2px rgba(178, 24, 59, 0.14) !important;
+}
+
 label {
     font-weight: 600 !important;
     font-size: 13px !important;

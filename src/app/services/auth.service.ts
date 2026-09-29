@@ -144,6 +144,28 @@ export class AuthService {
     return solicitud;
   }
 
+  actualizarPerfilSesion(usuario: Usuario): void {
+    const sesion = this.usuarioActual();
+    if (!sesion || usuario.id !== sesion.id) {
+      return;
+    }
+
+    const perfilActualizado = {
+      ...(this.perfilActual() ?? {}),
+      ...usuario,
+      id: sesion.id
+    };
+    const correoPrincipal = perfilActualizado.correos
+      ?.find(contacto => contacto.tipo === 'PRINCIPAL')?.valor ?? sesion.email;
+
+    this.estadoPerfilActual.set(perfilActualizado);
+    this.estadoUsuarioActual.set({
+      id: sesion.id,
+      email: correoPrincipal,
+      rol: perfilActualizado.rol ?? sesion.rol
+    });
+  }
+
   verificarSesion(): Observable<UsuarioSesion> {
     return this.obtenerPerfil().pipe(
       map(() => this.usuarioActual()!)

@@ -6,9 +6,15 @@
     variante="admin"
     [nivelTitulo]="1"
   >
-    <button pageHeaderActions type="button" class="logout-button" (click)="cerrarSesion()" [disabled]="cargando()">
-      Cerrar sesión
-    </button>
+    <div pageHeaderActions class="admin-header-actions">
+      <div class="admin-identity" *ngIf="nombreAdministrador() || correoAdministrador()">
+        <strong>{{ nombreAdministrador() }}</strong>
+        <span>{{ correoAdministrador() }}</span>
+      </div>
+      <button type="button" class="logout-button" (click)="cerrarSesion()" [disabled]="cargando()">
+        Cerrar sesión
+      </button>
+    </div>
   </app-page-header>
 
   <div class="admin-content-layout">
