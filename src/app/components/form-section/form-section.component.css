@@ -1,0 +1,104 @@
+:host {
+  display: block;
+}
+
+.form-section {
+  display: block;
+  margin-bottom: 30px;
+  padding-bottom: 26px;
+  border-bottom: 1px solid #e9e1da;
+  animation: seccionEntrada .55s ease both;
+}
+
+.section-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.section-number {
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 2px solid var(--dorado, #60739b);
+  border-radius: 50%;
+  background: var(--vino, #3159c7);
+  color: white;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.section-header h3 {
+  margin: 0;
+  color: var(--vino, #3159c7);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.section-header p {
+  margin: 4px 0 0;
+  color: var(--texto-secundario, #707d91);
+  font-size: 13px;
+}
+
+:host-context(.user-form) .form-section {
+  margin-bottom: 24px;
+  padding-bottom: 22px;
+  border-bottom-color: #e1e6ef;
+}
+
+:host-context(.user-form) .section-number {
+  width: 36px;
+  height: 36px;
+}
+
+:host(.registro-section-final) .form-section {
+  border-bottom: none;
+}
+
+:host(.registro-section-final) .form-section {
+  animation-delay: .1s;
+}
+
+@keyframes seccionEntrada {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 650px) {
+  :host-context(.registro-page) .section-header {
+    gap: 10px;
+  }
+
+  :host-context(.registro-page) .section-number {
+    width: 34px;
+    height: 34px;
+  }
+}
+
+@media (max-width: 480px) {
+  :host-context(.registro-page) .section-header p {
+    font-size: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :host-context(.registro-page) .form-section {
+    animation: none;
+  }
+}
+
+.section-content {
+  display: block;
+}

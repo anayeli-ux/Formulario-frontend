@@ -113,33 +113,27 @@
 
     <!-- FORMULARIO -->
     <form class="user-form" [formGroup]="usuarioForm" (ngSubmit)="editando() ? actualizarUsuario() : crearUsuario()">
-      <section class="form-section">
-        <div class="section-header">
-          <span class="section-number">01</span>
-          <div>
-            <h3>Datos personales</h3>
-            <p>Información general del usuario.</p>
-          </div>
-        </div>
+      <app-form-section
+        numero="01"
+        titulo="Datos personales"
+        descripcion="Información general del usuario."
+      >
         <app-datos-personales
           formGroupName="datosPersonales"
           [passwordOpcional]="editando()"
         ></app-datos-personales>
-      </section>
+      </app-form-section>
 
-      <section class="form-section">
-        <div class="section-header">
-          <span class="section-number">02</span>
-          <div>
-            <h3>Datos de contacto</h3>
-            <p>Información de contacto y ubicación.</p>
-          </div>
-        </div>
+      <app-form-section
+        numero="02"
+        titulo="Datos de contacto"
+        descripcion="Información de contacto y ubicación."
+      >
         <app-datos-contacto
           formGroupName="datosContacto"
           (codigoPostalChange)="actualizarUbicacion($event)"
         ></app-datos-contacto>
-      </section>
+      </app-form-section>
 
       <div class="actions full">
         <button class="save" type="submit" [disabled]="cargando()">
@@ -164,170 +158,12 @@
 
 
 
-<!-- =====================================================
-    MODAL GENERAL DEL CRUD
-    ÉXITO / ERROR / ADVERTENCIA / CONFIRMACIÓN
-    ===================================================== -->
-
-<div
-  class="mensaje-overlay"
-  *ngIf="modalMensajeVisible()"
-  (click)="
-    modalTipo() === 'confirmacion'
-      ? cancelarConfirmacion()
-      : cerrarModalMensaje()
-  "
->
-
-  <div
-    class="mensaje-modal"
-    [ngClass]="modalTipo()"
-    (click)="$event.stopPropagation()"
-  >
-
-    <!-- BOTÓN X -->
-    <button
-      type="button"
-      class="mensaje-close"
-      aria-label="Cerrar"
-      (click)="
-        modalTipo() === 'confirmacion'
-          ? cancelarConfirmacion()
-          : cerrarModalMensaje()
-      "
-    >
-      ×
-    </button>
-
-
-    <!-- IDENTIDAD VISUAL -->
-    <div class="mensaje-brand">
-
-      <div class="mensaje-logo">
-        H
-      </div>
-
-      <div class="mensaje-brand-text">
-
-        <span>
-          Sistema de Administración
-        </span>
-
-        <strong>
-          Hidalgo
-        </strong>
-
-      </div>
-
-    </div>
-
-
-    <!-- =========================
-        ICONO DE ÉXITO
-        ========================= -->
-
-    <div
-      class="mensaje-icon"
-      *ngIf="modalTipo() === 'exito'"
-    >
-      ✓
-    </div>
-
-
-    <!-- =========================
-        ICONO DE ADVERTENCIA
-        ======================== -->
-
-    <div
-      class="mensaje-icon"
-      *ngIf="modalTipo() === 'advertencia'"
-    >
-      !
-    </div>
-
-
-    <!-- =========================
-        ICONO DE ERROR
-        ========================= -->
-
-    <div
-      class="mensaje-icon"
-      *ngIf="modalTipo() === 'error'"
-    >
-      !
-    </div>
-
-
-    <!-- =========================
-        ICONO DE CONFIRMACIÓN
-        ========================= -->
-
-    <div
-      class="mensaje-icon"
-      *ngIf="modalTipo() === 'confirmacion'"
-    >
-      ?
-    </div>
-
-
-    <!-- TÍTULO -->
-    <h2>
-      {{ modalTitulo() }}
-    </h2>
-
-
-    <!-- MENSAJE -->
-    <p>
-      {{ modalMensaje() }}
-    </p>
-
-
-    <!-- =========================
-        BOTÓN NORMAL
-        ========================= -->
-
-    <div
-      class="mensaje-actions"
-      *ngIf="modalTipo() !== 'confirmacion'"
-    >
-
-      <button
-        type="button"
-        class="mensaje-aceptar"
-        (click)="cerrarModalMensaje()"
-      >
-        Aceptar
-      </button>
-
-    </div>
-
-
-    <!-- =========================
-        BOTONES DE CONFIRMACIÓN
-        ========================= -->
-
-    <div
-      class="mensaje-actions confirmacion-actions"
-      *ngIf="modalTipo() === 'confirmacion'"
-    >
-
-      <button
-        type="button"
-        class="mensaje-cancelar"
-        (click)="cancelarConfirmacion()"
-      >
-        Cancelar
-      </button>
-
-      <button
-        type="button"
-        class="mensaje-confirmar"
-        (click)="confirmarAccion()"
-      >
-        Confirmar
-      </button>
-
-    </div>
-
-  </div>
-</div>
+<app-modal-mensaje
+  [visible]="modalMensajeVisible()"
+  [tipo]="modalTipo()"
+  [titulo]="modalTitulo()"
+  [mensaje]="modalMensaje()"
+  (cerrar)="modalTipo() === 'confirmacion' ? cancelarConfirmacion() : cerrarModalMensaje()"
+  (confirmar)="confirmarAccion()"
+  (cancelar)="cancelarConfirmacion()"
+></app-modal-mensaje>

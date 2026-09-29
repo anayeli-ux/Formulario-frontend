@@ -23,6 +23,13 @@ import { DatosContactoComponent } from '../../components/datos-contacto/datos-co
 import { UsuariosTablaComponent } from '../../components/usuarios-tabla/usuarios-tabla.component';
 import { ContactosUsuarioComponent } from '../../components/contactos-usuario/contactos-usuario.component';
 import { obtenerContactoPrincipal } from '../../utils/contactos.util';
+import {
+  ModalMensajeComponent
+} from '../../components/modal-mensaje/modal-mensaje.component';
+
+import {
+  FormSectionComponent
+} from '../../components/form-section/form-section.component';
 
 type TipoModal =
   | 'exito'
@@ -40,7 +47,9 @@ type TipoModal =
     DatosPersonalesComponent,
     DatosContactoComponent,
     UsuariosTablaComponent,
-    ContactosUsuarioComponent
+    ContactosUsuarioComponent,
+    ModalMensajeComponent,
+    FormSectionComponent
   ],
 
   templateUrl: './admin.html',

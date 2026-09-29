@@ -1,15 +1,20 @@
-<div class="registro-page">
+<main class="registro-page">
 
   <div class="registro-shell">
 
-    <!-- ENCABEZADO -->
-    <div class="registro-brand">
+
+    <!-- =========================
+         IDENTIDAD
+         ========================= -->
+
+    <header class="registro-brand">
 
       <div class="brand-mark">
         H
       </div>
 
       <div>
+
         <span class="brand-label">
           Sistema de Administración
         </span>
@@ -17,16 +22,23 @@
         <h1>
           Registro de Usuario
         </h1>
+
       </div>
 
-    </div>
+    </header>
+
 
     <div class="registro-accent"></div>
 
-    <!-- TARJETA PRINCIPAL -->
-    <div class="registro-container">
 
-      <div class="registro-header">
+    <!-- =========================
+         FORMULARIO
+         ========================= -->
+
+    <section class="registro-container">
+
+
+      <header class="registro-header">
 
         <span class="section-label">
           REGISTRO
@@ -37,74 +49,56 @@
         </h2>
 
         <p>
-          Completa la información solicitada para crear un nuevo registro.
+          Completa la información solicitada
+          para crear un nuevo registro.
         </p>
 
-      </div>
+      </header>
+
 
       <form
-        #registroFormElement
         [formGroup]="registroForm"
         (ngSubmit)="enviarRegistro()"
+        #registroFormElement
       >
 
-        <!-- DATOS PERSONALES -->
-        <section class="form-section">
 
-          <div class="section-header">
+        <!-- =========================
+             DATOS PERSONALES
+             ========================= -->
 
-            <span class="section-number">
-              01
-            </span>
-
-            <div>
-              <h3>
-                Datos personales
-              </h3>
-
-              <p>
-                Información general del usuario.
-              </p>
-            </div>
-
-          </div>
-
+        <app-form-section
+          numero="01"
+          titulo="Datos personales"
+          descripcion="Información general del usuario."
+          class="registro-section"
+        >
           <app-datos-personales
-            formGroupName="datosPersonales"
-          >
+            formGroupName="datosPersonales">
           </app-datos-personales>
+        </app-form-section>
 
-        </section>
 
+        <!-- =========================
+             DATOS DE CONTACTO
+             ========================= -->
 
-        <!-- DATOS DE CONTACTO -->
-        <section class="form-section">
-
-          <div class="section-header">
-
-            <span class="section-number">
-              02
-            </span>
-
-            <div>
-              <h3>
-                Datos de contacto
-              </h3>
-
-              <p>
-                Información de contacto y ubicación.
-              </p>
-            </div>
-
-          </div>
-
+        <app-form-section
+          numero="02"
+          titulo="Datos de contacto"
+          descripcion="Información de contacto y ubicación."
+          class="registro-section registro-section-final"
+        >
           <app-datos-contacto
-            formGroupName="datosContacto"
-          >
+            formGroupName="datosContacto">
           </app-datos-contacto>
+        </app-form-section>
 
-        </section>
-        <!-- BOTÓN -->
+
+        <!-- =========================
+             BOTÓN REGISTRAR
+             ========================= -->
+
         <div class="registro-actions">
 
           <button
@@ -112,119 +106,52 @@
             class="btn-submit"
             [disabled]="cargando()"
           >
-            {{ cargando() ? 'Registrando usuario...' : 'Registrar usuario' }}
+
+            {{
+              cargando()
+                ? 'Registrando...'
+                : 'Registrar usuario'
+            }}
+
           </button>
 
         </div>
 
       </form>
 
-    </div>
+    </section>
 
   </div>
 
-</div>
-
-<app-loading-overlay *ngIf="cargando()" mensaje="Registrando usuario" tema="registro"></app-loading-overlay>
+</main>
 
 
-<!-- =========================================
-    MODAL DE MENSAJES
-    ========================================= -->
+<!-- =========================
+     LOADING
+     ========================= -->
 
-<div
-  class="mensaje-overlay"
-  *ngIf="modalVisible()"
-  (click)="!esRegistroExitoso() && cerrarModal()"
->
-
-  <div
-    class="mensaje-modal"
-    [ngClass]="modalTipo()"
-    (click)="$event.stopPropagation()"
-  >
-
-    <!-- BOTÓN CERRAR -->
-    <button
-      *ngIf="!esRegistroExitoso()"
-      type="button"
-      class="modal-close"
-      (click)="cerrarModal()"
-      aria-label="Cerrar"
-    >
-      ×
-    </button>
+<app-loading-overlay
+  *ngIf="cargando()"
+  mensaje="Registrando usuario"
+  tema="registro">
+</app-loading-overlay>
 
 
-    <img
-      *ngIf="esRegistroExitoso()"
-      src="gatito.jpg"
-      alt="Registro completado"
-      class="modal-success-image"
-    >
+<!-- =========================
+     MODAL REUTILIZABLE
+     ========================= -->
 
-    <!-- IDENTIDAD VISUAL -->
-    <div class="modal-brand">
-
-      <div class="modal-logo">
-        H
-      </div>
-
-      <div class="modal-brand-text">
-
-        <span>
-          Sistema de Administración
-        </span>
-
-        <strong>
-          Hidalgo
-        </strong>
-
-      </div>
-
-    </div>
-
-
-    <!-- ICONO SEGÚN EL TIPO -->
-    <div class="modal-icon" *ngIf="!esRegistroExitoso()">
-
-      <span *ngIf="modalTipo() === 'exito'">
-        ✓
-      </span>
-
-      <span *ngIf="modalTipo() === 'advertencia'">
-        !
-      </span>
-
-      <span *ngIf="modalTipo() === 'error'">
-        !
-      </span>
-
-    </div>
-
-
-    <!-- TÍTULO -->
-    <h2>
-      {{ modalTitulo() }}
-    </h2>
-
-
-    <!-- MENSAJE -->
-    <p>
-      {{ modalMensaje() }}
-    </p>
-
-
-    <!-- BOTÓN -->
-    <button
-      *ngIf="!esRegistroExitoso()"
-      type="button"
-      class="modal-aceptar"
-      (click)="cerrarModal()"
-    >
-      Aceptar
-    </button>
-
-  </div>
-
-</div>
+<app-modal-mensaje
+  [visible]="modalVisible()"
+  [tipo]="modalTipo()"
+  [titulo]="modalTitulo()"
+  [mensaje]="modalMensaje()"
+  [imagen]="
+    esRegistroExitoso()
+      ? 'gatito.jpg'
+      : null
+  "
+  imagenAlt="Registro completado"
+  [bloquearCierre]="esRegistroExitoso()"
+  (cerrar)="cerrarModal()">
+</app-modal-mensaje>

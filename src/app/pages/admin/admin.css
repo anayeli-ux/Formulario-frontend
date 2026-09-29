@@ -169,45 +169,6 @@
   display: block;
 }
 
-.user-form .form-section {
-  margin-bottom: 24px;
-  padding-bottom: 22px;
-  border-bottom: 1px solid #e1e6ef;
-}
-
-.user-form .section-header {
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
-  margin-bottom: 18px;
-}
-
-.user-form .section-number {
-  width: 36px;
-  height: 36px;
-  display: grid;
-  flex: 0 0 auto;
-  place-items: center;
-  border: 2px solid #60739b;
-  border-radius: 50%;
-  background: #3159c7;
-  color: white;
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.user-form .section-header h3 {
-  margin: 0;
-  color: #3159c7;
-  font-size: 18px;
-}
-
-.user-form .section-header p {
-  margin: 4px 0 0;
-  color: var(--texto-secundario);
-  font-size: 13px;
-}
-
 .user-form .actions {
   display: flex;
   justify-content: flex-end;

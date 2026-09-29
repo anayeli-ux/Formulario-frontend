@@ -1,0 +1,467 @@
+:host {
+  --vino: #3159c7;
+  --vino-oscuro: #264aa9;
+  --dorado: #60739b;
+  --dorado-claro: #9aa9c4;
+  --blanco: #ffffff;
+  --texto-secundario: #707d91;
+}
+
+
+/* =========================
+   FONDO DEL MODAL
+   ========================= */
+
+.mensaje-overlay {
+  position: fixed;
+  inset: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 20px;
+
+  background: rgba(16, 28, 39, 0.70);
+  backdrop-filter: blur(4px);
+
+  z-index: 2000;
+}
+
+
+/* =========================
+   TARJETA
+   ========================= */
+
+.mensaje-modal {
+  position: relative;
+
+  width: 100%;
+  max-width: 470px;
+
+  padding: 30px 34px 32px;
+
+  background: var(--blanco);
+
+  border: 1px solid #eadfd8;
+  border-top: 5px solid var(--vino);
+  border-bottom: 4px solid var(--dorado);
+
+  border-radius: 14px;
+
+  box-shadow:
+    0 22px 65px
+    rgba(40, 15, 23, 0.32);
+
+  text-align: center;
+
+  animation: aparecerMensaje 0.22s ease;
+}
+
+
+@keyframes aparecerMensaje {
+
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+}
+
+
+/* =========================
+   BOTÓN CERRAR
+   ========================= */
+
+.mensaje-close {
+  position: absolute;
+
+  top: 12px;
+  right: 16px;
+
+  width: 34px;
+  height: 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+  border-radius: 50%;
+
+  background: transparent;
+
+  color: #777174;
+
+  font-size: 26px;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+
+
+.mensaje-close:hover {
+  color: var(--vino);
+  background: #f7f1f3;
+}
+
+
+/* =========================
+   IMAGEN OPCIONAL
+   ========================= */
+
+.mensaje-imagen {
+  display: block;
+
+  width: 160px;
+  height: 160px;
+
+  margin: 0 auto 20px;
+
+  object-fit: cover;
+
+  border-radius: 14px;
+}
+
+
+/* =========================
+   IDENTIDAD VISUAL
+   ========================= */
+
+.mensaje-brand {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 11px;
+
+  margin-bottom: 24px;
+}
+
+
+.mensaje-logo {
+  width: 44px;
+  height: 44px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border: 2px solid var(--dorado);
+  border-radius: 50%;
+
+  background: var(--vino);
+
+  color: white;
+
+  font-size: 19px;
+  font-weight: 700;
+}
+
+
+.mensaje-brand-text {
+  text-align: left;
+}
+
+
+.mensaje-brand-text span {
+  display: block;
+
+  margin-bottom: 1px;
+
+  color: var(--dorado);
+
+  font-size: 9px;
+  font-weight: 700;
+
+  letter-spacing: 1.2px;
+
+  text-transform: uppercase;
+}
+
+
+.mensaje-brand-text strong {
+  display: block;
+
+  color: var(--vino);
+
+  font-size: 19px;
+  font-weight: 700;
+}
+
+
+/* =========================
+   ICONO
+   ========================= */
+
+.mensaje-icon {
+  width: 76px;
+  height: 76px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  margin: 0 auto 18px;
+
+  border-radius: 50%;
+  border: 1px solid transparent;
+
+  font-size: 38px;
+  font-weight: 700;
+}
+
+
+/* ÉXITO */
+
+.mensaje-modal.exito .mensaje-icon {
+  background: #e4f3ed;
+  border-color: #cae7dc;
+  color: #1f725a;
+}
+
+
+/* ADVERTENCIA */
+
+.mensaje-modal.advertencia .mensaje-icon {
+  background: #f8ecd6;
+  border-color: #eedbb5;
+  color: #a06b1d;
+}
+
+
+/* ERROR */
+
+.mensaje-modal.error .mensaje-icon {
+  background: #e9edff;
+  border-color: #ead0d8;
+  color: var(--vino);
+}
+
+
+/* CONFIRMACIÓN */
+
+.mensaje-modal.confirmacion .mensaje-icon {
+  background: #e8edff;
+  border-color: var(--dorado-claro);
+  color: var(--vino);
+}
+
+
+/* =========================
+   TEXTO
+   ========================= */
+
+.mensaje-modal h2 {
+  margin: 0 0 10px;
+
+  color: var(--vino);
+
+  font-size: 25px;
+  font-weight: 700;
+}
+
+
+.mensaje-modal p {
+  max-width: 375px;
+
+  margin: 0 auto 26px;
+
+  color: var(--texto-secundario);
+
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+
+/* =========================
+   BOTONES
+   ========================= */
+
+.mensaje-actions {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 12px;
+}
+
+
+/* ACEPTAR */
+
+.mensaje-aceptar {
+  min-width: 190px;
+
+  padding: 12px 28px;
+
+  border: none;
+  border-radius: 7px;
+
+  background: var(--vino);
+
+  color: white;
+
+  font-size: 14px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 6px 14px
+    rgba(123, 23, 52, 0.18);
+
+  transition:
+    background 0.2s,
+    transform 0.2s,
+    box-shadow 0.2s;
+}
+
+
+.mensaje-aceptar:hover {
+  background: var(--vino-oscuro);
+
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 8px 18px
+    rgba(123, 23, 52, 0.24);
+}
+
+
+/* CANCELAR */
+
+.mensaje-cancelar {
+  min-width: 125px;
+
+  padding: 12px 20px;
+
+  border: 1px solid #cec5bb;
+  border-radius: 7px;
+
+  background: white;
+
+  color: var(--texto-secundario);
+
+  font-size: 14px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s,
+    border-color 0.2s;
+}
+
+
+.mensaje-cancelar:hover {
+  background: #f4f0ec;
+  border-color: var(--dorado);
+}
+
+
+/* CONFIRMAR */
+
+.mensaje-confirmar {
+  min-width: 125px;
+
+  padding: 12px 20px;
+
+  border: none;
+  border-radius: 7px;
+
+  background: var(--vino);
+
+  color: white;
+
+  font-size: 14px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s,
+    transform 0.2s;
+}
+
+
+.mensaje-confirmar:hover {
+  background: var(--vino-oscuro);
+
+  transform: translateY(-1px);
+}
+
+
+/* =========================
+   RESPONSIVE
+   ========================= */
+
+@media (max-width: 520px) {
+
+  .mensaje-overlay {
+    padding: 15px;
+  }
+
+
+  .mensaje-modal {
+    padding: 28px 20px 26px;
+  }
+
+
+  .mensaje-brand {
+    justify-content: flex-start;
+  }
+
+
+  .mensaje-logo {
+    width: 40px;
+    height: 40px;
+
+    font-size: 17px;
+  }
+
+
+  .mensaje-brand-text strong {
+    font-size: 17px;
+  }
+
+
+  .mensaje-icon {
+    width: 68px;
+    height: 68px;
+
+    font-size: 33px;
+  }
+
+
+  .mensaje-modal h2 {
+    font-size: 22px;
+  }
+
+
+  .mensaje-actions,
+  .confirmacion-actions {
+    flex-direction: column;
+  }
+
+
+  .mensaje-aceptar,
+  .mensaje-cancelar,
+  .mensaje-confirmar {
+    width: 100%;
+    min-width: 0;
+  }
+
+}

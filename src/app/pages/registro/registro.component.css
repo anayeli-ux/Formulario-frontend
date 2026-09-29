@@ -143,57 +143,6 @@
 /* =========================
   SECCIONES
   ========================= */
-.form-section {
-  margin-bottom: 30px;
-  padding-bottom: 26px;
-  border-bottom:
-    1px solid #e9e1da;
-  animation: seccionEntrada .55s ease both;
-}
-
-.form-section:nth-of-type(2) {
-  animation-delay: .1s;
-}
-.form-section:last-of-type {
-  border-bottom: none;
-}
-.section-header {
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
-  margin-bottom: 18px;
-}
-.section-number {
-  width: 38px;
-  height: 38px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  border-radius: 50%;
-  background:
-    var(--vino);
-  color: white;
-  font-size: 12px;
-  font-weight: 700;
-  border:
-    2px solid var(--dorado);
-}
-.section-header h3 {
-  margin: 0;
-  color:
-    var(--vino);
-  font-size: 18px;
-  font-weight: 700;
-}
-.section-header p {
-  margin:
-    4px 0 0;
-  color:
-    var(--texto-secundario);
-  font-size: 13px;
-}
-
 h3 {
   color:
     var(--vino);
@@ -348,8 +297,7 @@ h3 {
 @media (prefers-reduced-motion: reduce) {
   .registro-page,
   .registro-page::before,
-  .registro-container,
-  .form-section {
+  .registro-container {
     animation: none;
   }
 }
@@ -490,14 +438,6 @@ h3 {
     font-size: 24px;
   }
 
-  .section-header {
-    gap: 10px;
-  }
-
-  .section-number {
-    width: 34px;
-    height: 34px;
-  }
 }
 
 @media (max-width: 480px) {
@@ -528,8 +468,7 @@ h3 {
     font-size: 21px;
   }
 
-  .registro-header p,
-  .section-header p {
+  .registro-header p {
     font-size: 12px;
   }
 }

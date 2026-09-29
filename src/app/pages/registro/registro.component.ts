@@ -1,18 +1,31 @@
-import { Component, computed, ElementRef, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
+import {
+  Component,
+  computed,
+  ElementRef,
+  OnDestroy,
+  OnInit,
+  signal,
+  ViewChild
+} from '@angular/core';
+
 import { CommonModule } from '@angular/common';
 
 import {
   FormGroup,
-  ReactiveFormsModule,
+  ReactiveFormsModule
 } from '@angular/forms';
 
 import {
   UsuarioService,
   UsuarioRequest
 } from '../../services/usuario.service';
+
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
-import { UsuarioFormService } from '../../services/usuario-form.service';
+
+import {
+  UsuarioFormService
+} from '../../services/usuario-form.service';
 
 import {
   DatosPersonalesComponent
@@ -21,8 +34,17 @@ import {
 import {
   DatosContactoComponent
 } from '../../components/datos-contacto/datos-contacto.component';
-import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
 
+import {
+  LoadingOverlayComponent
+} from '../../components/loading-overlay/loading-overlay.component';
+
+import {
+  ModalMensajeComponent
+} from '../../components/modal-mensaje/modal-mensaje.component';
+import {
+  FormSectionComponent
+} from '../../components/form-section/form-section.component';
 
 
 type TipoModal =
@@ -42,6 +64,8 @@ type TipoModal =
     DatosPersonalesComponent,
     DatosContactoComponent,
     LoadingOverlayComponent,
+    ModalMensajeComponent,
+    FormSectionComponent
   ],
 
   templateUrl: './registro.component.html',
@@ -55,6 +79,7 @@ type TipoModal =
 export class RegistroComponent implements OnInit, OnDestroy {
 
   registroForm!: FormGroup;
+
   cargando = signal(false);
 
 
@@ -70,11 +95,15 @@ export class RegistroComponent implements OnInit, OnDestroy {
 
   modalMensaje = signal('');
 
-  esRegistroExitoso = computed(() => this.modalTipo() === 'exito');
+  esRegistroExitoso = computed(
+    () => this.modalTipo() === 'exito'
+  );
+
 
   private redireccionTimer?: ReturnType<typeof setTimeout>;
 
   private controlInvalidoPendiente = '';
+
 
   @ViewChild('registroFormElement')
   private registroFormElement?: ElementRef<HTMLFormElement>;
@@ -89,14 +118,24 @@ export class RegistroComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
 
-    this.registroForm = this.usuarioFormService.crearFormulario();
+    this.registroForm =
+      this.usuarioFormService.crearFormulario();
+
   }
 
+
   ngOnDestroy(): void {
+
     if (this.redireccionTimer) {
-      clearTimeout(this.redireccionTimer);
+
+      clearTimeout(
+        this.redireccionTimer
+      );
+
     }
+
   }
+
 
   // =========================
   // MOSTRAR MODAL
@@ -128,59 +167,131 @@ export class RegistroComponent implements OnInit, OnDestroy {
     this.modalVisible.set(false);
 
     if (this.redireccionTimer) {
-      clearTimeout(this.redireccionTimer);
+
+      clearTimeout(
+        this.redireccionTimer
+      );
+
       this.redireccionTimer = undefined;
+
     }
 
     this.enfocarControlInvalido();
 
   }
 
+
+  // =========================
+  // BUSCAR PRIMER CONTROL
+  // INVÁLIDO
+  // =========================
+
   private obtenerPrimerControlInvalido(
     grupo: FormGroup
   ): string {
-    for (const nombre of Object.keys(grupo.controls)) {
-      const control = grupo.controls[nombre];
+
+    for (
+      const nombre of Object.keys(grupo.controls)
+    ) {
+
+      const control =
+        grupo.controls[nombre];
+
 
       if (control instanceof FormGroup) {
-        const controlHijo = this.obtenerPrimerControlInvalido(control);
+
+        const controlHijo =
+          this.obtenerPrimerControlInvalido(
+            control
+          );
+
 
         if (controlHijo) {
+
           return controlHijo;
+
         }
-      } else if (control.invalid) {
-        return nombre;
+
       }
+
+      else if (control.invalid) {
+
+        return nombre;
+
+      }
+
     }
+
 
     return '';
+
   }
 
+
+  // =========================
+  // ENFOCAR CONTROL INVÁLIDO
+  // =========================
+
   private enfocarControlInvalido(): void {
-    if (!this.controlInvalidoPendiente || !this.registroFormElement) {
+
+    if (
+      !this.controlInvalidoPendiente ||
+      !this.registroFormElement
+    ) {
+
       return;
+
     }
 
-    const control = this.registroFormElement.nativeElement.querySelector(
-      `[formControlName="${this.controlInvalidoPendiente}"]`
-    );
+
+    const control =
+      this.registroFormElement
+        .nativeElement
+        .querySelector(
+          `[formControlName="${this.controlInvalidoPendiente}"]`
+        );
+
 
     if (control instanceof HTMLElement) {
+
       control.scrollIntoView({
         behavior: 'smooth',
         block: 'center'
       });
+
       control.focus();
+
       this.controlInvalidoPendiente = '';
+
     }
+
   }
 
-  private obtenerMensajeError(error: any): string {
-    if (typeof error?.error === 'string') {
+
+  // =========================
+  // OBTENER MENSAJE DEL ERROR
+  // =========================
+
+  private obtenerMensajeError(
+    error: any
+  ): string {
+
+    if (
+      typeof error?.error === 'string'
+    ) {
+
       return error.error;
+
     }
 
-    return error?.error?.mensaje || error?.error?.message || error?.message || '';
+
+    return (
+      error?.error?.mensaje ||
+      error?.error?.message ||
+      error?.message ||
+      ''
+    );
+
   }
 
 
@@ -189,20 +300,27 @@ export class RegistroComponent implements OnInit, OnDestroy {
   // =========================
 
   enviarRegistro(): void {
+
     if (this.cargando()) {
+
       return;
+
     }
 
-    // Marca todos los campos para mostrar sus mensajes específicos.
+
+    // Marca los campos para mostrar
+    // sus mensajes de validación.
     if (this.registroForm.invalid) {
 
       this.registroForm
         .markAllAsTouched();
 
+
       this.controlInvalidoPendiente =
         this.obtenerPrimerControlInvalido(
           this.registroForm
         );
+
 
       this.enfocarControlInvalido();
 
@@ -211,14 +329,24 @@ export class RegistroComponent implements OnInit, OnDestroy {
     }
 
 
-    const datosAEnviar: UsuarioRequest = this.usuarioFormService.crearRequest(this.registroForm);
+    const datosAEnviar: UsuarioRequest =
+      this.usuarioFormService.crearRequest(
+        this.registroForm
+      );
 
 
     this.cargando.set(true);
 
+
     this.usuarioService
       .crearUsuario(datosAEnviar)
-      .pipe(finalize(() => this.cargando.set(false)))
+
+      .pipe(
+        finalize(
+          () => this.cargando.set(false)
+        )
+      )
+
       .subscribe({
 
 
@@ -227,8 +355,8 @@ export class RegistroComponent implements OnInit, OnDestroy {
         // =========================
 
         next: () => {
-          this.registroForm
-            .reset();
+
+          this.registroForm.reset();
 
 
           this.mostrarModal(
@@ -237,9 +365,18 @@ export class RegistroComponent implements OnInit, OnDestroy {
             'Tu registro se completó correctamente. Serás redirigido al inicio de sesión.'
           );
 
-          this.redireccionTimer = setTimeout(() => {
-            this.router.navigate(['/login']);
-          }, 3000);
+
+          this.redireccionTimer =
+            setTimeout(
+              () => {
+
+                this.router.navigate([
+                  '/login'
+                ]);
+
+              },
+              3000
+            );
 
         },
 
@@ -249,6 +386,8 @@ export class RegistroComponent implements OnInit, OnDestroy {
         // =========================
 
         error: (err) => {
+
+
           // =========================
           // ERROR 400
           // =========================
@@ -333,7 +472,10 @@ export class RegistroComponent implements OnInit, OnDestroy {
 
           }
 
-      }
-    });
+        }
+
+      });
+
   }
+
 }
