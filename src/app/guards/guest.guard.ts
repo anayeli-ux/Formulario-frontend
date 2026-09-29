@@ -8,8 +8,9 @@ export const guestGuard: CanActivateFn = () => {
   const router = inject(Router);
 
   return authService.obtenerSesion().pipe(
-    map(usuario =>
-      router.parseUrl(usuario?.rol === 'ADMIN' ? '/admin' : '/usuario')
+    map(usuario => usuario
+      ? router.parseUrl(usuario.rol === 'ADMIN' ? '/admin' : '/usuario')
+      : true
     ),
     catchError(() => of(true))
   );

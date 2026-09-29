@@ -114,4 +114,63 @@ describe('UsuarioService', () => {
     service.listarUsuarios().subscribe(usuarios => expect(usuarios).toEqual([existente, nuevo]));
     httpTesting.expectNone(`${environment.apiUrl}/usuarios`);
   });
+
+  it('updates the active-list signal from the saved user response without refetching', () => {
+    const existente: Usuario = {
+      id: 1,
+      nombre: 'Ana',
+      primerApellido: 'Perez',
+      fechaNacimiento: '1990-01-01',
+      telefonos: [],
+      correos: [],
+      direcciones: []
+    };
+    const actualizado = { ...existente, nombre: 'Ana Maria' };
+
+    service.listarUsuarios().subscribe();
+    httpTesting.expectOne(`${environment.apiUrl}/usuarios`).flush([existente]);
+
+    service.actualizarUsuario(1, {
+      nombre: actualizado.nombre,
+      primerApellido: actualizado.primerApellido,
+      fechaNacimiento: actualizado.fechaNacimiento,
+      telefonos: [],
+      correos: [],
+      direcciones: []
+    }).subscribe();
+    httpTesting.expectOne(`${environment.apiUrl}/usuarios/1`).flush(actualizado);
+
+    expect(service.usuariosActivos()).toEqual([actualizado]);
+    httpTesting.expectNone(`${environment.apiUrl}/usuarios`);
+  });
+
+  it('moves users between cached lists after delete and reactivate responses', () => {
+    const usuario: Usuario = {
+      id: 1,
+      nombre: 'Ana',
+      primerApellido: 'Perez',
+      fechaNacimiento: '1990-01-01',
+      activo: true,
+      telefonos: [],
+      correos: [],
+      direcciones: []
+    };
+
+    service.listarUsuarios().subscribe();
+    httpTesting.expectOne(`${environment.apiUrl}/usuarios`).flush([usuario]);
+    service.listarUsuariosEliminados().subscribe();
+    httpTesting.expectOne(`${environment.apiUrl}/usuarios/eliminados`).flush([]);
+
+    service.eliminarUsuario(1).subscribe();
+    httpTesting.expectOne(`${environment.apiUrl}/usuarios/1`).flush(null);
+    expect(service.usuariosActivos()).toEqual([]);
+    expect(service.usuariosEliminados()).toEqual([{ ...usuario, activo: false }]);
+
+    service.reactivarUsuario(1).subscribe();
+    httpTesting.expectOne(`${environment.apiUrl}/usuarios/1/reactivar`).flush(usuario);
+    expect(service.usuariosActivos()).toEqual([usuario]);
+    expect(service.usuariosEliminados()).toEqual([]);
+    httpTesting.expectNone(`${environment.apiUrl}/usuarios`);
+    httpTesting.expectNone(`${environment.apiUrl}/usuarios/eliminados`);
+  });
 });

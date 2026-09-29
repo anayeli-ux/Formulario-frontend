@@ -13,28 +13,45 @@
 
   <div class="admin-content-layout">
   <div class="admin-main-column">
-  <app-usuarios-tabla
-    [usuarios]="usuariosFiltrados()"
-    [busqueda]="busquedaUsuarios()"
-    [total]="totalUsuariosActivos()"
-    [cargando]="cargando()"
-    (busquedaChange)="busquedaUsuarios.set($event)"
-    (registrar)="abrirCrearUsuario()"
-    (ver)="abrirInformacion($event)"
-    (editar)="editarUsuario($event)"
-    (eliminar)="eliminarUsuario($event)"
-  ></app-usuarios-tabla>
+    <nav class="admin-view-switch" aria-label="Vista de usuarios">
+      <button
+        type="button"
+        [class.selected]="vistaActual() === 'activos'"
+        [attr.aria-pressed]="vistaActual() === 'activos'"
+        (click)="cambiarVista('activos')"
+      >Activos <span>{{ totalUsuariosActivos() }}</span></button>
+      <button
+        type="button"
+        [class.selected]="vistaActual() === 'eliminados'"
+        [attr.aria-pressed]="vistaActual() === 'eliminados'"
+        (click)="cambiarVista('eliminados')"
+      >Eliminados <span>{{ totalUsuariosEliminados() }}</span></button>
+    </nav>
 
-  <app-usuarios-tabla
-    [usuarios]="usuariosEliminadosFiltrados()"
-    [busqueda]="busquedaUsuariosEliminados()"
-    [total]="totalUsuariosEliminados()"
-    [cargando]="cargando()"
-    [inactivos]="true"
-    (busquedaChange)="busquedaUsuariosEliminados.set($event)"
-    (ver)="abrirInformacion($event)"
-    (reactivar)="reactivarUsuario($event)"
-  ></app-usuarios-tabla>
+    <app-usuarios-tabla
+      *ngIf="vistaActual() === 'activos'"
+      [usuarios]="usuariosFiltrados()"
+      [busqueda]="busquedaUsuarios()"
+      [total]="totalUsuariosActivos()"
+      [cargando]="cargando()"
+      (busquedaChange)="busquedaUsuarios.set($event)"
+      (registrar)="abrirCrearUsuario()"
+      (ver)="abrirInformacion($event)"
+      (editar)="editarUsuario($event)"
+      (eliminar)="eliminarUsuario($event)"
+    ></app-usuarios-tabla>
+
+    <app-usuarios-tabla
+      *ngIf="vistaActual() === 'eliminados'"
+      [usuarios]="usuariosEliminadosFiltrados()"
+      [busqueda]="busquedaUsuariosEliminados()"
+      [total]="totalUsuariosEliminados()"
+      [cargando]="cargando()"
+      [inactivos]="true"
+      (busquedaChange)="busquedaUsuariosEliminados.set($event)"
+      (ver)="abrirInformacion($event)"
+      (reactivar)="reactivarUsuario($event)"
+    ></app-usuarios-tabla>
   </div>
   <aside class="admin-roster" aria-labelledby="admin-roster-title">
     <span class="admin-label">ACCESO ADMINISTRATIVO</span>
@@ -52,7 +69,7 @@
       </li>
     </ul>
     <ng-template #sinAdministradores><p>No hay administradores activos.</p></ng-template>
-    <section class="admin-roster-inactive" *ngIf="administradoresEliminados().length">
+    <section class="admin-roster-inactive" *ngIf="vistaActual() === 'eliminados' && administradoresEliminados().length">
       <h4>Administradores eliminados</h4>
       <div *ngFor="let administrador of administradoresEliminados()">
         <strong>{{ administrador.nombre }} {{ administrador.primerApellido }}</strong>

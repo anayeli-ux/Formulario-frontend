@@ -61,10 +61,15 @@ export class Admin implements OnInit {
      USUARIOS
      ========================= */
 
-  usuarios = signal<Usuario[]>([]);
+  vistaActual = signal<'activos' | 'eliminados'>('activos');
 
-  usuariosEliminados =
-    signal<Usuario[]>([]);
+  usuariosActivos = computed(() =>
+    this.ordenarPorId(this.usuarioService.usuariosActivos() ?? [])
+  );
+
+  usuariosEliminados = computed(() =>
+    this.ordenarPorId(this.usuarioService.usuariosEliminados() ?? [])
+  );
 
   usuarioInformacion = signal<Usuario | null>(null);
 
@@ -74,13 +79,13 @@ export class Admin implements OnInit {
 
   usuariosFiltrados = computed(() =>
     this.filtrarUsuarios(
-      this.usuarios().filter(usuario => usuario.rol !== 'ADMIN'),
+      this.usuariosActivos().filter(usuario => usuario.rol !== 'ADMIN'),
       this.busquedaUsuarios()
     )
   );
 
   administradoresActivos = computed(() =>
-    this.usuarios().filter(usuario => usuario.rol === 'ADMIN')
+    this.usuariosActivos().filter(usuario => usuario.rol === 'ADMIN')
   );
 
   administradoresEliminados = computed(() =>
@@ -96,7 +101,7 @@ export class Admin implements OnInit {
 
   totalUsuariosActivos =
     computed(
-      () => this.usuarios().filter(usuario => usuario.rol !== 'ADMIN').length
+      () => this.usuariosActivos().filter(usuario => usuario.rol !== 'ADMIN').length
     );
 
   totalUsuariosEliminados =
@@ -156,8 +161,13 @@ export class Admin implements OnInit {
 
     this.cargarUsuarios();
 
-    this.cargarUsuariosEliminados();
+  }
 
+  cambiarVista(vista: 'activos' | 'eliminados'): void {
+    this.vistaActual.set(vista);
+    if (vista === 'eliminados' && this.usuarioService.usuariosEliminados() === null) {
+      this.cargarUsuariosEliminados();
+    }
   }
 
 
@@ -254,14 +264,6 @@ export class Admin implements OnInit {
       .listarUsuarios()
       .subscribe({
 
-        next: (usuarios: Usuario[]) => {
-
-          this.usuarios.set(
-            this.ordenarPorId(usuarios)
-          );
-
-        },
-
         error: () => {
           this.mostrarModal(
             'error',
@@ -285,14 +287,6 @@ export class Admin implements OnInit {
     this.usuarioService
       .listarUsuariosEliminados()
       .subscribe({
-
-        next: (usuarios: Usuario[]) => {
-
-          this.usuariosEliminados.set(
-            this.ordenarPorId(usuarios)
-          );
-
-        },
 
         error: () => {
           this.mostrarModal(
@@ -343,8 +337,6 @@ export class Admin implements OnInit {
 
           this.modalEditarAbierto.set(false);
           this.limpiarFormulario();
-
-          this.cargarUsuarios();
 
           this.mostrarModal(
             'exito',
@@ -471,8 +463,6 @@ export class Admin implements OnInit {
 
           this.limpiarFormulario();
 
-          this.cargarUsuarios();
-
           this.mostrarModal(
             'exito',
             'Usuario actualizado',
@@ -527,10 +517,6 @@ export class Admin implements OnInit {
       .subscribe({
 
         next: () => {
-
-          this.cargarUsuarios();
-
-          this.cargarUsuariosEliminados();
 
           this.mostrarModal(
             'exito',
@@ -589,10 +575,6 @@ export class Admin implements OnInit {
       .subscribe({
 
         next: () => {
-
-          this.cargarUsuarios();
-
-          this.cargarUsuariosEliminados();
 
           this.mostrarModal(
             'exito',

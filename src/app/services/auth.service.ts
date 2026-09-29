@@ -7,11 +7,15 @@ import {
   switchMap,
   catchError,
   throwError,
-  of
+  of,
+  map,
+  finalize,
+  shareReplay
 } from 'rxjs';
 
 import { environment } from '../../environments/environment';
 import { limpiarCacheUsuariosPersistida } from './usuario-cache.storage';
+import { Usuario } from '../models/usuario.model';
 
 export interface LoginResponse {
   acceso: boolean;
@@ -49,6 +53,10 @@ export class AuthService {
   private readonly estadoUsuarioActual = signal<UsuarioSesion | null>(null);
   readonly usuarioActual = this.estadoUsuarioActual.asReadonly();
   readonly haySesion = computed(() => this.usuarioActual() !== null);
+  private readonly estadoPerfilActual = signal<Usuario | null>(null);
+  readonly perfilActual = this.estadoPerfilActual.asReadonly();
+  private sesionVerificada = false;
+  private solicitudPerfil?: Observable<Usuario>;
 
 
   constructor(
@@ -76,6 +84,8 @@ export class AuthService {
       )
       .pipe(
         tap(response => {
+          this.estadoPerfilActual.set(null);
+          this.sesionVerificada = true;
           if (response?.acceso === true) {
             limpiarCacheUsuariosPersistida();
           }
@@ -93,28 +103,59 @@ export class AuthService {
     );
   }
 
-  verificarSesion(): Observable<UsuarioSesion> {
-    return this.http
-      .get<UsuarioSesion>(
-        this.perfilUrl,
-        {
-          withCredentials: true
-        }
-      )
-      .pipe(
-        tap(usuario => {
-          this.estadoUsuarioActual.set(usuario);
-        }),
-        catchError(error => {
+  obtenerPerfil(): Observable<Usuario> {
+    const perfil = this.perfilActual();
+    if (perfil) {
+      return of(perfil);
+    }
+
+    if (this.solicitudPerfil) {
+      return this.solicitudPerfil;
+    }
+
+    const solicitud = this.http.get<Usuario>(
+      this.perfilUrl,
+      { withCredentials: true }
+    ).pipe(
+      tap(usuario => {
+        this.estadoPerfilActual.set(usuario);
+        if (usuario.id !== undefined && usuario.rol) {
+          this.estadoUsuarioActual.set({
+            id: usuario.id,
+            email: usuario.correos?.find(contacto => contacto.tipo === 'PRINCIPAL')?.valor ?? '',
+            rol: usuario.rol
+          });
+        } else {
           this.estadoUsuarioActual.set(null);
-          return throwError(() => error);
-        })
-      );
+        }
+        this.sesionVerificada = true;
+      }),
+      catchError(error => {
+        this.estadoPerfilActual.set(null);
+        this.estadoUsuarioActual.set(null);
+        this.sesionVerificada = true;
+        return throwError(() => error);
+      }),
+      finalize(() => this.solicitudPerfil = undefined),
+      shareReplay({ bufferSize: 1, refCount: false })
+    );
+
+    this.solicitudPerfil = solicitud;
+    return solicitud;
   }
 
-  obtenerSesion(): Observable<UsuarioSesion> {
+  verificarSesion(): Observable<UsuarioSesion> {
+    return this.obtenerPerfil().pipe(
+      map(() => this.usuarioActual()!)
+    );
+  }
+
+  obtenerSesion(): Observable<UsuarioSesion | null> {
     const usuario = this.usuarioActual();
-    return usuario ? of(usuario) : this.verificarSesion();
+    if (usuario) {
+      return of(usuario);
+    }
+    return this.sesionVerificada ? of(null) : this.verificarSesion();
   }
 
   cerrarSesion(): Observable<void> {
@@ -131,13 +172,17 @@ export class AuthService {
 
       tap(() => {
         limpiarCacheUsuariosPersistida();
+        this.estadoPerfilActual.set(null);
         this.estadoUsuarioActual.set(null);
+        this.sesionVerificada = true;
       })
     );
   }
 
   limpiarSesionLocal(): void {
     limpiarCacheUsuariosPersistida();
+    this.estadoPerfilActual.set(null);
     this.estadoUsuarioActual.set(null);
+    this.sesionVerificada = true;
   }
 }

@@ -236,6 +236,36 @@
   min-width: 0;
 }
 
+.admin-view-switch {
+  display: flex;
+  gap: 8px;
+  border-bottom: 1px solid #d9e0ea;
+}
+
+.admin-view-switch button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: #707d91;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.admin-view-switch button.selected {
+  border-bottom-color: #3159c7;
+  color: #3159c7;
+}
+
+.admin-view-switch button span {
+  color: inherit;
+  font-size: 12px;
+}
+
 .admin-roster {
   min-width: 0;
   padding: 14px;

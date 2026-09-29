@@ -76,6 +76,8 @@ export class UsuarioService {
 
   private readonly cacheUsuariosActivos = signal<Usuario[] | null>(null);
   private readonly cacheUsuariosEliminados = signal<Usuario[] | null>(null);
+  readonly usuariosActivos = this.cacheUsuariosActivos.asReadonly();
+  readonly usuariosEliminados = this.cacheUsuariosEliminados.asReadonly();
   private solicitudUsuariosActivos?: Observable<Usuario[]>;
   private solicitudUsuariosEliminados?: Observable<Usuario[]>;
   private readonly cacheTtlMs = 5 * 60 * 1000;
@@ -178,14 +180,7 @@ export class UsuarioService {
    * Angular NO lee el JWT.
    */
   obtenerMiPerfil(): Observable<Usuario> {
-
-    return this.http.get<Usuario>(
-      `${this.apiUrl}/me`,
-      {
-        withCredentials: true
-      }
-    );
-
+    return this.authService.obtenerPerfil();
   }
 
 
