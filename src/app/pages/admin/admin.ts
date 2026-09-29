@@ -57,6 +57,17 @@ type TipoModal =
 })
 export class Admin implements OnInit {
 
+  nombreAdministrador = computed(() => {
+    const perfil = this.authService.perfilActual();
+    return [perfil?.nombre, perfil?.primerApellido].filter(Boolean).join(' ');
+  });
+
+  correoAdministrador = computed(() =>
+    this.authService.perfilActual()?.correos?.find(contacto => contacto.tipo === 'PRINCIPAL')?.valor
+      ?? this.authService.usuarioActual()?.email
+      ?? ''
+  );
+
   /* =========================
      USUARIOS
      ========================= */
@@ -249,6 +260,9 @@ export class Admin implements OnInit {
 
     this.modalMensajeVisible.set(false);
 
+
+
+    
     this.accionConfirmada = null;
 
   }

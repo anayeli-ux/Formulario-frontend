@@ -69,6 +69,31 @@
   font-size: 30px;
 }
 
+.admin-header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 20px;
+}
+
+.admin-identity {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  color: #26364f;
+  text-align: right;
+}
+
+.admin-identity strong,
+.admin-identity span {
+  overflow-wrap: anywhere;
+}
+
+.admin-identity span {
+  color: #707d91;
+  font-size: 13px;
+}
+
 .admin-header p {
   margin: 0;
   color: #707d91;
@@ -375,6 +400,16 @@
   .admin-header {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .admin-header-actions {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .admin-identity {
+    text-align: left;
   }
 
   .admin-header h1 {

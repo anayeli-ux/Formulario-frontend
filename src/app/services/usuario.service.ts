@@ -256,6 +256,7 @@ export class UsuarioService {
         this.cacheUsuariosActivos.update(actualizarLista);
         this.cacheUsuariosEliminados.update(actualizarLista);
         this.persistirCacheActual();
+        this.authService.actualizarPerfilSesion(actualizado);
       })
     );
 

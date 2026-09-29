@@ -6,9 +6,15 @@
       <p>Administra los registros activos y eliminados.</p>
     </div>
 
-    <button type="button" class="logout-button" (click)="cerrarSesion()" [disabled]="cargando()">
-      Cerrar sesión
-    </button>
+    <div class="admin-header-actions">
+      <div class="admin-identity" *ngIf="nombreAdministrador() || correoAdministrador()">
+        <strong>{{ nombreAdministrador() }}</strong>
+        <span>{{ correoAdministrador() }}</span>
+      </div>
+      <button type="button" class="logout-button" (click)="cerrarSesion()" [disabled]="cargando()">
+        Cerrar sesión
+      </button>
+    </div>
   </header>
 
   <div class="admin-content-layout">
