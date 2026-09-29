@@ -116,7 +116,7 @@ describe('UsuarioService', () => {
     httpTesting.expectNone(`${environment.apiUrl}/usuarios`);
   });
 
-  it('updates the active-list signal from the saved user response without refetching', () => {
+  it('updates the active-list signal from the request after a 204 response without refetching', () => {
     const existente: Usuario = {
       id: 1,
       nombre: 'Ana',
@@ -139,7 +139,10 @@ describe('UsuarioService', () => {
       correos: [],
       direcciones: []
     }).subscribe();
-    httpTesting.expectOne(`${environment.apiUrl}/usuarios/1`).flush(actualizado);
+    httpTesting.expectOne(`${environment.apiUrl}/usuarios/1`).flush(null, {
+      status: 204,
+      statusText: 'No Content'
+    });
 
     expect(service.usuariosActivos()).toEqual([actualizado]);
     expect(authServiceMock.actualizarPerfilSesion).toHaveBeenCalledWith(actualizado);

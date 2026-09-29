@@ -235,11 +235,11 @@ export class UsuarioService {
   actualizarUsuario(
     id: number,
     usuario: UsuarioActualizarRequest
-  ): Observable<Usuario> {
+  ): Observable<void> {
 
     return this.authService.obtenerCsrf().pipe(
       switchMap(() =>
-        this.http.put<Usuario>(
+        this.http.put<void>(
           `${this.apiUrl}/${id}`,
           usuario,
           {
@@ -248,8 +248,16 @@ export class UsuarioService {
         )
       )
     ).pipe(
-      tap(usuarioActualizado => {
-        const actualizado = { ...usuarioActualizado, id: usuarioActualizado.id ?? id };
+      tap(() => {
+        const actualizado: Usuario = {
+          id,
+          nombre: usuario.nombre,
+          primerApellido: usuario.primerApellido,
+          fechaNacimiento: usuario.fechaNacimiento,
+          telefonos: usuario.telefonos,
+          correos: usuario.correos,
+          direcciones: usuario.direcciones
+        };
         const actualizarLista = (usuarios: Usuario[] | null) =>
           usuarios?.map(item => item.id === id ? { ...item, ...actualizado } : item) ?? null;
 
