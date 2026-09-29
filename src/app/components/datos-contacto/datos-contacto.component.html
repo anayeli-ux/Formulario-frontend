@@ -14,6 +14,7 @@
     >
     <small class="field-error" *ngIf="control('telefono')?.touched && control('telefono')?.hasError('required')">Este campo es obligatorio.</small>
     <small class="field-error" *ngIf="control('telefono')?.touched && control('telefono')?.hasError('pattern')">Ingresa un teléfono de 10 dígitos.</small>
+    <small class="field-error" *ngIf="control('telefono')?.getError('duplicadoContacto') as error">{{ error }}</small>
   </div>
 
   <div class="campo" formArrayName="telefonos">
@@ -26,6 +27,7 @@
       <input class="contacto-input" type="tel" inputmode="numeric" maxlength="10" formControlName="valor" placeholder="Número" />
       <small class="field-error" *ngIf="item.get('valor')?.touched && item.get('valor')?.hasError('required')">El teléfono adicional es obligatorio.</small>
       <small class="field-error" *ngIf="item.get('valor')?.touched && item.get('valor')?.hasError('pattern')">El teléfono debe tener 10 dígitos.</small>
+      <small class="field-error" *ngIf="item.get('valor')?.getError('duplicadoContacto') as error">{{ error }}</small>
       <button type="button" class="chip-button danger" (click)="quitarTelefono(i)">Quitar</button>
     </div>
 
@@ -135,6 +137,7 @@
       <small class="field-error" *ngIf="item.get('valor')?.touched && item.get('valor')?.hasError('required')">El correo adicional es obligatorio.</small>
       <small class="field-error" *ngIf="item.get('valor')?.touched && item.get('valor')?.hasError('email')">Ingresa un correo válido.</small>
       <small class="field-error" *ngIf="item.get('valor')?.touched && item.get('valor')?.hasError('maxlength')">El correo no debe superar 150 caracteres.</small>
+      <small class="field-error" *ngIf="item.get('valor')?.getError('duplicadoContacto') as error">{{ error }}</small>
       <button type="button" class="chip-button danger" (click)="quitarCorreo(i)">Quitar</button>
     </div>
 

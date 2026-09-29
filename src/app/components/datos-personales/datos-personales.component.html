@@ -58,5 +58,6 @@
     <small class="field-error" *ngIf="control('email')?.touched && control('email')?.hasError('required')">Este campo es obligatorio.</small>
     <small class="field-error" *ngIf="control('email')?.touched && control('email')?.hasError('email')">Ingresa un correo electrónico válido.</small>
     <small class="field-error" *ngIf="control('email')?.touched && control('email')?.hasError('maxlength')">El correo no debe superar 150 caracteres.</small>
+    <small class="field-error" *ngIf="control('email')?.getError('duplicadoContacto') as error">{{ error }}</small>
   </div>
 </div>

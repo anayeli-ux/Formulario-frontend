@@ -7,7 +7,7 @@ import {
   signal
 } from '@angular/core';
 
-import { FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { AbstractControl, FormArray, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
 
@@ -313,14 +313,108 @@ export class Admin implements OnInit {
     this.modalEditarAbierto.set(true);
   }
 
+  private controlesContacto(tipo: 'telefono' | 'correo'): Array<{ control: AbstractControl; valor: string }> {
+    const rutaPrincipal = tipo === 'telefono' ? 'datosContacto.telefono' : 'datosPersonales.email';
+    const rutaAdicional = tipo === 'telefono' ? 'datosContacto.telefonos' : 'datosContacto.correos';
+    const principal = this.usuarioForm.get(rutaPrincipal);
+    const adicionales = this.usuarioForm.get(rutaAdicional) as FormArray;
+    const controles = [principal, ...adicionales.controls.map(fila => fila.get('valor'))]
+      .filter((control): control is AbstractControl => control !== null);
+
+    return controles
+      .map(control => ({
+        control,
+        valor: tipo === 'telefono'
+          ? String(control.value ?? '').replace(/\D/g, '')
+          : String(control.value ?? '').trim().toLowerCase()
+      }))
+      .filter(contacto => Boolean(contacto.valor));
+  }
+
+  private limpiarErroresDuplicadosContacto(): void {
+    for (const tipo of ['telefono', 'correo'] as const) {
+      for (const { control } of this.controlesContacto(tipo)) {
+        if (!control.hasError('duplicadoContacto')) {
+          continue;
+        }
+
+        const errores = { ...control.errors };
+        delete errores['duplicadoContacto'];
+        control.setErrors(Object.keys(errores).length ? errores : null);
+      }
+    }
+  }
+
+  private obtenerConflictoContacto(excluirUsuarioId?: number): string | null {
+    const usuariosExistentes = [
+      ...(this.usuarioService.usuariosActivos() ?? []),
+      ...(this.usuarioService.usuariosEliminados() ?? [])
+    ].filter(usuario => usuario.id !== excluirUsuarioId);
+    const tiposDuplicados: string[] = [];
+
+    for (const tipo of ['telefono', 'correo'] as const) {
+      const contactos = this.controlesContacto(tipo);
+      const valoresExistentes = new Set(usuariosExistentes.flatMap(usuario =>
+        ((tipo === 'telefono' ? usuario.telefonos : usuario.correos) ?? [])
+          .map(contacto => tipo === 'telefono'
+            ? contacto.valor.replace(/\D/g, '')
+            : contacto.valor.trim().toLowerCase())
+          .filter(Boolean)
+      ));
+      const frecuencias = new Map<string, number>();
+
+      for (const contacto of contactos) {
+        frecuencias.set(contacto.valor, (frecuencias.get(contacto.valor) ?? 0) + 1);
+      }
+
+      let hayDuplicados = false;
+      for (const contacto of contactos) {
+        const mensajes: string[] = [];
+        if ((frecuencias.get(contacto.valor) ?? 0) > 1) {
+          mensajes.push(`Se repite en este formulario.`);
+        }
+        if (valoresExistentes.has(contacto.valor)) {
+          mensajes.push('Ya está registrado en otro usuario.');
+        }
+
+        if (mensajes.length) {
+          contacto.control.setErrors({
+            ...contacto.control.errors,
+            duplicadoContacto: mensajes.join(' ')
+          });
+          contacto.control.markAsTouched();
+          hayDuplicados = true;
+        }
+      }
+
+      if (hayDuplicados) {
+        tiposDuplicados.push(tipo === 'telefono' ? 'teléfono' : 'correo');
+      }
+    }
+
+    if (!tiposDuplicados.length) {
+      return null;
+    }
+
+    return `Hay datos duplicados en ${tiposDuplicados.join(' y ')}. Revisa los campos marcados.`;
+  }
+
   crearUsuario(): void {
 
     if (this.cargando()) {
       return;
     }
 
+    this.limpiarErroresDuplicadosContacto();
+
     if (this.usuarioForm.invalid) {
       this.usuarioForm.markAllAsTouched();
+      return;
+    }
+
+    const conflictoContacto = this.obtenerConflictoContacto();
+    if (conflictoContacto) {
+      this.mostrarModal('advertencia', 'Datos de contacto duplicados', conflictoContacto);
       return;
     }
 
@@ -439,8 +533,16 @@ export class Admin implements OnInit {
       return;
     }
 
+    this.limpiarErroresDuplicadosContacto();
+
     if (this.usuarioForm.invalid) {
       this.usuarioForm.markAllAsTouched();
+      return;
+    }
+
+    const conflictoContacto = this.obtenerConflictoContacto(this.usuarioEditandoId());
+    if (conflictoContacto) {
+      this.mostrarModal('advertencia', 'Datos de contacto duplicados', conflictoContacto);
       return;
     }
 
@@ -649,9 +751,9 @@ export class Admin implements OnInit {
 
       this.mostrarModal(
         'advertencia',
-        'Conflicto de datos',
+        'Datos de contacto duplicados',
         mensajeBackend ||
-        'Ya existe un usuario con esos datos.'
+        'El correo o el teléfono ya está registrado en otro usuario.'
       );
 
     }
