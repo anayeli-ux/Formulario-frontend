@@ -85,9 +85,15 @@
 }
 
 .logout-button {
+  --mdc-text-button-label-text-color: #3159c7;
+  min-height: 40px;
   background: white;
   border: 1px solid #d9e0ea;
   color: #3159c7;
+}
+
+.logout-button mat-icon {
+  margin-right: 4px;
 }
 
 .admin-count {
@@ -149,8 +155,10 @@
 }
 
 .modal-close {
+  min-width: 34px;
   width: 34px;
   height: 34px;
+  padding: 0;
   border: 0;
   border-radius: 50%;
   background: transparent;
@@ -184,12 +192,12 @@
 }
 
 .user-form .actions .save {
-  border: 0;
-  background: var(--vino);
-  color: white;
+  --mdc-filled-button-container-color: var(--vino);
+  --mdc-filled-button-label-text-color: #ffffff;
 }
 
 .user-form .actions .cancel {
+  --mdc-text-button-label-text-color: var(--vino);
   border: 1px solid #d9e0ea;
   background: white;
   color: var(--vino);
@@ -267,12 +275,14 @@
 }
 
 .admin-roster {
+  display: block;
   min-width: 0;
   padding: 14px;
   border: 1px solid #d9e0ea;
   border-left: 3px solid #43866d;
   border-radius: 5px;
   background: rgba(250, 252, 255, .88);
+  box-shadow: none;
 }
 
 .admin-roster h3 {
@@ -311,6 +321,13 @@
 .admin-roster-inactive button {
   padding: 6px 8px;
   font-size: 11px;
+}
+
+.admin-roster mat-icon {
+  width: 16px;
+  height: 16px;
+  margin-right: 3px;
+  font-size: 16px;
 }
 
 .admin-roster-inactive {

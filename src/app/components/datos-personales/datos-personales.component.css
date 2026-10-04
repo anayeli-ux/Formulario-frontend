@@ -2,43 +2,24 @@
   color: #b2183b;
 }
 
-.field-error {
+.material-field {
   display: block;
+  width: 100%;
+}
+
+.material-field .required-mark {
+  color: #b2183b;
+}
+
+.material-field mat-error {
   color: #b2183b;
   font-size: 11px;
 }
 
-.password-input {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.password-input input {
-  width: 100%;
-  padding-right: 42px;
-  box-sizing: border-box;
-}
-
 .password-toggle {
-  position: absolute;
-  right: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  background: transparent;
   color: #7b1734;
-  font-size: 15px;
-  cursor: pointer;
-}
-
-.password-toggle:hover {
-  background: #f7f1f3;
+  min-width: 40px;
+  padding: 0 6px;
 }
 
 .password-strength {

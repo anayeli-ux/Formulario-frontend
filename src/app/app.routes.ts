@@ -1,26 +1,33 @@
 import { Routes } from '@angular/router';
-import { LoginComponent } from './pages/login/login.component';
-import { RegistroComponent } from './pages/registro/registro.component';
-import { Exito } from './pages/exito/exito';
-import { Admin } from './pages/admin/admin';
 import { adminGuard } from './guards/admin.guard';
 import { authGuard } from './guards/auth.guard';
-import { UsuarioPerfilComponent } from './pages/usuario-perfil/usuario-perfil.component';
 import { guestGuard } from './guards/guest.guard';
 
 export const routes: Routes = [
-  { path: 'login', component: LoginComponent, canActivate: [guestGuard] },
-  { path: 'registro', component: RegistroComponent, canActivate: [guestGuard] },
+  {
+    path: 'login',
+    loadComponent: () => import('./pages/login/login.component').then(module => module.LoginComponent),
+    canActivate: [guestGuard]
+  },
+  {
+    path: 'registro',
+    loadComponent: () => import('./pages/registro/registro.component').then(module => module.RegistroComponent),
+    canActivate: [guestGuard]
+  },
 
-  { path: 'exito', component: Exito, canActivate: [guestGuard] },
+  {
+    path: 'exito',
+    loadComponent: () => import('./pages/exito/exito').then(module => module.Exito),
+    canActivate: [guestGuard]
+  },
   {
     path: 'admin',
-    component: Admin,
+    loadComponent: () => import('./pages/admin/admin').then(module => module.Admin),
     canActivate: [adminGuard]
   },
   {
     path: 'usuario',
-    component: UsuarioPerfilComponent,
+    loadComponent: () => import('./pages/usuario-perfil/usuario-perfil.component').then(module => module.UsuarioPerfilComponent),
     canActivate: [authGuard]
   },
 

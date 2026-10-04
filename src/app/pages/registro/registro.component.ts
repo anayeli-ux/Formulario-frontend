@@ -14,6 +14,8 @@ import {
   FormGroup,
   ReactiveFormsModule
 } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatStepper, MatStepperModule } from '@angular/material/stepper';
 
 import {
   UsuarioService,
@@ -65,7 +67,9 @@ type TipoModal =
     DatosContactoComponent,
     LoadingOverlayComponent,
     ModalMensajeComponent,
-    FormSectionComponent
+    FormSectionComponent,
+    MatButtonModule,
+    MatStepperModule
   ],
 
   templateUrl: './registro.component.html',
@@ -134,6 +138,16 @@ export class RegistroComponent implements OnInit, OnDestroy {
 
     }
 
+  }
+
+  avanzarPaso(stepper: MatStepper, nombreGrupo: 'datosPersonales' | 'datosContacto'): void {
+    const grupo = this.registroForm.get(nombreGrupo);
+    if (!grupo || grupo.invalid || grupo.pending) {
+      grupo?.markAllAsTouched();
+      return;
+    }
+
+    stepper.next();
   }
 
 

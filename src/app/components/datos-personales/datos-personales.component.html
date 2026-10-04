@@ -1,29 +1,35 @@
 <div class="seccion-form">
   <div class="campo">
-    <label for="nombre">Nombre(s): <span class="required-mark">*</span></label>
-    <input type="text" id="nombre" formControlName="nombre" placeholder="Escribe tu nombre">
-    <small class="field-error" *ngIf="control('nombre')?.touched && control('nombre')?.hasError('required')">Este campo es obligatorio.</small>
-    <small class="field-error" *ngIf="control('nombre')?.touched && control('nombre')?.hasError('minlength')">Ingresa al menos 2 caracteres.</small>
-    <small class="field-error" *ngIf="control('nombre')?.touched && control('nombre')?.hasError('maxlength')">No debe superar 50 caracteres.</small>
+    <mat-form-field appearance="outline" class="material-field">
+      <mat-label>Nombre(s) <span class="required-mark">*</span></mat-label>
+      <input matInput type="text" id="nombre" formControlName="nombre" placeholder="Escribe tu nombre">
+      <mat-error *ngIf="control('nombre')?.touched && control('nombre')?.hasError('required')">Este campo es obligatorio.</mat-error>
+      <mat-error *ngIf="control('nombre')?.touched && control('nombre')?.hasError('minlength')">Ingresa al menos 2 caracteres.</mat-error>
+      <mat-error *ngIf="control('nombre')?.touched && control('nombre')?.hasError('maxlength')">No debe superar 50 caracteres.</mat-error>
+    </mat-form-field>
   </div>
 
   <div class="campo">
-    <label for="primer_apellido">Primer Apellido: <span class="required-mark">*</span></label>
-    <input type="text" id="primer_apellido" formControlName="primer_apellido" placeholder="Primer apellido">
-    <small class="field-error" *ngIf="control('primer_apellido')?.touched && control('primer_apellido')?.hasError('required')">Este campo es obligatorio.</small>
-    <small class="field-error" *ngIf="control('primer_apellido')?.touched && control('primer_apellido')?.hasError('maxlength')">No debe superar 50 caracteres.</small>
+    <mat-form-field appearance="outline" class="material-field">
+      <mat-label>Primer Apellido <span class="required-mark">*</span></mat-label>
+      <input matInput type="text" id="primer_apellido" formControlName="primer_apellido" placeholder="Primer apellido">
+      <mat-error *ngIf="control('primer_apellido')?.touched && control('primer_apellido')?.hasError('required')">Este campo es obligatorio.</mat-error>
+      <mat-error *ngIf="control('primer_apellido')?.touched && control('primer_apellido')?.hasError('maxlength')">No debe superar 50 caracteres.</mat-error>
+    </mat-form-field>
   </div>
 
   <div class="campo">
-    <label for="password">Contraseña{{ passwordOpcional ? ' (opcional)' : '' }}: <span class="required-mark" *ngIf="!passwordOpcional">*</span></label>
-    <div class="password-input">
-      <input
+    <mat-form-field appearance="outline" class="material-field">
+      <mat-label>Contraseña{{ passwordOpcional ? ' (opcional)' : '' }} <span class="required-mark" *ngIf="!passwordOpcional">*</span></mat-label>
+      <input matInput
         [type]="mostrarPassword ? 'text' : 'password'"
         id="password"
         formControlName="password"
         placeholder="Mínimo 8 caracteres"
       >
       <button
+        mat-button
+        matSuffix
         type="button"
         class="password-toggle"
         (click)="mostrarPassword = !mostrarPassword"
@@ -31,7 +37,11 @@
       >
         {{ mostrarPassword ? '🫣' : '🤫' }}
       </button>
-    </div>
+      <mat-error *ngIf="control('password')?.touched && control('password')?.hasError('required')">La contraseña es obligatoria.</mat-error>
+      <mat-error *ngIf="control('password')?.touched && !control('password')?.hasError('required') && control('password')?.invalid">
+        Usa al menos 8 caracteres, una letra, un número y un símbolo.
+      </mat-error>
+    </mat-form-field>
     <div class="password-strength" *ngIf="control('password')?.value">
       <div class="password-strength-bar">
         <span [style.width.%]="passwordStrength * 25" [class]="'strength-' + passwordStrength"></span>
@@ -39,24 +49,30 @@
       <small>{{ passwordStrengthLabel }}</small>
     </div>
     <small *ngIf="passwordOpcional">Déjala vacía para conservar la contraseña actual.</small>
-    <small class="field-error" *ngIf="control('password')?.touched && control('password')?.hasError('required')">La contraseña es obligatoria.</small>
-    <small class="field-error" *ngIf="control('password')?.touched && !control('password')?.hasError('required') && control('password')?.invalid">
-      Usa al menos 8 caracteres, una letra, un número y un símbolo.
-    </small>
   </div>
 
   <div class="campo">
-    <label for="fecha_nacimiento">Fecha de Nacimiento: <span class="required-mark">*</span></label>
-    <input type="date" id="fecha_nacimiento" formControlName="fecha_nacimiento">
-    <small class="field-error" *ngIf="control('fecha_nacimiento')?.touched && control('fecha_nacimiento')?.hasError('required')">Este campo es obligatorio.</small>
-    <small class="field-error" *ngIf="control('fecha_nacimiento')?.touched && control('fecha_nacimiento')?.hasError('menorDeEdad')">El usuario debe tener al menos 18 años.</small>
+    <mat-form-field appearance="outline" class="material-field">
+      <mat-label>Fecha de Nacimiento <span class="required-mark">*</span></mat-label>
+      <input matInput [matDatepicker]="fechaPicker" [value]="fechaNacimientoDate" (dateInput)="actualizarFechaNacimiento($event.value)" id="fecha_nacimiento">
+      <mat-datepicker-toggle matSuffix [for]="fechaPicker">
+        <svg matDatepickerToggleIcon viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="currentColor" d="M7 2v2H5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2V2h-2v2H9V2H7zm12 17H5V9h14v10zM7 11h3v3H7zm5 0h3v3h-3z" />
+        </svg>
+      </mat-datepicker-toggle>
+      <mat-datepicker #fechaPicker></mat-datepicker>
+      <mat-error *ngIf="control('fecha_nacimiento')?.touched && control('fecha_nacimiento')?.hasError('required')">Este campo es obligatorio.</mat-error>
+      <mat-error *ngIf="control('fecha_nacimiento')?.touched && control('fecha_nacimiento')?.hasError('menorDeEdad')">El usuario debe tener al menos 18 años.</mat-error>
+    </mat-form-field>
   </div>
 
   <div class="campo">
-    <label for="email">Correo electrónico: <span class="required-mark">*</span></label>
-    <input type="email" id="email" formControlName="email" placeholder="correo@ejemplo.com">
-    <small class="field-error" *ngIf="control('email')?.touched && control('email')?.hasError('required')">Este campo es obligatorio.</small>
-    <small class="field-error" *ngIf="control('email')?.touched && control('email')?.hasError('email')">Ingresa un correo electrónico válido.</small>
-    <small class="field-error" *ngIf="control('email')?.touched && control('email')?.hasError('maxlength')">El correo no debe superar 150 caracteres.</small>
+    <mat-form-field appearance="outline" class="material-field">
+      <mat-label>Correo electrónico <span class="required-mark">*</span></mat-label>
+      <input matInput type="email" id="email" formControlName="email" placeholder="correo@ejemplo.com">
+      <mat-error *ngIf="control('email')?.touched && control('email')?.hasError('required')">Este campo es obligatorio.</mat-error>
+      <mat-error *ngIf="control('email')?.touched && control('email')?.hasError('email')">Ingresa un correo electrónico válido.</mat-error>
+      <mat-error *ngIf="control('email')?.touched && control('email')?.hasError('maxlength')">El correo no debe superar 150 caracteres.</mat-error>
+    </mat-form-field>
   </div>
 </div>
