@@ -48,7 +48,7 @@ describe('DatosPersonalesComponent', () => {
     expect(component.fechaNacimientoDate?.getMonth()).toBe(4);
     expect(component.fechaNacimientoDate?.getDate()).toBe(15);
 
-    component.actualizarFechaNacimiento(new Date(1990, 4, 15, 12));
+    component.actualizarFechaNacimientoDesdeTexto('15/5/1990');
 
     expect(control?.value).toBe('1990-05-15');
     expect(control?.valid).toBeTrue();
@@ -62,12 +62,54 @@ describe('DatosPersonalesComponent', () => {
     expect(control?.hasError('menorDeEdad')).toBeTrue();
   });
 
-  it('clears an invalid datepicker value instead of storing an invalid date string', () => {
+  it('accepts the backend ISO format as manual input without timezone conversion', () => {
     const control = fixture.componentInstance.form.get('datosPersonales.fecha_nacimiento');
 
-    component.actualizarFechaNacimiento(new Date(Number.NaN));
+    component.actualizarFechaNacimientoDesdeTexto('1990-05-15');
+
+    expect(control?.value).toBe('1990-05-15');
+    expect(component.fechaNacimientoInvalida).toBeFalse();
+  });
+
+  it('rejects impossible and non-date manual input with a clear material error', () => {
+    const control = fixture.componentInstance.form.get('datosPersonales.fecha_nacimiento');
+
+    component.actualizarFechaNacimientoDesdeTexto('2/31/2000');
+    component.marcarFechaNacimientoTocada();
+    fixture.detectChanges();
 
     expect(control?.value).toBe('');
     expect(control?.hasError('required')).toBeTrue();
+    expect(component.fechaNacimientoInvalida).toBeTrue();
+    expect(fixture.nativeElement.textContent).toContain('Ingresa una fecha válida.');
+
+    component.actualizarFechaNacimientoDesdeTexto('texto inválido');
+    expect(control?.value).toBe('');
+    expect(component.fechaNacimientoInvalida).toBeTrue();
+  });
+
+  it('validates the text emitted by the actual datepicker input event', () => {
+    const input = fixture.nativeElement.querySelector('#fecha_nacimiento') as HTMLInputElement;
+    const control = fixture.componentInstance.form.get('datosPersonales.fecha_nacimiento');
+    input.value = '2/31/2000';
+
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    input.dispatchEvent(new Event('blur'));
+    fixture.detectChanges();
+
+    expect(component.fechaNacimientoInvalida).toBeTrue();
+    expect(control?.value).toBe('');
+    expect(fixture.nativeElement.textContent).toContain('Ingresa una fecha válida.');
+  });
+
+  it('continues to reject future dates through the existing minimum-age validator', () => {
+    const control = fixture.componentInstance.form.get('datosPersonales.fecha_nacimiento');
+    const futureYear = new Date().getFullYear() + 1;
+
+    component.actualizarFechaNacimientoDesdeTexto(`15/5/${futureYear}`);
+
+    expect(control?.value).toBe(`${futureYear}-05-15`);
+    expect(control?.hasError('menorDeEdad')).toBeTrue();
   });
 });

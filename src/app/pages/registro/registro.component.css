@@ -173,6 +173,11 @@ h3 {
   color: var(--texto);
 }
 
+::ng-deep .registro-stepper .mat-step-icon-content {
+  font-size: 12px;
+  font-weight: 700;
+}
+
 ::ng-deep .registro-stepper .mat-horizontal-content-container {
   padding: 24px 0 0;
 }

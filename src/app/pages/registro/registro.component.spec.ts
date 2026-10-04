@@ -61,6 +61,8 @@ describe('RegistroComponent', () => {
 
     component.avanzarPaso(stepper, 'datosPersonales');
     expect(stepper.selectedIndex).toBe(1);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelectorAll('.mat-step-icon-content')[0].textContent.trim()).toBe('1');
 
     stepper.next();
     expect(stepper.selectedIndex).toBe(1);

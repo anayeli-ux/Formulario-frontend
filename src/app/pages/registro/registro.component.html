@@ -62,6 +62,9 @@
         #registroFormElement
       >
         <mat-stepper linear #stepper class="registro-stepper">
+          <ng-template matStepperIcon="number" let-index="index">{{ index + 1 }}</ng-template>
+          <ng-template matStepperIcon="done" let-index="index">{{ index + 1 }}</ng-template>
+          <ng-template matStepperIcon="edit" let-index="index">{{ index + 1 }}</ng-template>
           <mat-step [stepControl]="registroForm.get('datosPersonales')!">
             <ng-template matStepLabel>Datos personales</ng-template>
             <app-form-section

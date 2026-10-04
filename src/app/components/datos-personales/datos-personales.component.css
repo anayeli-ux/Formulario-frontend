@@ -7,6 +7,15 @@
   width: 100%;
 }
 
+.campo {
+  display: block;
+  min-width: 0;
+}
+
+.campo + .campo {
+  margin-block-start: 10px;
+}
+
 .material-field .required-mark {
   color: #b2183b;
 }
