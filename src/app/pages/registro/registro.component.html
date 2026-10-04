@@ -48,65 +48,91 @@
 
       <form
         [formGroup]="registroForm"
-        (ngSubmit)="enviarRegistro()"
+        (ngSubmit)="stepper.selectedIndex === 2 && enviarRegistro()"
         #registroFormElement
       >
+        <mat-stepper linear #stepper class="registro-stepper">
+          <mat-step [stepControl]="registroForm.get('datosPersonales')!">
+            <ng-template matStepLabel>Datos personales</ng-template>
+            <app-form-section
+              numero="01"
+              titulo="Datos personales"
+              descripcion="Información general del usuario."
+              class="registro-section"
+            >
+              <app-datos-personales formGroupName="datosPersonales"></app-datos-personales>
+            </app-form-section>
+            <div class="registro-step-navigation registro-step-navigation-end">
+              <button
+                mat-flat-button
+                type="button"
+                class="step-next"
+                [disabled]="cargando()"
+                (click)="avanzarPaso(stepper, 'datosPersonales')"
+              >Siguiente</button>
+            </div>
+          </mat-step>
 
+          <mat-step [stepControl]="registroForm.get('datosContacto')!">
+            <ng-template matStepLabel>Datos de contacto</ng-template>
+            <app-form-section
+              numero="02"
+              titulo="Datos de contacto"
+              descripcion="Información de contacto y ubicación."
+              class="registro-section registro-section-final"
+            >
+              <app-datos-contacto formGroupName="datosContacto"></app-datos-contacto>
+            </app-form-section>
+            <div class="registro-step-navigation">
+              <button mat-button type="button" class="step-back" [disabled]="cargando()" (click)="stepper.previous()">Anterior</button>
+              <button
+                mat-flat-button
+                type="button"
+                class="step-next"
+                [disabled]="cargando()"
+                (click)="avanzarPaso(stepper, 'datosContacto')"
+              >Siguiente</button>
+            </div>
+          </mat-step>
 
-        <!-- =========================
-             DATOS PERSONALES
-             ========================= -->
+          <mat-step>
+            <ng-template matStepLabel>Confirmación</ng-template>
+            <section class="registro-resumen" aria-labelledby="registro-resumen-title">
+              <h3 id="registro-resumen-title">Revisa la información</h3>
+              <div class="registro-resumen-grid">
+                <div><span>Nombre</span><strong>{{ registroForm.get('datosPersonales.nombre')?.value || '—' }}</strong></div>
+                <div><span>Primer apellido</span><strong>{{ registroForm.get('datosPersonales.primer_apellido')?.value || '—' }}</strong></div>
+                <div><span>Fecha de nacimiento</span><strong>{{ registroForm.get('datosPersonales.fecha_nacimiento')?.value || '—' }}</strong></div>
+                <div><span>Correo principal</span><strong>{{ registroForm.get('datosPersonales.email')?.value || '—' }}</strong></div>
+                <div><span>Teléfono principal</span><strong>{{ registroForm.get('datosContacto.telefono')?.value || '—' }}</strong></div>
+                <div><span>Dirección principal</span><strong>{{ registroForm.get('datosContacto.direccion')?.value || '—' }}</strong></div>
+                <div><span>Código postal</span><strong>{{ registroForm.get('datosContacto.codigo_postal')?.value || '—' }}</strong></div>
+                <div><span>Estado / municipio</span><strong>{{ registroForm.get('datosContacto.estado')?.value || '—' }} / {{ registroForm.get('datosContacto.municipio')?.value || '—' }}</strong></div>
+              </div>
 
-        <app-form-section
-          numero="01"
-          titulo="Datos personales"
-          descripcion="Información general del usuario."
-          class="registro-section"
-        >
-          <app-datos-personales
-            formGroupName="datosPersonales">
-          </app-datos-personales>
-        </app-form-section>
+              <div class="registro-resumen-adicional" *ngIf="registroForm.get('datosContacto.telefonos')?.value?.length || registroForm.get('datosContacto.correos')?.value?.length || registroForm.get('datosContacto.direcciones')?.value?.length">
+                <h4>Contactos adicionales</h4>
+                <ul>
+                  <li *ngFor="let contacto of registroForm.get('datosContacto.telefonos')?.value">Teléfono {{ contacto.tipo }}: {{ contacto.valor }}</li>
+                  <li *ngFor="let contacto of registroForm.get('datosContacto.correos')?.value">Correo {{ contacto.tipo }}: {{ contacto.valor }}</li>
+                  <li *ngFor="let direccion of registroForm.get('datosContacto.direcciones')?.value">Dirección {{ direccion.tipo }}: {{ direccion.valor }}, CP {{ direccion.codigoPostal }}</li>
+                </ul>
+              </div>
+            </section>
 
-
-        <!-- =========================
-             DATOS DE CONTACTO
-             ========================= -->
-
-        <app-form-section
-          numero="02"
-          titulo="Datos de contacto"
-          descripcion="Información de contacto y ubicación."
-          class="registro-section registro-section-final"
-        >
-          <app-datos-contacto
-            formGroupName="datosContacto">
-          </app-datos-contacto>
-        </app-form-section>
-
-
-        <!-- =========================
-             BOTÓN REGISTRAR
-             ========================= -->
-
-        <div class="registro-actions">
-
-          <button
-            type="submit"
-            class="btn-submit"
-            [disabled]="cargando()"
-          >
-
-            {{
-              cargando()
-                ? 'Registrando...'
-                : 'Registrar usuario'
-            }}
-
-          </button>
-
-        </div>
-
+            <div class="registro-step-navigation">
+              <button mat-button type="button" class="step-back" [disabled]="cargando()" (click)="stepper.previous()">Anterior</button>
+              <button
+                mat-flat-button
+                type="submit"
+                class="btn-submit"
+                [disabled]="cargando()"
+              >
+                {{ cargando() ? 'Registrando...' : 'Registrar usuario' }}
+              </button>
+            </div>
+          </mat-step>
+        </mat-stepper>
       </form>
 
     </section>

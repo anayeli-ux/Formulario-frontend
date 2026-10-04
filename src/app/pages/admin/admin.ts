@@ -10,6 +10,11 @@ import {
 import { AbstractControl, FormArray, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatIconModule } from '@angular/material/icon';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { Usuario } from '../../models/usuario.model';
 
@@ -31,6 +36,8 @@ import {
   FormSectionComponent
 } from '../../components/form-section/form-section.component';
 import { PageHeaderComponent } from '../../components/page-header/page-header.component';
+import { ConfirmacionAdminDialogComponent } from '../../components/confirmacion-admin-dialog/confirmacion-admin-dialog.component';
+import { AdminIconsService } from '../../services/admin-icons.service';
 
 type TipoModal =
   | 'exito'
@@ -51,7 +58,12 @@ type TipoModal =
     ContactosUsuarioComponent,
     ModalMensajeComponent,
     FormSectionComponent,
-    PageHeaderComponent
+    PageHeaderComponent,
+    MatButtonModule,
+    MatCardModule,
+    MatDialogModule,
+    MatIconModule,
+    MatSnackBarModule
   ],
 
   templateUrl: './admin.html',
@@ -89,6 +101,8 @@ export class Admin implements OnInit {
   busquedaUsuarios = signal('');
 
   busquedaUsuariosEliminados = signal('');
+
+  columnasOpcionalesUsuarios = signal<string[]>(['telefono', 'correo']);
 
   usuariosFiltrados = computed(() =>
     this.filtrarUsuarios(
@@ -164,8 +178,13 @@ export class Admin implements OnInit {
     private usuarioService: UsuarioService,
     private authService: AuthService,
     private postaliaService: PostaliaService,
-    private usuarioFormService: UsuarioFormService
-  ) {}
+    private usuarioFormService: UsuarioFormService,
+    private dialog: MatDialog,
+    private snackBar: MatSnackBar,
+    private adminIcons: AdminIconsService
+  ) {
+    this.adminIcons.registrar();
+  }
 
 
   ngOnInit(): void {
@@ -183,6 +202,10 @@ export class Admin implements OnInit {
     }
   }
 
+  actualizarColumnasOpcionales(columnas: string[]): void {
+    this.columnasOpcionalesUsuarios.set(columnas);
+  }
+
 
   /* =========================
      MODAL DE MENSAJES
@@ -193,6 +216,16 @@ export class Admin implements OnInit {
     titulo: string,
     mensaje: string
   ): void {
+
+    if (tipo === 'exito') {
+      this.snackBar.open(`${titulo}: ${mensaje}`, 'Cerrar', {
+        duration: 5000,
+        horizontalPosition: 'end',
+        verticalPosition: 'top',
+        panelClass: ['admin-snackbar-success']
+      });
+      return;
+    }
 
     this.modalTipo.set(tipo);
 
@@ -224,15 +257,19 @@ export class Admin implements OnInit {
     accion: () => void
   ): void {
 
-    this.modalTipo.set('confirmacion');
-
-    this.modalTitulo.set(titulo);
-
-    this.modalMensaje.set(mensaje);
-
     this.accionConfirmada = accion;
 
-    this.modalMensajeVisible.set(true);
+    this.dialog.open(ConfirmacionAdminDialogComponent, {
+      width: 'min(100%, 440px)',
+      panelClass: 'admin-confirm-dialog-panel',
+      data: { titulo, mensaje }
+    }).afterClosed().subscribe(confirmada => {
+      if (confirmada) {
+        this.confirmarAccion();
+      } else {
+        this.cancelarConfirmacion();
+      }
+    });
 
   }
 

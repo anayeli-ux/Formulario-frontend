@@ -11,7 +11,8 @@
         <strong>{{ nombreAdministrador() }}</strong>
         <span>{{ correoAdministrador() }}</span>
       </div>
-      <button type="button" class="logout-button" (click)="cerrarSesion()" [disabled]="cargando()">
+      <button mat-button type="button" class="logout-button" (click)="cerrarSesion()" [disabled]="cargando()">
+        <mat-icon svgIcon="logout"></mat-icon>
         Cerrar sesión
       </button>
     </div>
@@ -21,12 +22,14 @@
   <div class="admin-main-column">
     <nav class="admin-view-switch" aria-label="Vista de usuarios">
       <button
+        mat-button
         type="button"
         [class.selected]="vistaActual() === 'activos'"
         [attr.aria-pressed]="vistaActual() === 'activos'"
         (click)="cambiarVista('activos')"
       >Activos <span>{{ totalUsuariosActivos() }}</span></button>
       <button
+        mat-button
         type="button"
         [class.selected]="vistaActual() === 'eliminados'"
         [attr.aria-pressed]="vistaActual() === 'eliminados'"
@@ -40,7 +43,9 @@
       [busqueda]="busquedaUsuarios()"
       [total]="totalUsuariosActivos()"
       [cargando]="cargando()"
+      [columnasOpcionalesSeleccionadas]="columnasOpcionalesUsuarios()"
       (busquedaChange)="busquedaUsuarios.set($event)"
+      (columnasOpcionalesChange)="actualizarColumnasOpcionales($event)"
       (registrar)="abrirCrearUsuario()"
       (ver)="abrirInformacion($event)"
       (editar)="editarUsuario($event)"
@@ -54,12 +59,14 @@
       [total]="totalUsuariosEliminados()"
       [cargando]="cargando()"
       [inactivos]="true"
+      [columnasOpcionalesSeleccionadas]="columnasOpcionalesUsuarios()"
       (busquedaChange)="busquedaUsuariosEliminados.set($event)"
+      (columnasOpcionalesChange)="actualizarColumnasOpcionales($event)"
       (ver)="abrirInformacion($event)"
       (reactivar)="reactivarUsuario($event)"
     ></app-usuarios-tabla>
   </div>
-  <aside class="admin-roster" aria-labelledby="admin-roster-title">
+  <mat-card class="admin-roster" aria-labelledby="admin-roster-title">
     <span class="admin-label">ACCESO ADMINISTRATIVO</span>
     <h3 id="admin-roster-title">Administradores</h3>
     <p class="admin-count">{{ administradoresActivos().length }} cuentas activas</p>
@@ -69,8 +76,12 @@
         <span>{{ obtenerCorreoPrincipal(administrador) || 'Sin correo principal' }}</span>
         <small>ID {{ administrador.id }}</small>
         <div class="admin-roster-actions">
-          <button type="button" class="table-edit" (click)="editarUsuario(administrador)" [disabled]="cargando()">Editar</button>
-          <button type="button" class="table-delete" (click)="eliminarUsuario(administrador.id!)" [disabled]="cargando()">Eliminar</button>
+          <button mat-button type="button" class="table-edit" (click)="editarUsuario(administrador)" [disabled]="cargando()">
+            <mat-icon svgIcon="edit"></mat-icon>Editar
+          </button>
+          <button mat-button type="button" class="table-delete" (click)="eliminarUsuario(administrador.id!)" [disabled]="cargando()">
+            <mat-icon svgIcon="delete"></mat-icon>Eliminar
+          </button>
         </div>
       </li>
     </ul>
@@ -79,10 +90,12 @@
       <h4>Administradores eliminados</h4>
       <div *ngFor="let administrador of administradoresEliminados()">
         <strong>{{ administrador.nombre }} {{ administrador.primerApellido }}</strong>
-        <button type="button" class="table-edit" (click)="reactivarUsuario(administrador.id!)" [disabled]="cargando()">Reactivar</button>
+        <button mat-button type="button" class="table-edit" (click)="reactivarUsuario(administrador.id!)" [disabled]="cargando()">
+          <mat-icon svgIcon="restore"></mat-icon>Reactivar
+        </button>
       </div>
     </section>
-  </aside>
+  </mat-card>
   </div>
 </main>
 
@@ -93,7 +106,9 @@
         <span class="modal-section-label">INFORMACIÓN ADICIONAL</span>
         <h2 id="contacts-modal-title">{{ usuario.nombre }} {{ usuario.primerApellido }}</h2>
       </div>
-      <button type="button" class="modal-close" (click)="cerrarInformacion()" aria-label="Cerrar información">×</button>
+      <button mat-icon-button type="button" class="modal-close" (click)="cerrarInformacion()" aria-label="Cerrar información">
+        <mat-icon svgIcon="close"></mat-icon>
+      </button>
     </header>
     <app-contactos-usuario [usuario]="usuario" presentacion="modal"></app-contactos-usuario>
   </section>
@@ -123,12 +138,13 @@
       </div>
 
       <button
+        mat-icon-button
         type="button"
         class="modal-close"
         (click)="cerrarModalEditar()"
         aria-label="Cerrar"
       >
-        ×
+        <mat-icon svgIcon="close"></mat-icon>
       </button>
 
     </div>
@@ -159,10 +175,12 @@
       </app-form-section>
 
       <div class="actions full">
-        <button class="save" type="submit" [disabled]="cargando()">
+        <button mat-flat-button class="save" type="submit" [disabled]="cargando()">
+          <mat-icon svgIcon="save"></mat-icon>
           {{ cargando() ? 'Guardando usuario...' : (editando() ? 'Actualizar usuario' : 'Registrar usuario') }}
         </button>
-        <button class="cancel" type="button" (click)="cerrarModalEditar()" [disabled]="cargando()">
+        <button mat-button class="cancel" type="button" (click)="cerrarModalEditar()" [disabled]="cargando()">
+          <mat-icon svgIcon="close"></mat-icon>
           Cancelar
         </button>
       </div>
@@ -186,7 +204,5 @@
   [tipo]="modalTipo()"
   [titulo]="modalTitulo()"
   [mensaje]="modalMensaje()"
-  (cerrar)="modalTipo() === 'confirmacion' ? cancelarConfirmacion() : cerrarModalMensaje()"
-  (confirmar)="confirmarAccion()"
-  (cancelar)="cancelarConfirmacion()"
+  (cerrar)="cerrarModalMensaje()"
 ></app-modal-mensaje>
