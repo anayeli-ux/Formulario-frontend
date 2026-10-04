@@ -1,0 +1,20 @@
+:host {
+  display: block;
+  color: #26364f;
+}
+
+h2 {
+  margin: 0;
+  color: #3159c7;
+  font-size: 20px;
+}
+
+mat-dialog-content {
+  color: #526174;
+  line-height: 1.5;
+}
+
+.confirm-action {
+  --mdc-filled-button-container-color: #3159c7;
+  --mdc-filled-button-label-text-color: #ffffff;
+}

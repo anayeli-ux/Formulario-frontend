@@ -1,20 +1,33 @@
-import { Component, OnInit } from '@angular/core';
+import {
+  Component,
+  computed,
+  ElementRef,
+  OnDestroy,
+  OnInit,
+  signal,
+  ViewChild
+} from '@angular/core';
+
 import { CommonModule } from '@angular/common';
 
 import {
-  FormBuilder,
   FormGroup,
-  Validators,
-  ReactiveFormsModule,
-  AbstractControl,
-  ValidationErrors
+  ReactiveFormsModule
 } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatStepper, MatStepperModule } from '@angular/material/stepper';
 
 import {
   UsuarioService,
   UsuarioRequest
 } from '../../services/usuario.service';
+
 import { Router } from '@angular/router';
+import { finalize } from 'rxjs';
+
+import {
+  UsuarioFormService
+} from '../../services/usuario-form.service';
 
 import {
   DatosPersonalesComponent
@@ -25,8 +38,15 @@ import {
 } from '../../components/datos-contacto/datos-contacto.component';
 
 import {
-  DatosAdicionalesComponent
-} from '../../components/datos-adicionales/datos-adicionales.component';
+  LoadingOverlayComponent
+} from '../../components/loading-overlay/loading-overlay.component';
+
+import {
+  ModalMensajeComponent
+} from '../../components/modal-mensaje/modal-mensaje.component';
+import {
+  FormSectionComponent
+} from '../../components/form-section/form-section.component';
 
 
 type TipoModal =
@@ -45,7 +65,11 @@ type TipoModal =
     ReactiveFormsModule,
     DatosPersonalesComponent,
     DatosContactoComponent,
-    DatosAdicionalesComponent
+    LoadingOverlayComponent,
+    ModalMensajeComponent,
+    FormSectionComponent,
+    MatButtonModule,
+    MatStepperModule
   ],
 
   templateUrl: './registro.component.html',
@@ -56,28 +80,42 @@ type TipoModal =
 })
 
 
-export class RegistroComponent implements OnInit {
+export class RegistroComponent implements OnInit, OnDestroy {
 
   registroForm!: FormGroup;
-  mensajeError = '';
+
+  cargando = signal(false);
 
 
   // =========================
   // MODAL
   // =========================
 
-  modalVisible = false;
+  modalVisible = signal(false);
 
-  modalTipo: TipoModal = 'exito';
+  modalTipo = signal<TipoModal>('exito');
 
-  modalTitulo = '';
+  modalTitulo = signal('');
 
-  modalMensaje = '';
+  modalMensaje = signal('');
+
+  esRegistroExitoso = computed(
+    () => this.modalTipo() === 'exito'
+  );
+
+
+  private redireccionTimer?: ReturnType<typeof setTimeout>;
+
+  private controlInvalidoPendiente = '';
+
+
+  @ViewChild('registroFormElement')
+  private registroFormElement?: ElementRef<HTMLFormElement>;
 
 
   constructor(
-    private fb: FormBuilder,
     private usuarioService: UsuarioService,
+    private usuarioFormService: UsuarioFormService,
     private router: Router
   ) {}
 
@@ -85,134 +123,31 @@ export class RegistroComponent implements OnInit {
   ngOnInit(): void {
 
     this.registroForm =
-      this.fb.group({
-
-
-        // =========================
-        // DATOS PERSONALES
-        // =========================
-
-        datosPersonales:
-          this.fb.group({
-
-            nombre: [
-              '',
-              [
-                Validators.required,
-                Validators.minLength(2),
-                Validators.maxLength(50)
-              ]
-            ],
-
-            primer_apellido: [
-              '',
-              [
-                Validators.required,
-                Validators.maxLength(50)
-              ]
-            ],
-
-            segundo_apellido: [
-              '',
-              [
-                Validators.maxLength(50)
-              ]
-            ],
-
-            fecha_nacimiento: [
-              '',
-              [
-                Validators.required
-              ]
-            ]
-
-          }),
-
-
-        // =========================
-        // DATOS DE CONTACTO
-        // =========================
-
-        datosContacto:
-          this.fb.group({
-
-            telefono: [
-              '',
-              [
-                Validators.required,
-                Validators.pattern(/^\d{10}$/)
-              ]
-            ],
-
-            codigo_postal: [
-              '',
-              [
-                Validators.required,
-                Validators.pattern(/^\d{5}$/)
-              ]
-            ],
-
-
-            // Estado vuelve a aparecer
-            // en el formulario.
-            estado: [
-              '',
-              [
-                Validators.required,
-                Validators.maxLength(100)
-              ]
-            ],
-
-
-            // Municipio vuelve a aparecer
-            // en el formulario.
-            municipio: [
-              '',
-              [
-                Validators.required,
-                Validators.maxLength(100)
-              ]
-            ],
-
-
-            direccion: [
-              '',
-              [
-                Validators.required,
-                Validators.maxLength(150)
-              ]
-            ]
-
-          }),
-
-
-        // =========================
-        // DATOS ADICIONALES
-        // =========================
-
-        datosAdicionales:
-          this.fb.group({
-
-            animal_favorito: [
-              '',
-              [
-                Validators.required,
-                Validators.maxLength(50)
-              ]
-            ]
-
-          })
-
-      });
+      this.usuarioFormService.crearFormulario();
 
   }
 
-  private fechaNoFutura(control: AbstractControl): ValidationErrors | null {
-    if (!control.value) return null;
-    const fecha = new Date(`${control.value}T00:00:00`);
-    const hoy = new Date();
-    hoy.setHours(0, 0, 0, 0);
-    return fecha > hoy ? { fechaFutura: true } : null;
+
+  ngOnDestroy(): void {
+
+    if (this.redireccionTimer) {
+
+      clearTimeout(
+        this.redireccionTimer
+      );
+
+    }
+
+  }
+
+  avanzarPaso(stepper: MatStepper, nombreGrupo: 'datosPersonales' | 'datosContacto'): void {
+    const grupo = this.registroForm.get(nombreGrupo);
+    if (!grupo || grupo.invalid || grupo.pending) {
+      grupo?.markAllAsTouched();
+      return;
+    }
+
+    stepper.next();
   }
 
 
@@ -226,13 +161,13 @@ export class RegistroComponent implements OnInit {
     mensaje: string
   ): void {
 
-    this.modalTipo = tipo;
+    this.modalTipo.set(tipo);
 
-    this.modalTitulo = titulo;
+    this.modalTitulo.set(titulo);
 
-    this.modalMensaje = mensaje;
+    this.modalMensaje.set(mensaje);
 
-    this.modalVisible = true;
+    this.modalVisible.set(true);
 
   }
 
@@ -243,7 +178,133 @@ export class RegistroComponent implements OnInit {
 
   cerrarModal(): void {
 
-    this.modalVisible = false;
+    this.modalVisible.set(false);
+
+    if (this.redireccionTimer) {
+
+      clearTimeout(
+        this.redireccionTimer
+      );
+
+      this.redireccionTimer = undefined;
+
+    }
+
+    this.enfocarControlInvalido();
+
+  }
+
+
+  // =========================
+  // BUSCAR PRIMER CONTROL
+  // INVÁLIDO
+  // =========================
+
+  private obtenerPrimerControlInvalido(
+    grupo: FormGroup
+  ): string {
+
+    for (
+      const nombre of Object.keys(grupo.controls)
+    ) {
+
+      const control =
+        grupo.controls[nombre];
+
+
+      if (control instanceof FormGroup) {
+
+        const controlHijo =
+          this.obtenerPrimerControlInvalido(
+            control
+          );
+
+
+        if (controlHijo) {
+
+          return controlHijo;
+
+        }
+
+      }
+
+      else if (control.invalid) {
+
+        return nombre;
+
+      }
+
+    }
+
+
+    return '';
+
+  }
+
+
+  // =========================
+  // ENFOCAR CONTROL INVÁLIDO
+  // =========================
+
+  private enfocarControlInvalido(): void {
+
+    if (
+      !this.controlInvalidoPendiente ||
+      !this.registroFormElement
+    ) {
+
+      return;
+
+    }
+
+
+    const control =
+      this.registroFormElement
+        .nativeElement
+        .querySelector(
+          `[formControlName="${this.controlInvalidoPendiente}"]`
+        );
+
+
+    if (control instanceof HTMLElement) {
+
+      control.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      });
+
+      control.focus();
+
+      this.controlInvalidoPendiente = '';
+
+    }
+
+  }
+
+
+  // =========================
+  // OBTENER MENSAJE DEL ERROR
+  // =========================
+
+  private obtenerMensajeError(
+    error: any
+  ): string {
+
+    if (
+      typeof error?.error === 'string'
+    ) {
+
+      return error.error;
+
+    }
+
+
+    return (
+      error?.error?.mensaje ||
+      error?.error?.message ||
+      error?.message ||
+      ''
+    );
 
   }
 
@@ -253,104 +314,53 @@ export class RegistroComponent implements OnInit {
   // =========================
 
   enviarRegistro(): void {
-    this.mensajeError = '';
 
-    /*
-     * Si hay algún campo incorrecto,
-     * mostramos la advertencia.
-     */
-    if (this.registroForm.invalid) {
-
-      this.registroForm
-        .markAllAsTouched();
-
-      this.mostrarModal(
-        'advertencia',
-        'Datos incorrectos',
-        'Hay datos incorrectos o incompletos. Revisa el formulario.'
-      );
+    if (this.cargando()) {
 
       return;
 
     }
 
 
-    const datosPersonales =
+    // Marca los campos para mostrar
+    // sus mensajes de validación.
+    if (this.registroForm.invalid) {
+
       this.registroForm
-        .value
-        .datosPersonales;
+        .markAllAsTouched();
 
 
-    const datosContacto =
-      this.registroForm
-        .value
-        .datosContacto;
+      this.controlInvalidoPendiente =
+        this.obtenerPrimerControlInvalido(
+          this.registroForm
+        );
 
 
-    const datosAdicionales =
-      this.registroForm
-        .value
-        .datosAdicionales;
+      this.enfocarControlInvalido();
+
+      return;
+
+    }
 
 
-    /*
-     * El backend recibe un objeto plano.
-     *
-     * Estado y municipio NO se envían
-     * por ahora, ya que el backend
-     * continúa obteniéndolos mediante
-     * su lógica actual.
-     */
-    const datosAEnviar:
-      UsuarioRequest = {
-
-        nombre:
-          datosPersonales.nombre,
-
-        primerApellido:
-          datosPersonales.primer_apellido,
-
-        segundoApellido:
-          datosPersonales.segundo_apellido || '',
-
-        telefono:
-          datosContacto.telefono,
-
-        codigoPostal:
-          datosContacto.codigo_postal,
-
-        direccion:
-          datosContacto.direccion,
-
-        fechaNacimiento:
-          datosPersonales.fecha_nacimiento,
-
-        animalFavorito:
-          datosAdicionales.animal_favorito
-
-      };
+    const datosAEnviar: UsuarioRequest =
+      this.usuarioFormService.crearRequest(
+        this.registroForm
+      );
 
 
-    console.log('Enviando datos al backend (8081):', datosAEnviar);
-
-
-    /*
-     * Solo para comprobar lo escrito
-     * por el usuario en el formulario.
-     */
-    console.log(
-      'Estado escrito:',
-      datosContacto.estado
-    );
-
-    console.log(
-      'Municipio escrito:',
-      datosContacto.municipio
-    );
+    this.cargando.set(true);
 
 
     this.usuarioService
       .crearUsuario(datosAEnviar)
+
+      .pipe(
+        finalize(
+          () => this.cargando.set(false)
+        )
+      )
+
       .subscribe({
 
 
@@ -358,19 +368,29 @@ export class RegistroComponent implements OnInit {
         // REGISTRO EXITOSO
         // =========================
 
-        next: (response) => {
+        next: () => {
 
-          console.log(
-            '¡Guardado exitosamente!',
-            response
+          this.registroForm.reset();
+
+
+          this.mostrarModal(
+            'exito',
+            '¡Lo lograste!',
+            'Tu registro se completó correctamente. Serás redirigido al inicio de sesión.'
           );
 
 
-          this.registroForm
-            .reset();
+          this.redireccionTimer =
+            setTimeout(
+              () => {
 
+                this.router.navigate([
+                  '/login'
+                ]);
 
-          this.router.navigate(['/exito']);
+              },
+              3000
+            );
 
         },
 
@@ -380,16 +400,6 @@ export class RegistroComponent implements OnInit {
         // =========================
 
         error: (err) => {
-
-          console.error(
-            'Error al registrar:',
-            err
-          );
-
-          console.error(
-            'Respuesta del backend:',
-            err.error
-          );
 
 
           // =========================
@@ -401,7 +411,7 @@ export class RegistroComponent implements OnInit {
             this.mostrarModal(
               'advertencia',
               'Datos incorrectos',
-              err.error?.mensaje ||
+              this.obtenerMensajeError(err) ||
               'Hay datos incorrectos o incompletos. Revisa el formulario.'
             );
 
@@ -419,8 +429,8 @@ export class RegistroComponent implements OnInit {
             this.mostrarModal(
               'advertencia',
               'Usuario ya registrado',
-              err.error?.mensaje ||
-              'El teléfono ingresado ya está registrado.'
+              this.obtenerMensajeError(err) ||
+              'Ya existe un usuario con los datos ingresados. Revisa el teléfono y el correo electrónico.'
             );
 
           }
@@ -437,7 +447,7 @@ export class RegistroComponent implements OnInit {
             this.mostrarModal(
               'error',
               'Servicio no disponible',
-              err.error?.mensaje ||
+              this.obtenerMensajeError(err) ||
               'No fue posible consultar el código postal.'
             );
 
@@ -470,13 +480,16 @@ export class RegistroComponent implements OnInit {
             this.mostrarModal(
               'error',
               'Error al registrar',
-              err.error?.mensaje ||
+              this.obtenerMensajeError(err) ||
               'Ocurrió un error al registrar el usuario.'
             );
 
           }
 
-      }
-    });
+        }
+
+      });
+
   }
+
 }

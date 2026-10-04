@@ -1,0 +1,119 @@
+<!-- Fondo del modal -->
+<div
+  class="mensaje-overlay"
+  *ngIf="visible"
+  (click)="cerrarModal()"
+>
+
+  <!-- Contenido principal -->
+  <div
+    class="mensaje-modal"
+    [ngClass]="tipo"
+    (click)="$event.stopPropagation()"
+  >
+
+    <!-- Botón cerrar -->
+    <button
+      *ngIf="!bloquearCierre"
+      type="button"
+      class="mensaje-close"
+      aria-label="Cerrar"
+      (click)="cerrarModal()"
+    >
+      ×
+    </button>
+
+
+    <!-- Imagen opcional, por ejemplo el gatito -->
+    <img
+      *ngIf="imagen"
+      [src]="imagen"
+      [alt]="imagenAlt"
+      class="mensaje-imagen"
+    >
+
+
+    <!-- Identidad visual -->
+    <div class="mensaje-brand">
+
+      <div class="mensaje-logo">
+        H
+      </div>
+
+      <div class="mensaje-brand-text">
+        <span>
+          Sistema de Administración
+        </span>
+
+        <strong>
+          Hidalgo
+        </strong>
+      </div>
+
+    </div>
+
+
+    <!-- Icono -->
+    <div
+      class="mensaje-icon"
+      *ngIf="!imagen"
+    >
+      {{ obtenerIcono() }}
+    </div>
+
+
+    <!-- Título -->
+    <h2>
+      {{ titulo }}
+    </h2>
+
+
+    <!-- Mensaje -->
+    <p>
+      {{ mensaje }}
+    </p>
+
+
+    <!-- Modal normal -->
+    <div
+      class="mensaje-actions"
+      *ngIf="tipo !== 'confirmacion'"
+    >
+      <button
+        type="button"
+        class="mensaje-aceptar"
+        *ngIf="!bloquearCierre"
+        (click)="cerrarModal()"
+      >
+        Aceptar
+      </button>
+    </div>
+
+
+    <!-- Modal de confirmación -->
+    <div
+      class="mensaje-actions confirmacion-actions"
+      *ngIf="tipo === 'confirmacion'"
+    >
+
+      <button
+        type="button"
+        class="mensaje-cancelar"
+        (click)="cancelarAccion()"
+      >
+        Cancelar
+      </button>
+
+      <button
+        type="button"
+        class="mensaje-confirmar"
+        (click)="confirmarAccion()"
+      >
+        Confirmar
+      </button>
+
+    </div>
+
+  </div>
+
+</div>

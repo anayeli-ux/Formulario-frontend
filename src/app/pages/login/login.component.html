@@ -39,19 +39,28 @@
       <form
         [formGroup]="loginForm"
         (ngSubmit)="onLogin()"
+        novalidate
       >
 
         <div class="campo">
-          <label for="email">
-            Usuario
+          <label for="identificador">
+            Correo electrónico
           </label>
 
           <input
             type="text"
-            id="email"
-            formControlName="email"
-            placeholder="Ingresa tu usuario"
+            id="identificador"
+            formControlName="identificador"
+            [class.input-error]="(loginForm.get('identificador')?.touched && loginForm.get('identificador')?.invalid) || loginError()?.campo === 'identificador'"
+            placeholder="correo@ejemplo.com"
           >
+
+          <div
+            class="mensaje-error"
+            *ngIf="loginForm.get('identificador')?.touched && loginForm.get('identificador')?.invalid"
+          >
+            {{ getFieldError('identificador') }}
+          </div>
         </div>
 
         <div class="campo">
@@ -63,15 +72,31 @@
             type="password"
             id="password"
             formControlName="password"
+            [class.input-error]="(loginForm.get('password')?.touched && loginForm.get('password')?.invalid) || loginError()?.campo === 'password'"
             placeholder="Tu contraseña"
           >
+
+          <div
+            class="mensaje-error"
+            *ngIf="loginForm.get('password')?.touched && loginForm.get('password')?.invalid"
+          >
+            {{ getFieldError('password') }}
+          </div>
+        </div>
+
+        <div
+          class="mensaje-error mensaje-error-general"
+          *ngIf="loginError()"
+          role="alert"
+        >
+          {{ loginError()?.mensaje }}
         </div>
 
         <button
           type="submit"
-          [disabled]="loginForm.invalid"
+          [disabled]="loginForm.invalid || cargando()"
         >
-          Iniciar sesión
+          {{ cargando() ? 'Iniciando sesión...' : 'Iniciar sesión' }}
         </button>
 
       </form>
@@ -89,3 +114,5 @@
   </div>
 
 </div>
+
+<app-loading-overlay *ngIf="cargando()" mensaje="Iniciando sesión"></app-loading-overlay>

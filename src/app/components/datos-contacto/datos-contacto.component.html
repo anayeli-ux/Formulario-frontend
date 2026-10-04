@@ -1,92 +1,153 @@
 <div class="seccion-form">
-  <!-- TELÉFONO -->
   <div class="campo">
-
-    <label for="telefono">
-      Teléfono:
-    </label>
-
-    <input
+    <mat-form-field appearance="outline" class="material-field">
+      <mat-label>Teléfono principal <span class="required-mark">*</span></mat-label>
+      <input matInput
       type="text"
       id="telefono"
       formControlName="telefono"
       placeholder="Ej. 4421234567"
       maxlength="10"
       inputmode="numeric"
-    >
+      >
+      <mat-error *ngIf="control('telefono')?.touched && control('telefono')?.hasError('required')">Este campo es obligatorio.</mat-error>
+      <mat-error *ngIf="control('telefono')?.touched && control('telefono')?.hasError('pattern')">Ingresa un teléfono de 10 dígitos.</mat-error>
+    </mat-form-field>
   </div>
 
+  <div class="campo" formArrayName="telefonos">
+    <label>Teléfonos adicionales</label>
 
-  <!-- CÓDIGO POSTAL -->
+    <div *ngFor="let item of telefonos.controls; let i = index" [formGroupName]="i" class="contacto-item">
+      <mat-form-field appearance="outline" class="contacto-select">
+        <mat-label>Tipo</mat-label>
+        <mat-select formControlName="tipo">
+          <mat-option *ngFor="let tipo of tiposPredeterminados" [value]="tipo">{{ tipo }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="contacto-input">
+        <mat-label>Número</mat-label>
+        <input matInput type="tel" inputmode="numeric" maxlength="10" formControlName="valor" placeholder="Número">
+        <mat-error *ngIf="item.get('valor')?.touched && item.get('valor')?.hasError('required')">El teléfono adicional es obligatorio.</mat-error>
+        <mat-error *ngIf="item.get('valor')?.touched && item.get('valor')?.hasError('pattern')">El teléfono debe tener 10 dígitos.</mat-error>
+      </mat-form-field>
+      <button mat-button type="button" class="chip-button danger" (click)="quitarTelefono(i)">Quitar</button>
+    </div>
+
+    <button mat-button type="button" class="chip-button" (click)="agregarTelefono()">+ Agregar teléfono</button>
+  </div>
+
   <div class="campo">
-
-    <label for="codigo_postal">
-      Código Postal:
-    </label>
-
-    <input
+    <mat-form-field appearance="outline" class="material-field">
+      <mat-label>Código Postal <span class="required-mark">*</span></mat-label>
+      <input matInput
       type="text"
       id="codigo_postal"
       formControlName="codigo_postal"
+      (input)="codigoPostalChange.emit($any($event.target).value)"
       placeholder="Ej. 76000"
       maxlength="5"
       inputmode="numeric"
-    >
-
+      >
+      <mat-error *ngIf="control('codigo_postal')?.touched && control('codigo_postal')?.hasError('required')">Este campo es obligatorio.</mat-error>
+      <mat-error *ngIf="control('codigo_postal')?.touched && control('codigo_postal')?.hasError('pattern')">Ingresa un código postal de 5 dígitos.</mat-error>
+    </mat-form-field>
   </div>
 
-
-  <!-- ESTADO -->
   <div class="campo">
-
-    <label for="estado">
-      Estado:
-    </label>
-
-    <input
+    <mat-form-field appearance="outline" class="material-field">
+      <mat-label>Estado</mat-label>
+      <input matInput
       type="text"
       id="estado"
       formControlName="estado"
-      placeholder="Ej. Querétaro"
+      placeholder="Ej. Hidalgo"
       maxlength="100"
-    >
-
+      >
+      <mat-error *ngIf="control('estado')?.touched && control('estado')?.hasError('maxlength')">El estado no debe superar 100 caracteres.</mat-error>
+      <mat-hint>Se completa con la consulta del código postal, cuando está disponible.</mat-hint>
+    </mat-form-field>
   </div>
 
-
-  <!-- MUNICIPIO -->
   <div class="campo">
-
-    <label for="municipio">
-      Municipio:
-    </label>
-
-    <input
+    <mat-form-field appearance="outline" class="material-field">
+      <mat-label>Municipio</mat-label>
+      <input matInput
       type="text"
       id="municipio"
       formControlName="municipio"
-      placeholder="Ej. Santiago de Querétaro"
+      placeholder="Ej. Pachuca"
       maxlength="100"
-    >
-
+      >
+      <mat-error *ngIf="control('municipio')?.touched && control('municipio')?.hasError('maxlength')">El municipio no debe superar 100 caracteres.</mat-error>
+      <mat-hint>Se completa con la consulta del código postal, cuando está disponible.</mat-hint>
+    </mat-form-field>
   </div>
 
-
-  <!-- DIRECCIÓN -->
   <div class="campo">
-
-    <label for="direccion">
-      Dirección (Calle y Número):
-    </label>
-
-    <input
+    <mat-form-field appearance="outline" class="material-field">
+      <mat-label>Dirección principal <span class="required-mark">*</span></mat-label>
+      <input matInput
       type="text"
       id="direccion"
       formControlName="direccion"
       placeholder="Calle, número exterior/interior"
       maxlength="150"
-    >
+      >
+      <mat-error *ngIf="control('direccion')?.touched && control('direccion')?.hasError('required')">Este campo es obligatorio.</mat-error>
+      <mat-error *ngIf="control('direccion')?.touched && control('direccion')?.hasError('maxlength')">La dirección no debe superar 150 caracteres.</mat-error>
+    </mat-form-field>
 
   </div>
 
+  <div class="campo" formArrayName="direcciones">
+    <label>Direcciones adicionales</label>
+
+    <div *ngFor="let item of direcciones.controls; let i = index" [formGroupName]="i" class="contacto-item contacto-direccion">
+      <mat-form-field appearance="outline" class="contacto-select">
+        <mat-label>Tipo</mat-label>
+        <mat-select formControlName="tipo">
+          <mat-option *ngFor="let tipo of tiposPredeterminados" [value]="tipo">{{ tipo }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="contacto-input">
+        <mat-label>Dirección completa</mat-label>
+        <input matInput maxlength="150" formControlName="valor" placeholder="Dirección completa">
+        <mat-error *ngIf="item.get('valor')?.touched && item.get('valor')?.hasError('required')">La dirección adicional es obligatoria.</mat-error>
+        <mat-error *ngIf="item.get('valor')?.touched && item.get('valor')?.hasError('maxlength')">La dirección no debe superar 150 caracteres.</mat-error>
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="contacto-input contacto-codigo-postal">
+        <mat-label>Código Postal</mat-label>
+        <input matInput [id]="'direccion-codigo-postal-' + i" formControlName="codigoPostal" placeholder="Código Postal" maxlength="5" inputmode="numeric">
+        <mat-error *ngIf="item.get('codigoPostal')?.touched && item.get('codigoPostal')?.hasError('required')">El código postal es obligatorio.</mat-error>
+        <mat-error *ngIf="item.get('codigoPostal')?.touched && item.get('codigoPostal')?.hasError('pattern')">Debe tener 5 dígitos.</mat-error>
+      </mat-form-field>
+      <button mat-button type="button" class="chip-button danger" (click)="quitarDireccion(i)">Quitar</button>
+    </div>
+
+    <button mat-button type="button" class="chip-button" (click)="agregarDireccion()">+ Agregar dirección</button>
+  </div>
+
+  <div class="campo" formArrayName="correos">
+    <label>Correos adicionales</label>
+
+    <div *ngFor="let item of correos.controls; let i = index" [formGroupName]="i" class="contacto-item">
+      <mat-form-field appearance="outline" class="contacto-select">
+        <mat-label>Tipo</mat-label>
+        <mat-select formControlName="tipo">
+          <mat-option *ngFor="let tipo of tiposPredeterminados" [value]="tipo">{{ tipo }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="contacto-input">
+        <mat-label>Correo electrónico</mat-label>
+        <input matInput type="email" formControlName="valor" placeholder="correo@ejemplo.com">
+        <mat-error *ngIf="item.get('valor')?.touched && item.get('valor')?.hasError('required')">El correo adicional es obligatorio.</mat-error>
+        <mat-error *ngIf="item.get('valor')?.touched && item.get('valor')?.hasError('email')">Ingresa un correo válido.</mat-error>
+        <mat-error *ngIf="item.get('valor')?.touched && item.get('valor')?.hasError('maxlength')">El correo no debe superar 150 caracteres.</mat-error>
+      </mat-form-field>
+      <button mat-button type="button" class="chip-button danger" (click)="quitarCorreo(i)">Quitar</button>
+    </div>
+
+    <button mat-button type="button" class="chip-button" (click)="agregarCorreo()">+ Agregar correo</button>
+  </div>
 </div>

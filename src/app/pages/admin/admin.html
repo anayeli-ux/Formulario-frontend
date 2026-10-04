@@ -1,0 +1,202 @@
+<main class="admin-page">
+  <header class="admin-header">
+    <div>
+      <span class="admin-label">SISTEMA DE ADMINISTRACIÓN</span>
+      <h1>Gestión de usuarios</h1>
+      <p>Administra los registros activos y eliminados.</p>
+    </div>
+
+    <button mat-button type="button" class="logout-button" (click)="cerrarSesion()" [disabled]="cargando()">
+      <mat-icon svgIcon="logout"></mat-icon>
+      Cerrar sesión
+    </button>
+  </header>
+
+  <div class="admin-content-layout">
+  <div class="admin-main-column">
+    <nav class="admin-view-switch" aria-label="Vista de usuarios">
+      <button
+        mat-button
+        type="button"
+        [class.selected]="vistaActual() === 'activos'"
+        [attr.aria-pressed]="vistaActual() === 'activos'"
+        (click)="cambiarVista('activos')"
+      >Activos <span>{{ totalUsuariosActivos() }}</span></button>
+      <button
+        mat-button
+        type="button"
+        [class.selected]="vistaActual() === 'eliminados'"
+        [attr.aria-pressed]="vistaActual() === 'eliminados'"
+        (click)="cambiarVista('eliminados')"
+      >Eliminados <span>{{ totalUsuariosEliminados() }}</span></button>
+    </nav>
+
+    <app-usuarios-tabla
+      *ngIf="vistaActual() === 'activos'"
+      [usuarios]="usuariosFiltrados()"
+      [busqueda]="busquedaUsuarios()"
+      [total]="totalUsuariosActivos()"
+      [cargando]="cargando()"
+      [columnasOpcionalesSeleccionadas]="columnasOpcionalesUsuarios()"
+      (busquedaChange)="busquedaUsuarios.set($event)"
+      (columnasOpcionalesChange)="actualizarColumnasOpcionales($event)"
+      (registrar)="abrirCrearUsuario()"
+      (ver)="abrirInformacion($event)"
+      (editar)="editarUsuario($event)"
+      (eliminar)="eliminarUsuario($event)"
+    ></app-usuarios-tabla>
+
+    <app-usuarios-tabla
+      *ngIf="vistaActual() === 'eliminados'"
+      [usuarios]="usuariosEliminadosFiltrados()"
+      [busqueda]="busquedaUsuariosEliminados()"
+      [total]="totalUsuariosEliminados()"
+      [cargando]="cargando()"
+      [inactivos]="true"
+      [columnasOpcionalesSeleccionadas]="columnasOpcionalesUsuarios()"
+      (busquedaChange)="busquedaUsuariosEliminados.set($event)"
+      (columnasOpcionalesChange)="actualizarColumnasOpcionales($event)"
+      (ver)="abrirInformacion($event)"
+      (reactivar)="reactivarUsuario($event)"
+    ></app-usuarios-tabla>
+  </div>
+  <mat-card class="admin-roster" aria-labelledby="admin-roster-title">
+    <span class="admin-label">ACCESO ADMINISTRATIVO</span>
+    <h3 id="admin-roster-title">Administradores</h3>
+    <p class="admin-count">{{ administradoresActivos().length }} cuentas activas</p>
+    <ul *ngIf="administradoresActivos().length; else sinAdministradores">
+      <li *ngFor="let administrador of administradoresActivos()">
+        <strong>{{ administrador.nombre }} {{ administrador.primerApellido }}</strong>
+        <span>{{ obtenerCorreoPrincipal(administrador) || 'Sin correo principal' }}</span>
+        <small>ID {{ administrador.id }}</small>
+        <div class="admin-roster-actions">
+          <button mat-button type="button" class="table-edit" (click)="editarUsuario(administrador)" [disabled]="cargando()">
+            <mat-icon svgIcon="edit"></mat-icon>Editar
+          </button>
+          <button mat-button type="button" class="table-delete" (click)="eliminarUsuario(administrador.id!)" [disabled]="cargando()">
+            <mat-icon svgIcon="delete"></mat-icon>Eliminar
+          </button>
+        </div>
+      </li>
+    </ul>
+    <ng-template #sinAdministradores><p>No hay administradores activos.</p></ng-template>
+    <section class="admin-roster-inactive" *ngIf="vistaActual() === 'eliminados' && administradoresEliminados().length">
+      <h4>Administradores eliminados</h4>
+      <div *ngFor="let administrador of administradoresEliminados()">
+        <strong>{{ administrador.nombre }} {{ administrador.primerApellido }}</strong>
+        <button mat-button type="button" class="table-edit" (click)="reactivarUsuario(administrador.id!)" [disabled]="cargando()">
+          <mat-icon svgIcon="restore"></mat-icon>Reactivar
+        </button>
+      </div>
+    </section>
+  </mat-card>
+  </div>
+</main>
+
+<div class="modal-overlay" *ngIf="usuarioInformacion() as usuario" (click)="cerrarInformacion()">
+  <section class="modal-card contacts-modal" role="dialog" aria-modal="true" aria-labelledby="contacts-modal-title" (click)="$event.stopPropagation()">
+    <header class="modal-header">
+      <div>
+        <span class="modal-section-label">INFORMACIÓN ADICIONAL</span>
+        <h2 id="contacts-modal-title">{{ usuario.nombre }} {{ usuario.primerApellido }}</h2>
+      </div>
+      <button mat-icon-button type="button" class="modal-close" (click)="cerrarInformacion()" aria-label="Cerrar información">
+        <mat-icon svgIcon="close"></mat-icon>
+      </button>
+    </header>
+    <app-contactos-usuario [usuario]="usuario" presentacion="modal"></app-contactos-usuario>
+  </section>
+</div>
+
+<!-- =====================================================
+    MODAL DE USUARIO
+    ===================================================== -->
+
+<div
+  class="modal-overlay"
+  *ngIf="modalEditarAbierto()"
+>
+  <div class="modal-card">
+
+    <!-- ENCABEZADO -->
+    <div class="modal-header">
+
+      <div>
+        <span class="modal-section-label">
+          ADMINISTRACIÓN
+        </span>
+
+        <h2>
+          {{ editando() ? 'Editar usuario' : 'Registrar usuario' }}
+        </h2>
+      </div>
+
+      <button
+        mat-icon-button
+        type="button"
+        class="modal-close"
+        (click)="cerrarModalEditar()"
+        aria-label="Cerrar"
+      >
+        <mat-icon svgIcon="close"></mat-icon>
+      </button>
+
+    </div>
+
+
+    <!-- FORMULARIO -->
+    <form class="user-form" [formGroup]="usuarioForm" (ngSubmit)="editando() ? actualizarUsuario() : crearUsuario()">
+      <app-form-section
+        numero="01"
+        titulo="Datos personales"
+        descripcion="Información general del usuario."
+      >
+        <app-datos-personales
+          formGroupName="datosPersonales"
+          [passwordOpcional]="editando()"
+        ></app-datos-personales>
+      </app-form-section>
+
+      <app-form-section
+        numero="02"
+        titulo="Datos de contacto"
+        descripcion="Información de contacto y ubicación."
+      >
+        <app-datos-contacto
+          formGroupName="datosContacto"
+          (codigoPostalChange)="actualizarUbicacion($event)"
+        ></app-datos-contacto>
+      </app-form-section>
+
+      <div class="actions full">
+        <button mat-flat-button class="save" type="submit" [disabled]="cargando()">
+          <mat-icon svgIcon="save"></mat-icon>
+          {{ cargando() ? 'Guardando usuario...' : (editando() ? 'Actualizar usuario' : 'Registrar usuario') }}
+        </button>
+        <button mat-button class="cancel" type="button" (click)="cerrarModalEditar()" [disabled]="cargando()">
+          <mat-icon svgIcon="close"></mat-icon>
+          Cancelar
+        </button>
+      </div>
+    </form>
+
+  </div>
+</div>
+
+<div class="mensaje-overlay" *ngIf="cargando()" aria-live="polite" aria-busy="true">
+  <div class="mensaje-modal">
+    <div class="mensaje-icon">...</div>
+    <h2>Procesando solicitud</h2>
+    <p>Espera un momento...</p>
+  </div>
+</div>
+
+
+
+<app-modal-mensaje
+  [visible]="modalMensajeVisible()"
+  [tipo]="modalTipo()"
+  [titulo]="modalTitulo()"
+  [mensaje]="modalMensaje()"
+  (cerrar)="cerrarModalMensaje()"
+></app-modal-mensaje>

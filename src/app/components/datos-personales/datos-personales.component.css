@@ -1,0 +1,65 @@
+.required-mark {
+  color: #b2183b;
+}
+
+.material-field {
+  display: block;
+  width: 100%;
+}
+
+.campo {
+  display: block;
+  min-width: 0;
+}
+
+.campo + .campo {
+  margin-block-start: 10px;
+}
+
+.material-field .required-mark {
+  color: #b2183b;
+}
+
+.material-field mat-error {
+  color: #b2183b;
+  font-size: 11px;
+}
+
+.password-toggle {
+  color: #7b1734;
+  min-width: 40px;
+  padding: 0 6px;
+}
+
+.password-strength {
+  margin-top: 8px;
+  color: #746d70;
+  font-size: 11px;
+}
+
+.password-strength-bar {
+  height: 6px;
+  overflow: hidden;
+  margin-bottom: 4px;
+  background: #e9e1da;
+  border-radius: 8px;
+}
+
+.password-strength-bar span {
+  display: block;
+  height: 100%;
+  transition: width .2s ease, background .2s ease;
+}
+
+.strength-1,
+.strength-2 {
+  background: #c45a48;
+}
+
+.strength-3 {
+  background: #c59a52;
+}
+
+.strength-4 {
+  background: #32805c;
+}
