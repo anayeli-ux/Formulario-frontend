@@ -73,6 +73,53 @@
       (reactivar)="reactivarUsuario($event)"
     ></app-usuarios-tabla>
   </div>
+  <mat-card class="admin-roster" aria-labelledby="admin-roster-title">
+    <span class="admin-label">ACCESO ADMINISTRATIVO</span>
+    <h3 id="admin-roster-title">{{ vistaActual() === 'eliminados' ? 'Administradores eliminados' : 'Administradores' }}</h3>
+    <p class="admin-count">{{ totalAdministradores() }} {{ vistaActual() === 'eliminados' ? 'cuentas eliminadas' : 'cuentas activas' }}</p>
+    <div class="admin-roster-table-wrapper">
+      <table class="admin-roster-table">
+        <thead>
+          <tr><th>ID</th><th>Nombre</th><th>Correo</th><th>Acciones</th></tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let administrador of administradores()">
+            <td>{{ administrador.id }}</td>
+            <td>{{ administrador.nombre }} {{ administrador.primerApellido }}</td>
+            <td>{{ administrador.correo || 'Sin correo principal' }}</td>
+            <td class="admin-roster-actions">
+              <ng-container *ngIf="vistaActual() === 'activos'; else reactivarAdmin">
+                <button mat-icon-button type="button" (click)="editarUsuario(administrador)" [disabled]="cargando() || cargandoAdministradores()" aria-label="Editar administrador" title="Editar">
+                  <mat-icon svgIcon="edit"></mat-icon>
+                </button>
+                <button mat-icon-button type="button" (click)="eliminarUsuario(administrador.id)" [disabled]="cargando() || cargandoAdministradores()" aria-label="Eliminar administrador" title="Eliminar">
+                  <mat-icon svgIcon="delete"></mat-icon>
+                </button>
+              </ng-container>
+              <ng-template #reactivarAdmin>
+                <button mat-icon-button type="button" (click)="reactivarUsuario(administrador.id)" [disabled]="cargando() || cargandoAdministradores()" aria-label="Reactivar administrador" title="Reactivar">
+                  <mat-icon svgIcon="restore"></mat-icon>
+                </button>
+              </ng-template>
+            </td>
+          </tr>
+          <tr *ngIf="!administradores().length">
+            <td colspan="4">{{ cargandoAdministradores() ? 'Cargando...' : 'No hay administradores en esta página.' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <mat-paginator
+      [length]="totalAdministradores()"
+      [pageIndex]="paginaIndexAdministradores()"
+      [pageSize]="5"
+      [pageSizeOptions]="[5]"
+      [disabled]="cargandoAdministradores()"
+      showFirstLastButtons
+      (page)="cambiarPaginaAdministradores($event)"
+      aria-label="Paginación de administradores"
+    ></mat-paginator>
+  </mat-card>
   </div>
 </main>
 

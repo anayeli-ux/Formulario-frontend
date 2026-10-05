@@ -15,9 +15,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
+import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
-import { PaginaUsuarios, Usuario, UsuarioContactos, UsuarioResumen } from '../../models/usuario.model';
+import { AdministradorResumen, PaginaAdministradores, PaginaUsuarios, Usuario, UsuarioContactos, UsuarioResumen } from '../../models/usuario.model';
 
 import { RespuestaUsuariosIncompatibleError, UsuarioService } from '../../services/usuario.service';
 
@@ -38,6 +39,7 @@ import {
 import { PageHeaderComponent } from '../../components/page-header/page-header.component';
 import { ConfirmacionAdminDialogComponent } from '../../components/confirmacion-admin-dialog/confirmacion-admin-dialog.component';
 import { AdminIconsService } from '../../services/admin-icons.service';
+import { esAdministrador } from '../../utils/rol.util';
 
 type TipoModal =
   | 'exito'
@@ -63,6 +65,7 @@ type TipoModal =
     MatCardModule,
     MatDialogModule,
     MatIconModule,
+    MatPaginatorModule,
     MatSnackBarModule
   ],
 
@@ -92,6 +95,39 @@ export class Admin implements OnInit {
   paginaIndexEliminados = signal(0);
   pageSizeActivos = signal(5);
   pageSizeEliminados = signal(5);
+  private paginaAdministradores = signal<PaginaAdministradores | null>(null);
+  private totalAdministradoresGuardado = signal(0);
+  private endpointAdministradoresDisponible = signal<boolean | null>(null);
+  paginaIndexAdministradores = signal(0);
+  private administradoresEnPaginaActual = computed<AdministradorResumen[]>(() => {
+    const usuariosPagina = this.vistaActual() === 'eliminados'
+      ? this.usuariosEliminados()
+      : this.usuariosActivos();
+    return usuariosPagina
+      .filter(usuario => esAdministrador(usuario.rol))
+      .map(usuario => ({
+        id: usuario.id,
+        nombre: usuario.nombre,
+        primerApellido: usuario.primerApellido,
+        correo: usuario.correo
+      }));
+  });
+  administradores = computed(() => {
+    const porId = new Map<number, AdministradorResumen>();
+    for (const administrador of this.paginaAdministradores()?.content ?? []) {
+      porId.set(administrador.id, administrador);
+    }
+    for (const administrador of this.administradoresEnPaginaActual()) {
+      porId.set(administrador.id, administrador);
+    }
+    return [...porId.values()];
+  });
+  totalAdministradores = computed(() => this.endpointAdministradoresDisponible() === false
+    ? this.administradoresEnPaginaActual().length
+    : Math.max(this.totalAdministradoresGuardado(), this.administradores().length));
+  private totalActivosGuardado = signal(0);
+  private totalEliminadosGuardado = signal(0);
+  cargandoAdministradores = signal(false);
 
   usuarioInformacion = signal<UsuarioContactos | null>(null);
 
@@ -103,10 +139,10 @@ export class Admin implements OnInit {
 
   usuariosActivos = computed(() => this.paginaActiva()?.content ?? []);
   usuariosEliminados = computed(() => this.paginaEliminada()?.content ?? []);
-  usuariosFiltrados = this.usuariosActivos;
-  usuariosEliminadosFiltrados = this.usuariosEliminados;
-  totalUsuariosActivos = computed(() => this.paginaActiva()?.totalElements ?? 0);
-  totalUsuariosEliminados = computed(() => this.paginaEliminada()?.totalElements ?? 0);
+  usuariosFiltrados = computed(() => this.usuariosActivos().filter(usuario => !esAdministrador(usuario.rol)));
+  usuariosEliminadosFiltrados = computed(() => this.usuariosEliminados().filter(usuario => !esAdministrador(usuario.rol)));
+  totalUsuariosActivos = this.totalActivosGuardado.asReadonly();
+  totalUsuariosEliminados = this.totalEliminadosGuardado.asReadonly();
 
 
   /* =========================
@@ -138,6 +174,9 @@ export class Admin implements OnInit {
   detalleCargando = signal(false);
   private readonly cambiosBusquedaActivos = new Subject<string>();
   private readonly cambiosBusquedaEliminados = new Subject<string>();
+  private secuenciaActivos = 0;
+  private secuenciaEliminados = 0;
+  private secuenciaAdministradores = 0;
 
 
   /*
@@ -173,17 +212,27 @@ export class Admin implements OnInit {
       this.cargarUsuariosEliminados();
     });
     this.cargarUsuarios();
+    this.cargarAdministradores();
   }
 
   cambiarVista(vista: 'activos' | 'eliminados'): void {
     if (vista === this.vistaActual()) return;
+    this.secuenciaActivos++;
+    this.secuenciaEliminados++;
+    this.secuenciaAdministradores++;
     this.vistaActual.set(vista);
+    this.paginaActiva.set(null);
+    this.paginaEliminada.set(null);
+    this.paginaAdministradores.set(null);
+    this.totalActivosGuardado.set(0);
+    this.totalEliminadosGuardado.set(0);
+    this.totalAdministradoresGuardado.set(0);
+    this.paginaIndexAdministradores.set(0);
+    this.cargarAdministradores();
     if (vista === 'activos') {
-      this.paginaActiva.set(null);
       this.paginaIndexActivos.set(0);
       this.cargarUsuarios();
     } else {
-      this.paginaEliminada.set(null);
       this.paginaIndexEliminados.set(0);
       this.cargarUsuariosEliminados();
     }
@@ -191,9 +240,11 @@ export class Admin implements OnInit {
 
   buscarUsuarios(busqueda: string, vista: 'activos' | 'eliminados'): void {
     if (vista === 'activos') {
+      this.secuenciaActivos++;
       this.paginaActiva.set(null);
       this.cambiosBusquedaActivos.next(busqueda);
     } else {
+      this.secuenciaEliminados++;
       this.paginaEliminada.set(null);
       this.cambiosBusquedaEliminados.next(busqueda);
     }
@@ -211,6 +262,40 @@ export class Admin implements OnInit {
       this.paginaEliminada.set(null);
       this.cargarUsuariosEliminados();
     }
+  }
+
+  cambiarPaginaAdministradores(event: PageEvent): void {
+    this.paginaIndexAdministradores.set(event.pageIndex);
+    this.paginaAdministradores.set(null);
+    this.cargarAdministradores();
+  }
+
+  cargarAdministradores(): void {
+    if (this.endpointAdministradoresDisponible() === false) return;
+    const secuencia = ++this.secuenciaAdministradores;
+    this.cargandoAdministradores.set(true);
+    this.usuarioService.listarAdministradores(
+      this.paginaIndexAdministradores(),
+      this.vistaActual() === 'eliminados'
+    ).pipe(finalize(() => {
+      if (secuencia === this.secuenciaAdministradores) {
+        this.cargandoAdministradores.set(false);
+      }
+    }))
+      .subscribe({
+        next: pagina => {
+          if (secuencia !== this.secuenciaAdministradores) return;
+          this.endpointAdministradoresDisponible.set(true);
+          this.paginaAdministradores.set(pagina);
+          this.totalAdministradoresGuardado.set(pagina.totalElements);
+        },
+        error: () => {
+          if (secuencia !== this.secuenciaAdministradores) return;
+          this.endpointAdministradoresDisponible.set(false);
+          this.paginaAdministradores.set(null);
+          this.totalAdministradoresGuardado.set(0);
+        }
+      });
   }
 
   actualizarColumnasOpcionales(columnas: string[]): void {
@@ -323,12 +408,19 @@ export class Admin implements OnInit {
      ========================= */
 
   cargarUsuarios(): void {
+    const secuencia = ++this.secuenciaActivos;
     this.usuarioService
       .listarUsuarios(this.paginaIndexActivos(), this.pageSizeActivos(), this.busquedaUsuarios())
       .subscribe({
-        next: pagina => this.paginaActiva.set(pagina),
+        next: pagina => {
+          if (secuencia !== this.secuenciaActivos) return;
+          this.paginaActiva.set(pagina);
+          this.totalActivosGuardado.set(pagina.totalElements);
+        },
         error: error => {
+          if (secuencia !== this.secuenciaActivos) return;
           this.paginaActiva.set(null);
+          this.totalActivosGuardado.set(0);
           if (error instanceof RespuestaUsuariosIncompatibleError) {
             this.mostrarModal('error', 'Backend desactualizado', error.message);
             return;
@@ -351,12 +443,19 @@ export class Admin implements OnInit {
      ========================= */
 
   cargarUsuariosEliminados(): void {
+    const secuencia = ++this.secuenciaEliminados;
     this.usuarioService
       .listarUsuariosEliminados(this.paginaIndexEliminados(), this.pageSizeEliminados(), this.busquedaUsuariosEliminados())
       .subscribe({
-        next: pagina => this.paginaEliminada.set(pagina),
+        next: pagina => {
+          if (secuencia !== this.secuenciaEliminados) return;
+          this.paginaEliminada.set(pagina);
+          this.totalEliminadosGuardado.set(pagina.totalElements);
+        },
         error: error => {
+          if (secuencia !== this.secuenciaEliminados) return;
           this.paginaEliminada.set(null);
+          this.totalEliminadosGuardado.set(0);
           if (error instanceof RespuestaUsuariosIncompatibleError) {
             this.mostrarModal('error', 'Backend desactualizado', error.message);
             return;
@@ -515,7 +614,7 @@ export class Admin implements OnInit {
      ABRIR MODAL DE EDICIÓN
      ========================= */
 
-  editarUsuario(resumen: UsuarioResumen): void {
+  editarUsuario(resumen: Pick<UsuarioResumen | AdministradorResumen, 'id'>): void {
     this.detalleCargando.set(true);
     this.usuarioService.obtenerUsuario(resumen.id)
       .pipe(finalize(() => this.detalleCargando.set(false)))
@@ -883,6 +982,9 @@ export class Admin implements OnInit {
   private recargarVistaActual(): void {
     this.paginaActiva.set(null);
     this.paginaEliminada.set(null);
+    this.paginaAdministradores.set(null);
+    this.paginaIndexAdministradores.set(0);
+    this.cargarAdministradores();
     if (this.vistaActual() === 'activos') this.cargarUsuarios();
     else this.cargarUsuariosEliminados();
   }

@@ -9,6 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatTableModule } from '@angular/material/table';
 import { UsuarioResumen } from '../../models/usuario.model';
+import { obtenerIdRol } from '../../utils/rol.util';
 import { AdminIconsService } from '../../services/admin-icons.service';
 
 type ColumnaOpcionalUsuarios = 'telefono' | 'codigoPostal' | 'correo';
@@ -143,7 +144,7 @@ export class UsuariosTablaComponent implements OnChanges {
   }
 
   nombreRol(usuario: UsuarioResumen): string {
-    return usuario.rol === 'ADMIN' ? 'Administrador' : 'Usuario';
+    return obtenerIdRol(usuario.rol) === 2 ? 'Administrador' : 'Usuario';
   }
 
   obtenerCorreoPrincipal(usuario: UsuarioResumen): string {

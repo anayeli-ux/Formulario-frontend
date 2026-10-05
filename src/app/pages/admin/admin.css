@@ -231,7 +231,7 @@
   max-width: 1480px;
   margin: 0 auto 24px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) minmax(250px, 300px);
   align-items: start;
   gap: 20px;
 }
@@ -289,36 +289,41 @@
   font-size: 18px;
 }
 
-.admin-roster ul {
-  margin: 0;
-  padding: 0;
-  list-style: none;
+.admin-roster-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
 }
 
-.admin-roster li {
-  min-width: 0;
-  display: grid;
-  gap: 3px;
-  padding: 9px 0;
+.admin-roster-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.admin-roster-table th,
+.admin-roster-table td {
+  padding: 9px 7px;
   border-top: 1px solid #d9e0ea;
-}
-
-.admin-roster li span,
-.admin-roster li small {
+  text-align: left;
   overflow-wrap: anywhere;
 }
 
-.admin-roster-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin-top: 3px;
+.admin-roster-table th {
+  color: #60739b;
+  font-size: 10px;
+  text-transform: uppercase;
 }
 
-.admin-roster-actions button,
-.admin-roster-inactive button {
-  padding: 6px 8px;
-  font-size: 11px;
+.admin-roster-table td.admin-roster-actions {
+  display: flex;
+  gap: 2px;
+  white-space: nowrap;
+}
+
+.admin-roster-table .mat-mdc-icon-button {
+  width: 34px;
+  height: 34px;
+  padding: 5px;
 }
 
 .admin-roster mat-icon {
@@ -328,36 +333,6 @@
   font-size: 16px;
 }
 
-.admin-roster-inactive {
-  margin-top: 12px;
-  padding-top: 10px;
-  border-top: 1px solid #d9e0ea;
-}
-
-.admin-roster-inactive h4 {
-  margin: 0 0 8px;
-  color: #26364f;
-  font-size: 13px;
-}
-
-.admin-roster-inactive div {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 6px 0;
-}
-
-.admin-roster-inactive strong {
-  min-width: 0;
-  font-size: 12px;
-  overflow-wrap: anywhere;
-}
-
-.admin-roster-inactive button {
-  flex: 0 0 auto;
-  white-space: nowrap;
-}
 
 .contacts-modal {
   width: min(760px, 100%);

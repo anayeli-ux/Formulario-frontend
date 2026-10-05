@@ -46,6 +46,36 @@ describe('UsuarioService', () => {
     request.flush({ content: [], totalElements: 0, number: 0, size: 5 });
   });
 
+  it('accepts numeric role IDs in a paginated summary response', () => {
+    let respuesta: unknown;
+    service.listarUsuarios().subscribe(value => respuesta = value);
+    httpTesting.expectOne(item => item.url === `${environment.apiUrl}/usuarios`).flush({
+      content: [{
+        id: 1,
+        nombre: 'Ana',
+        primerApellido: 'Perez',
+        rol: 1,
+        telefono: null,
+        correo: null,
+        codigoPostal: null
+      }],
+      totalElements: 1,
+      number: 0,
+      size: 5
+    });
+
+    expect((respuesta as { content: Array<{ rol: string | number }> }).content[0].rol).toBe(1);
+  });
+
+  it('requests only a five-user page of active or deleted administrators', () => {
+    service.listarAdministradores(2, true).subscribe();
+    const request = httpTesting.expectOne(item => item.url === `${environment.apiUrl}/usuarios/administradores`);
+    expect(request.request.params.get('page')).toBe('2');
+    expect(request.request.params.get('size')).toBe('5');
+    expect(request.request.params.get('eliminados')).toBe('true');
+    request.flush({ content: [], totalElements: 0, number: 2, size: 5 });
+  });
+
   it('rejects the old full-array response instead of presenting it as an empty page', () => {
     let error: unknown;
     service.listarUsuarios().subscribe({ error: received => error = received });

@@ -8,7 +8,7 @@ import {
   tap
 } from 'rxjs';
 
-import { PaginaUsuarios, Usuario, UsuarioContactos } from '../models/usuario.model';
+import { PaginaAdministradores, PaginaUsuarios, Usuario, UsuarioContactos } from '../models/usuario.model';
 import { environment } from '../../environments/environment';
 
 import { AuthService } from './auth.service';
@@ -109,6 +109,13 @@ export class UsuarioService {
     ).pipe(map(respuesta => this.validarPaginaUsuarios(respuesta)));
   }
 
+  listarAdministradores(page = 0, eliminados = false): Observable<PaginaAdministradores> {
+    return this.http.get<unknown>(`${this.apiUrl}/administradores`, {
+      withCredentials: true,
+      params: { page, size: 5, eliminados }
+    }).pipe(map(respuesta => this.validarPaginaAdministradores(respuesta)));
+  }
+
   obtenerUsuario(id: number): Observable<Usuario> {
     return this.http.get<Usuario>(`${this.apiUrl}/${id}`, { withCredentials: true });
   }
@@ -133,7 +140,7 @@ export class UsuarioService {
         && typeof usuario.id === 'number'
         && typeof usuario.nombre === 'string'
         && typeof usuario.primerApellido === 'string'
-        && typeof usuario.rol === 'string'
+        && (typeof usuario.rol === 'string' || typeof usuario.rol === 'number')
         && Object.keys(usuario).every(campo => camposResumen.has(campo))
       );
 
@@ -142,6 +149,27 @@ export class UsuarioService {
     }
 
     return pagina as PaginaUsuarios;
+  }
+
+  private validarPaginaAdministradores(respuesta: unknown): PaginaAdministradores {
+    if (!respuesta || typeof respuesta !== 'object') {
+      throw new RespuestaUsuariosIncompatibleError();
+    }
+    const pagina = respuesta as Partial<PaginaAdministradores>;
+    const campos = new Set(['id', 'nombre', 'primerApellido', 'correo']);
+    const contenidoValido = Array.isArray(pagina.content)
+      && pagina.content.every(administrador =>
+        administrador !== null
+        && typeof administrador === 'object'
+        && typeof administrador.id === 'number'
+        && typeof administrador.nombre === 'string'
+        && typeof administrador.primerApellido === 'string'
+        && Object.keys(administrador).every(campo => campos.has(campo))
+      );
+    if (!contenidoValido || typeof pagina.totalElements !== 'number') {
+      throw new RespuestaUsuariosIncompatibleError();
+    }
+    return pagina as PaginaAdministradores;
   }
 
 

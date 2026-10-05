@@ -27,7 +27,7 @@ export interface UsuarioResumen {
   id: number;
   nombre: string;
   primerApellido: string;
-  rol: string;
+  rol: string | number;
   telefono: string | null;
   correo: string | null;
   codigoPostal: string | null;
@@ -44,6 +44,20 @@ export interface UsuarioContactos {
 
 export interface PaginaUsuarios {
   content: UsuarioResumen[];
+  totalElements: number;
+  number: number;
+  size: number;
+}
+
+export interface AdministradorResumen {
+  id: number;
+  nombre: string;
+  primerApellido: string;
+  correo: string | null;
+}
+
+export interface PaginaAdministradores {
+  content: AdministradorResumen[];
   totalElements: number;
   number: number;
   size: number;

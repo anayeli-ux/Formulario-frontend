@@ -33,9 +33,19 @@ describe('Admin', () => {
     size: 10
   });
 
+  function responderAdministradores(eliminados = false, content: UsuarioResumen[] = []): void {
+    const request = httpTesting.expectOne(item =>
+      item.url === `${environment.apiUrl}/usuarios/administradores`
+      && item.params.get('eliminados') === String(eliminados)
+    );
+    expect(request.request.params.get('size')).toBe('5');
+    request.flush(pagina(content));
+  }
+
   function responderLista(url: string, content: UsuarioResumen[] = []): void {
     httpTesting.expectOne(request => request.method === 'GET' && request.url === url)
       .flush(pagina(content));
+    responderAdministradores(url.endsWith('/eliminados'));
   }
 
   function responderCsrf(): void {
@@ -62,7 +72,6 @@ describe('Admin', () => {
   it('should create', () => {
     fixture.detectChanges();
     responderLista(`${environment.apiUrl}/usuarios`);
-    httpTesting.expectNone(`${environment.apiUrl}/usuarios/eliminados`);
     expect(component).toBeTruthy();
   });
 
@@ -77,6 +86,88 @@ describe('Admin', () => {
     component.cambiarVista('eliminados');
     responderLista(`${environment.apiUrl}/usuarios/eliminados`);
     expect(component.vistaActual()).toBe('eliminados');
+  });
+
+  it('keeps numeric role ID 2 out of the regular users table', () => {
+    fixture.detectChanges();
+    responderLista(`${environment.apiUrl}/usuarios`, [
+      resumen(1, { nombre: 'Usuario', rol: 1 }),
+      resumen(2, { nombre: 'Administrador', rol: 2 })
+    ]);
+
+    expect(component.usuariosFiltrados().map(usuario => usuario.id)).toEqual([1]);
+  });
+
+  it('places an administrator from the current page in the separate side table', () => {
+    fixture.detectChanges();
+    responderLista(`${environment.apiUrl}/usuarios`, [
+      resumen(1, { rol: 1, nombre: 'Usuario' }),
+      resumen(7, { rol: 2, nombre: 'Admin', correo: 'adm@gmail.com' })
+    ]);
+
+    expect(component.usuariosFiltrados().map(usuario => usuario.id)).toEqual([1]);
+    expect(component.administradores()).toEqual([{
+      id: 7,
+      nombre: 'Admin',
+      primerApellido: 'Perez',
+      correo: 'adm@gmail.com'
+    }]);
+    expect(component.totalAdministradores()).toBe(1);
+  });
+
+  it('keeps the total count while loading the next five-user page', () => {
+    fixture.detectChanges();
+    const firstPageRequest = httpTesting.expectOne(request =>
+      request.url === `${environment.apiUrl}/usuarios`
+      && request.params.get('page') === '0'
+    );
+    expect(firstPageRequest.request.params.get('size')).toBe('5');
+    firstPageRequest.flush(pagina([1, 2, 3, 4, 5].map(id => resumen(id)), 12));
+    responderAdministradores();
+
+    expect(component.totalUsuariosActivos()).toBe(12);
+    component.cambiarPagina({ pageIndex: 1, pageSize: 5, length: 12 }, 'activos');
+
+    expect(component.paginaIndexActivos()).toBe(1);
+    expect(component.totalUsuariosActivos()).toBe(12);
+    const secondPageRequest = httpTesting.expectOne(request =>
+      request.url === `${environment.apiUrl}/usuarios`
+      && request.params.get('page') === '1'
+    );
+    expect(secondPageRequest.request.params.get('size')).toBe('5');
+    secondPageRequest.flush(pagina([6, 7, 8, 9, 10].map(id => resumen(id)), 12));
+
+    expect(component.paginaIndexActivos()).toBe(1);
+    expect(component.usuariosFiltrados().map(usuario => usuario.id)).toEqual([6, 7, 8, 9, 10]);
+    expect(component.totalUsuariosActivos()).toBe(12);
+  });
+
+  it('ignores an older page response that arrives after a newer request', () => {
+    fixture.detectChanges();
+    const initial = httpTesting.expectOne(request =>
+      request.url === `${environment.apiUrl}/usuarios`
+      && request.params.get('page') === '0'
+    );
+    initial.flush(pagina([1, 2, 3, 4, 5].map(id => resumen(id)), 20));
+    responderAdministradores();
+
+    component.cambiarPagina({ pageIndex: 1, pageSize: 5, length: 20 }, 'activos');
+    const pageOne = httpTesting.expectOne(request =>
+      request.url === `${environment.apiUrl}/usuarios`
+      && request.params.get('page') === '1'
+    );
+    component.cambiarPagina({ pageIndex: 2, pageSize: 5, length: 20 }, 'activos');
+    const pageTwo = httpTesting.expectOne(request =>
+      request.url === `${environment.apiUrl}/usuarios`
+      && request.params.get('page') === '2'
+    );
+
+    pageTwo.flush(pagina([11, 12, 13, 14, 15].map(id => resumen(id)), 20));
+    pageOne.flush(pagina([6, 7, 8, 9, 10].map(id => resumen(id)), 20));
+
+    expect(component.paginaIndexActivos()).toBe(2);
+    expect(component.usuariosFiltrados().map(usuario => usuario.id)).toEqual([11, 12, 13, 14, 15]);
+    expect(component.totalUsuariosActivos()).toBe(20);
   });
 
   it('uses the backend conflict response when a new user email already exists', () => {
