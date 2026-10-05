@@ -14,4 +14,5 @@ export class PageHeaderComponent {
   @Input() descripcion = '';
   @Input() nivelTitulo: 1 | 2 = 2;
   @Input() variante: 'admin' | 'login' | 'registro' = 'registro';
+  @Input() mostrarAcciones = false;
 }

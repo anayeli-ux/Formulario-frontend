@@ -231,7 +231,7 @@
   max-width: 1480px;
   margin: 0 auto 24px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(250px, 280px);
+  grid-template-columns: minmax(0, 1fr);
   align-items: start;
   gap: 20px;
 }

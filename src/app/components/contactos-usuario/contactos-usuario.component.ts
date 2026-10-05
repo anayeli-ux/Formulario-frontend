@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
-import { Usuario } from '../../models/usuario.model';
+import { Usuario, UsuarioContactos } from '../../models/usuario.model';
 
 @Component({
   selector: 'app-contactos-usuario',
@@ -10,6 +10,6 @@ import { Usuario } from '../../models/usuario.model';
   styleUrl: './contactos-usuario.component.css'
 })
 export class ContactosUsuarioComponent {
-  @Input({ required: true }) usuario!: Usuario;
+  @Input({ required: true }) usuario!: Usuario | UsuarioContactos;
   @Input() presentacion: 'modal' | 'perfil' = 'perfil';
 }

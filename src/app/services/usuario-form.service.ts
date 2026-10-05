@@ -17,15 +17,18 @@ export class UsuarioFormService {
           : [Validators.required, Validators.minLength(8), Validators.pattern(/^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z\d]).+$/)]
         ],
         fecha_nacimiento: ['', [Validators.required, this.fechaAdulto]],
-        email: ['', [Validators.required, Validators.email, Validators.maxLength(150)]]
+        email: ['', [Validators.required, Validators.email, Validators.maxLength(150)]],
+        emailId: [null as number | null]
       }),
       datosContacto: this.fb.group({
         telefono: ['', [Validators.required, Validators.pattern(/^\d{10}$/)]],
+        telefonoId: [null as number | null],
         telefonos: this.fb.array([]),
         codigo_postal: ['', [Validators.required, Validators.pattern(/^\d{5}$/)]],
         estado: ['', Validators.maxLength(100)],
         municipio: ['', Validators.maxLength(100)],
         direccion: ['', [Validators.required, Validators.maxLength(150)]],
+        direccionId: [null as number | null],
         direcciones: this.fb.array([]),
         correos: this.fb.array([])
       })
@@ -46,14 +49,17 @@ export class UsuarioFormService {
         primer_apellido: usuario.primerApellido,
         password: '',
         fecha_nacimiento: usuario.fechaNacimiento,
-        email: correoPrincipal?.valor ?? ''
+        email: correoPrincipal?.valor ?? '',
+        emailId: correoPrincipal?.id ?? null
       },
       datosContacto: {
         telefono: telefonoPrincipal?.valor ?? '',
+        telefonoId: telefonoPrincipal?.id ?? null,
         codigo_postal: direccionPrincipal?.codigoPostal ?? '',
         estado: usuario.estado ?? '',
         municipio: usuario.municipio ?? '',
-        direccion: direccionPrincipal?.valor ?? ''
+        direccion: direccionPrincipal?.valor ?? '',
+        direccionId: direccionPrincipal?.id ?? null
       }
     });
 
@@ -80,21 +86,27 @@ export class UsuarioFormService {
       primerApellido: datosPersonales.primer_apellido,
       fechaNacimiento: datosPersonales.fecha_nacimiento,
       telefonos: [
-        { tipo: 'PRINCIPAL', valor: datosContacto.telefono },
+        { ...this.idSiExiste(datosContacto.telefonoId), tipo: 'PRINCIPAL', valor: datosContacto.telefono },
         ...this.filasConValor(datosContacto.telefonos)
       ],
       direcciones: [
-        { tipo: 'PRINCIPAL', valor: datosContacto.direccion, codigoPostal: datosContacto.codigo_postal },
+        {
+          ...this.idSiExiste(datosContacto.direccionId),
+          tipo: 'PRINCIPAL',
+          valor: datosContacto.direccion,
+          codigoPostal: datosContacto.codigo_postal
+        },
         ...(datosContacto.direcciones ?? [])
           .filter((fila: { valor?: string }) => !!fila?.valor)
-          .map((fila: { tipo: string; valor: string; codigoPostal?: string }) => ({
+          .map((fila: { id?: number | null; tipo: string; valor: string; codigoPostal?: string }) => ({
+            ...this.idSiExiste(fila.id),
             tipo: (fila.tipo || 'Dirección').toUpperCase(),
             valor: fila.valor,
             codigoPostal: fila.codigoPostal || datosContacto.codigo_postal
           }))
       ],
       correos: [
-        { tipo: 'PRINCIPAL', valor: datosPersonales.email },
+        { ...this.idSiExiste(datosPersonales.emailId), tipo: 'PRINCIPAL', valor: datosPersonales.email },
         ...this.filasConValor(datosContacto.correos)
       ]
     };
@@ -124,15 +136,17 @@ export class UsuarioFormService {
     );
   }
 
-  private reemplazarFilas(array: FormArray, filas: Array<{ tipo: string; valor: string; codigoPostal?: string }>, tipoFila: 'telefono' | 'direccion' | 'correo'): void {
+  private reemplazarFilas(array: FormArray, filas: Array<{ id?: number; tipo: string; valor: string; codigoPostal?: string }>, tipoFila: 'telefono' | 'direccion' | 'correo'): void {
     array.clear();
     filas.forEach(fila => array.push(tipoFila === 'direccion'
       ? this.fb.group({
+          id: [fila.id ?? null],
           tipo: [this.tipoVisible(fila.tipo || 'Personal'), Validators.required],
           valor: [fila.valor, [Validators.required, Validators.maxLength(150)]],
           codigoPostal: [fila.codigoPostal ?? '', [Validators.required, Validators.pattern(/^\d{5}$/)]]
         })
       : this.fb.group({
+          id: [fila.id ?? null],
           tipo: [this.tipoVisible(fila.tipo || 'Personal'), Validators.required],
           valor: [fila.valor, tipoFila === 'correo'
             ? [Validators.required, Validators.email, Validators.maxLength(150)]
@@ -142,10 +156,18 @@ export class UsuarioFormService {
     ));
   }
 
-  private filasConValor(filas: Array<{ tipo: string; valor: string; codigoPostal?: string }> = []): Array<{ tipo: string; valor: string; codigoPostal?: string }> {
+  private filasConValor(filas: Array<{ id?: number | null; tipo: string; valor: string; codigoPostal?: string }> = []): Array<{ id?: number; tipo: string; valor: string }> {
     return filas
       .filter(fila => !!fila?.valor)
-      .map(fila => ({ tipo: (fila.tipo || 'Contacto').toUpperCase(), valor: fila.valor }));
+      .map(fila => ({
+        ...this.idSiExiste(fila.id),
+        tipo: (fila.tipo || 'Contacto').toUpperCase(),
+        valor: fila.valor
+      }));
+  }
+
+  private idSiExiste(id: number | null | undefined): { id?: number } {
+    return id === null || id === undefined ? {} : { id };
   }
 
   private tipoVisible(tipo: string): string {

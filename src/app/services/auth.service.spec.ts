@@ -49,10 +49,10 @@ describe('AuthService', () => {
       expect(usuario?.rol).toBe('ADMIN');
     });
 
-    httpTesting.expectNone('http://localhost:8081/api/usuarios/me');
+    httpTesting.expectNone('http://localhost:8081/api/usuarios/me/resumen');
   });
 
-  it('should reuse the profile returned by the session guard', () => {
+  it('should verify the session with compact identity data and load full profile only on request', () => {
     const perfil: Usuario = {
       id: 1,
       nombre: 'Ana',
@@ -65,13 +65,19 @@ describe('AuthService', () => {
     };
 
     service.obtenerSesion().subscribe(usuario => expect(usuario?.rol).toBe('ADMIN'));
-    httpTesting.expectOne('http://localhost:8081/api/usuarios/me').flush(perfil);
+    httpTesting.expectOne('http://localhost:8081/api/usuarios/me/resumen').flush({
+      id: 1,
+      nombre: 'Ana',
+      primerApellido: 'Perez',
+      email: 'admin@test.com',
+      rol: 'ADMIN'
+    });
 
     service.obtenerPerfil().subscribe(usuario => expect(usuario).toEqual(perfil));
-    httpTesting.expectNone('http://localhost:8081/api/usuarios/me');
+    httpTesting.expectOne('http://localhost:8081/api/usuarios/me').flush(perfil);
   });
 
-  it('should update the cached profile and session email when the logged-in user is edited', () => {
+  it('should update the minimal session identity and discard the full profile after editing', () => {
     const perfil: Usuario = {
       id: 1,
       nombre: 'Ana',
@@ -89,22 +95,29 @@ describe('AuthService', () => {
     };
 
     service.obtenerSesion().subscribe();
-    httpTesting.expectOne('http://localhost:8081/api/usuarios/me').flush(perfil);
+    httpTesting.expectOne('http://localhost:8081/api/usuarios/me/resumen').flush({
+      id: 1,
+      nombre: 'Ana',
+      primerApellido: 'Perez',
+      email: 'admin@test.com',
+      rol: 'ADMIN'
+    });
 
     service.actualizarPerfilSesion(actualizado);
 
-    expect(service.perfilActual()).toEqual(actualizado);
+    expect(service.perfilActual()).toBeNull();
     expect(service.usuarioActual()?.email).toBe('ana.maria@test.com');
+    expect(service.usuarioActual()?.nombre).toBe('Ana Maria');
   });
 
   it('should not verify the same rejected session again during a redirect', () => {
     service.obtenerSesion().subscribe({ error: () => undefined });
-    httpTesting.expectOne('http://localhost:8081/api/usuarios/me').flush(
+    httpTesting.expectOne('http://localhost:8081/api/usuarios/me/resumen').flush(
       {},
       { status: 403, statusText: 'Forbidden' }
     );
 
     service.obtenerSesion().subscribe(usuario => expect(usuario).toBeNull());
-    httpTesting.expectNone('http://localhost:8081/api/usuarios/me');
+    httpTesting.expectNone('http://localhost:8081/api/usuarios/me/resumen');
   });
 });

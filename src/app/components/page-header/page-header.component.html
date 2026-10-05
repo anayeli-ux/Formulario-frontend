@@ -12,5 +12,7 @@
     </ng-container>
     <p *ngIf="descripcion">{{ descripcion }}</p>
   </div>
-  <ng-content select="[pageHeaderActions]"></ng-content>
+  <ng-container *ngIf="mostrarAcciones">
+    <ng-content select="[pageHeaderActions]"></ng-content>
+  </ng-container>
 </header>

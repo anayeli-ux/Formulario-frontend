@@ -5,6 +5,7 @@
     descripcion="Administra los registros activos y eliminados."
     variante="admin"
     [nivelTitulo]="1"
+    [mostrarAcciones]="true"
   >
     <div pageHeaderActions class="admin-header-actions">
       <div class="admin-identity" *ngIf="nombreAdministrador() || correoAdministrador()">
@@ -42,9 +43,12 @@
       [usuarios]="usuariosFiltrados()"
       [busqueda]="busquedaUsuarios()"
       [total]="totalUsuariosActivos()"
+      [pageIndex]="paginaIndexActivos()"
+      [pageSize]="pageSizeActivos()"
       [cargando]="cargando()"
       [columnasOpcionalesSeleccionadas]="columnasOpcionalesUsuarios()"
-      (busquedaChange)="busquedaUsuarios.set($event)"
+      (busquedaChange)="busquedaUsuarios.set($event); buscarUsuarios($event, 'activos')"
+      (paginaChange)="cambiarPagina($event, 'activos')"
       (columnasOpcionalesChange)="actualizarColumnasOpcionales($event)"
       (registrar)="abrirCrearUsuario()"
       (ver)="abrirInformacion($event)"
@@ -57,45 +61,18 @@
       [usuarios]="usuariosEliminadosFiltrados()"
       [busqueda]="busquedaUsuariosEliminados()"
       [total]="totalUsuariosEliminados()"
+      [pageIndex]="paginaIndexEliminados()"
+      [pageSize]="pageSizeEliminados()"
       [cargando]="cargando()"
       [inactivos]="true"
       [columnasOpcionalesSeleccionadas]="columnasOpcionalesUsuarios()"
-      (busquedaChange)="busquedaUsuariosEliminados.set($event)"
+      (busquedaChange)="busquedaUsuariosEliminados.set($event); buscarUsuarios($event, 'eliminados')"
+      (paginaChange)="cambiarPagina($event, 'eliminados')"
       (columnasOpcionalesChange)="actualizarColumnasOpcionales($event)"
       (ver)="abrirInformacion($event)"
       (reactivar)="reactivarUsuario($event)"
     ></app-usuarios-tabla>
   </div>
-  <mat-card class="admin-roster" aria-labelledby="admin-roster-title">
-    <span class="admin-label">ACCESO ADMINISTRATIVO</span>
-    <h3 id="admin-roster-title">Administradores</h3>
-    <p class="admin-count">{{ administradoresActivos().length }} cuentas activas</p>
-    <ul *ngIf="administradoresActivos().length; else sinAdministradores">
-      <li *ngFor="let administrador of administradoresActivos()">
-        <strong>{{ administrador.nombre }} {{ administrador.primerApellido }}</strong>
-        <span>{{ obtenerCorreoPrincipal(administrador) || 'Sin correo principal' }}</span>
-        <small>ID {{ administrador.id }}</small>
-        <div class="admin-roster-actions">
-          <button mat-button type="button" class="table-edit" (click)="editarUsuario(administrador)" [disabled]="cargando()">
-            <mat-icon svgIcon="edit"></mat-icon>Editar
-          </button>
-          <button mat-button type="button" class="table-delete" (click)="eliminarUsuario(administrador.id!)" [disabled]="cargando()">
-            <mat-icon svgIcon="delete"></mat-icon>Eliminar
-          </button>
-        </div>
-      </li>
-    </ul>
-    <ng-template #sinAdministradores><p>No hay administradores activos.</p></ng-template>
-    <section class="admin-roster-inactive" *ngIf="vistaActual() === 'eliminados' && administradoresEliminados().length">
-      <h4>Administradores eliminados</h4>
-      <div *ngFor="let administrador of administradoresEliminados()">
-        <strong>{{ administrador.nombre }} {{ administrador.primerApellido }}</strong>
-        <button mat-button type="button" class="table-edit" (click)="reactivarUsuario(administrador.id!)" [disabled]="cargando()">
-          <mat-icon svgIcon="restore"></mat-icon>Reactivar
-        </button>
-      </div>
-    </section>
-  </mat-card>
   </div>
 </main>
 

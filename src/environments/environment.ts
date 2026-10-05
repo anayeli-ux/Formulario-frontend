@@ -15,6 +15,7 @@ export const environment = {
         login: '/auth/login',
         logout: '/auth/logout',
         perfil: '/usuarios/me',
+        identidad: '/usuarios/me/resumen',
         csrf: '/auth/csrf'
     }
 };    /*confirmacion de cambios*/

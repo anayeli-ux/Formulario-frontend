@@ -52,6 +52,7 @@ export class DatosContactoComponent {
 
   nuevoContacto(tipo = 'Personal', correo = false): FormGroup {
     return this.fb.group({
+      id: new FormControl<number | null>(null),
       tipo: new FormControl(tipo, Validators.required),
       valor: new FormControl('', correo
         ? [Validators.required, Validators.email, Validators.maxLength(150)]
@@ -62,6 +63,7 @@ export class DatosContactoComponent {
 
   nuevoDireccion(tipo = 'Personal'): FormGroup {
     return this.fb.group({
+      id: new FormControl<number | null>(null),
       tipo: new FormControl(tipo, Validators.required),
       valor: new FormControl('', [Validators.required, Validators.maxLength(150)]),
       codigoPostal: new FormControl('', [Validators.required, Validators.pattern(/^\d{5}$/)])

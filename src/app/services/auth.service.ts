@@ -8,7 +8,6 @@ import {
   catchError,
   throwError,
   of,
-  map,
   finalize,
   shareReplay
 } from 'rxjs';
@@ -24,12 +23,16 @@ export interface LoginResponse {
     id: number;
     email: string;
     rol: string;
+    nombre?: string;
+    primerApellido?: string;
   };
 }
 export interface UsuarioSesion {
   id: number;
   email: string;
   rol: string;
+  nombre?: string;
+  primerApellido?: string;
 }
 
 
@@ -47,6 +50,9 @@ export class AuthService {
   private perfilUrl =
     `${environment.apiUrl}${environment.auth.perfil}`;
 
+  private identidadUrl =
+    `${environment.apiUrl}${environment.auth.identidad}`;
+
   private csrfUrl =
     `${environment.apiUrl}${environment.auth.csrf}`;
 
@@ -57,6 +63,7 @@ export class AuthService {
   readonly perfilActual = this.estadoPerfilActual.asReadonly();
   private sesionVerificada = false;
   private solicitudPerfil?: Observable<Usuario>;
+  private solicitudIdentidad?: Observable<UsuarioSesion>;
 
 
   constructor(
@@ -123,7 +130,9 @@ export class AuthService {
           this.estadoUsuarioActual.set({
             id: usuario.id,
             email: usuario.correos?.find(contacto => contacto.tipo === 'PRINCIPAL')?.valor ?? '',
-            rol: usuario.rol
+            rol: usuario.rol,
+            nombre: usuario.nombre,
+            primerApellido: usuario.primerApellido
           });
         } else {
           this.estadoUsuarioActual.set(null);
@@ -150,26 +159,44 @@ export class AuthService {
       return;
     }
 
-    const perfilActualizado = {
-      ...(this.perfilActual() ?? {}),
-      ...usuario,
-      id: sesion.id
-    };
-    const correoPrincipal = perfilActualizado.correos
+    const correoPrincipal = usuario.correos
       ?.find(contacto => contacto.tipo === 'PRINCIPAL')?.valor ?? sesion.email;
 
-    this.estadoPerfilActual.set(perfilActualizado);
+    this.estadoPerfilActual.set(null);
     this.estadoUsuarioActual.set({
       id: sesion.id,
       email: correoPrincipal,
-      rol: perfilActualizado.rol ?? sesion.rol
+      rol: usuario.rol ?? sesion.rol,
+      nombre: usuario.nombre,
+      primerApellido: usuario.primerApellido
     });
   }
 
   verificarSesion(): Observable<UsuarioSesion> {
-    return this.obtenerPerfil().pipe(
-      map(() => this.usuarioActual()!)
+    return this.obtenerIdentidad();
+  }
+
+  obtenerIdentidad(): Observable<UsuarioSesion> {
+    const identidad = this.usuarioActual();
+    if (identidad?.nombre) return of(identidad);
+    if (this.solicitudIdentidad) return this.solicitudIdentidad;
+
+    const solicitud = this.http.get<UsuarioSesion>(this.identidadUrl, { withCredentials: true }).pipe(
+      tap(usuario => {
+        this.estadoUsuarioActual.set(usuario);
+        this.sesionVerificada = true;
+      }),
+      catchError(error => {
+        this.estadoUsuarioActual.set(null);
+        this.estadoPerfilActual.set(null);
+        this.sesionVerificada = true;
+        return throwError(() => error);
+      }),
+      finalize(() => this.solicitudIdentidad = undefined),
+      shareReplay({ bufferSize: 1, refCount: false })
     );
+    this.solicitudIdentidad = solicitud;
+    return solicitud;
   }
 
   obtenerSesion(): Observable<UsuarioSesion | null> {

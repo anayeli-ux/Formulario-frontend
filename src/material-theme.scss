@@ -39,3 +39,7 @@ $app-theme: mat.define-theme((
   --mat-sys-outline: #d9e0ea;
   --mat-sys-error: #d64545;
 }
+
+.cdk-overlay-container {
+  z-index: 1600;
+}

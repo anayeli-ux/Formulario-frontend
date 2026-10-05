@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormArray, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { By } from '@angular/platform-browser';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 
@@ -38,5 +38,16 @@ describe('DatosContactoComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('creates additional contacts without assigning IDs', () => {
+    component.agregarTelefono();
+    component.agregarCorreo();
+    component.agregarDireccion();
+
+    const form = fixture.componentInstance.form;
+    expect((form.get('datosContacto.telefonos') as FormArray).at(0).get('id')?.value).toBeNull();
+    expect((form.get('datosContacto.correos') as FormArray).at(0).get('id')?.value).toBeNull();
+    expect((form.get('datosContacto.direcciones') as FormArray).at(0).get('id')?.value).toBeNull();
   });
 });

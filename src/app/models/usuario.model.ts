@@ -1,4 +1,5 @@
 export interface ContactoItem {
+  id?: number;
   tipo: string;
   valor: string;
 }
@@ -20,4 +21,30 @@ export interface Usuario {
   telefonos: ContactoItem[];
   correos: ContactoItem[];
   direcciones: DireccionItem[];
+}
+
+export interface UsuarioResumen {
+  id: number;
+  nombre: string;
+  primerApellido: string;
+  rol: string;
+  telefono: string | null;
+  correo: string | null;
+  codigoPostal: string | null;
+}
+
+export interface UsuarioContactos {
+  id: number;
+  nombre: string;
+  primerApellido: string;
+  telefonos: ContactoItem[];
+  correos: ContactoItem[];
+  direcciones: DireccionItem[];
+}
+
+export interface PaginaUsuarios {
+  content: UsuarioResumen[];
+  totalElements: number;
+  number: number;
+  size: number;
 }

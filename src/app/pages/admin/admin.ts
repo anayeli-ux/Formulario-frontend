@@ -9,16 +9,17 @@ import {
 
 import { AbstractControl, FormArray, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { finalize } from 'rxjs';
+import { debounceTime, finalize, Subject } from 'rxjs';
+import { PageEvent } from '@angular/material/paginator';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
-import { Usuario } from '../../models/usuario.model';
+import { PaginaUsuarios, Usuario, UsuarioContactos, UsuarioResumen } from '../../models/usuario.model';
 
-import { UsuarioService } from '../../services/usuario.service';
+import { RespuestaUsuariosIncompatibleError, UsuarioService } from '../../services/usuario.service';
 
 import { AuthService } from '../../services/auth.service';
 import { PostaliaService } from '../../services/postalia.service';
@@ -27,7 +28,6 @@ import { DatosPersonalesComponent } from '../../components/datos-personales/dato
 import { DatosContactoComponent } from '../../components/datos-contacto/datos-contacto.component';
 import { UsuariosTablaComponent } from '../../components/usuarios-tabla/usuarios-tabla.component';
 import { ContactosUsuarioComponent } from '../../components/contactos-usuario/contactos-usuario.component';
-import { obtenerContactoPrincipal } from '../../utils/contactos.util';
 import {
   ModalMensajeComponent
 } from '../../components/modal-mensaje/modal-mensaje.component';
@@ -72,13 +72,12 @@ type TipoModal =
 export class Admin implements OnInit {
 
   nombreAdministrador = computed(() => {
-    const perfil = this.authService.perfilActual();
+    const perfil = this.authService.usuarioActual();
     return [perfil?.nombre, perfil?.primerApellido].filter(Boolean).join(' ');
   });
 
   correoAdministrador = computed(() =>
-    this.authService.perfilActual()?.correos?.find(contacto => contacto.tipo === 'PRINCIPAL')?.valor
-      ?? this.authService.usuarioActual()?.email
+    this.authService.usuarioActual()?.email
       ?? ''
   );
 
@@ -87,16 +86,14 @@ export class Admin implements OnInit {
      ========================= */
 
   vistaActual = signal<'activos' | 'eliminados'>('activos');
+  private paginaActiva = signal<PaginaUsuarios | null>(null);
+  private paginaEliminada = signal<PaginaUsuarios | null>(null);
+  paginaIndexActivos = signal(0);
+  paginaIndexEliminados = signal(0);
+  pageSizeActivos = signal(5);
+  pageSizeEliminados = signal(5);
 
-  usuariosActivos = computed(() =>
-    this.ordenarPorId(this.usuarioService.usuariosActivos() ?? [])
-  );
-
-  usuariosEliminados = computed(() =>
-    this.ordenarPorId(this.usuarioService.usuariosEliminados() ?? [])
-  );
-
-  usuarioInformacion = signal<Usuario | null>(null);
+  usuarioInformacion = signal<UsuarioContactos | null>(null);
 
   busquedaUsuarios = signal('');
 
@@ -104,37 +101,12 @@ export class Admin implements OnInit {
 
   columnasOpcionalesUsuarios = signal<string[]>(['telefono', 'correo']);
 
-  usuariosFiltrados = computed(() =>
-    this.filtrarUsuarios(
-      this.usuariosActivos().filter(usuario => usuario.rol !== 'ADMIN'),
-      this.busquedaUsuarios()
-    )
-  );
-
-  administradoresActivos = computed(() =>
-    this.usuariosActivos().filter(usuario => usuario.rol === 'ADMIN')
-  );
-
-  administradoresEliminados = computed(() =>
-    this.usuariosEliminados().filter(usuario => usuario.rol === 'ADMIN')
-  );
-
-  usuariosEliminadosFiltrados = computed(() =>
-    this.filtrarUsuarios(
-      this.usuariosEliminados().filter(usuario => usuario.rol !== 'ADMIN'),
-      this.busquedaUsuariosEliminados()
-    )
-  );
-
-  totalUsuariosActivos =
-    computed(
-      () => this.usuariosActivos().filter(usuario => usuario.rol !== 'ADMIN').length
-    );
-
-  totalUsuariosEliminados =
-    computed(
-      () => this.usuariosEliminados().filter(usuario => usuario.rol !== 'ADMIN').length
-    );
+  usuariosActivos = computed(() => this.paginaActiva()?.content ?? []);
+  usuariosEliminados = computed(() => this.paginaEliminada()?.content ?? []);
+  usuariosFiltrados = this.usuariosActivos;
+  usuariosEliminadosFiltrados = this.usuariosEliminados;
+  totalUsuariosActivos = computed(() => this.paginaActiva()?.totalElements ?? 0);
+  totalUsuariosEliminados = computed(() => this.paginaEliminada()?.totalElements ?? 0);
 
 
   /* =========================
@@ -163,6 +135,9 @@ export class Admin implements OnInit {
   modalMensaje = signal('');
 
   cargando = signal(false);
+  detalleCargando = signal(false);
+  private readonly cambiosBusquedaActivos = new Subject<string>();
+  private readonly cambiosBusquedaEliminados = new Subject<string>();
 
 
   /*
@@ -188,16 +163,52 @@ export class Admin implements OnInit {
 
 
   ngOnInit(): void {
-
     this.usuarioForm = this.usuarioFormService.crearFormulario();
-
+    this.cambiosBusquedaActivos.pipe(debounceTime(300)).subscribe(() => {
+      this.paginaIndexActivos.set(0);
+      this.cargarUsuarios();
+    });
+    this.cambiosBusquedaEliminados.pipe(debounceTime(300)).subscribe(() => {
+      this.paginaIndexEliminados.set(0);
+      this.cargarUsuariosEliminados();
+    });
     this.cargarUsuarios();
-
   }
 
   cambiarVista(vista: 'activos' | 'eliminados'): void {
+    if (vista === this.vistaActual()) return;
     this.vistaActual.set(vista);
-    if (vista === 'eliminados' && this.usuarioService.usuariosEliminados() === null) {
+    if (vista === 'activos') {
+      this.paginaActiva.set(null);
+      this.paginaIndexActivos.set(0);
+      this.cargarUsuarios();
+    } else {
+      this.paginaEliminada.set(null);
+      this.paginaIndexEliminados.set(0);
+      this.cargarUsuariosEliminados();
+    }
+  }
+
+  buscarUsuarios(busqueda: string, vista: 'activos' | 'eliminados'): void {
+    if (vista === 'activos') {
+      this.paginaActiva.set(null);
+      this.cambiosBusquedaActivos.next(busqueda);
+    } else {
+      this.paginaEliminada.set(null);
+      this.cambiosBusquedaEliminados.next(busqueda);
+    }
+  }
+
+  cambiarPagina(event: PageEvent, vista: 'activos' | 'eliminados'): void {
+    if (vista === 'activos') {
+      this.paginaIndexActivos.set(event.pageIndex);
+      this.pageSizeActivos.set(event.pageSize);
+      this.paginaActiva.set(null);
+      this.cargarUsuarios();
+    } else {
+      this.paginaIndexEliminados.set(event.pageIndex);
+      this.pageSizeEliminados.set(event.pageSize);
+      this.paginaEliminada.set(null);
       this.cargarUsuariosEliminados();
     }
   }
@@ -312,12 +323,16 @@ export class Admin implements OnInit {
      ========================= */
 
   cargarUsuarios(): void {
-
     this.usuarioService
-      .listarUsuarios()
+      .listarUsuarios(this.paginaIndexActivos(), this.pageSizeActivos(), this.busquedaUsuarios())
       .subscribe({
-
-        error: () => {
+        next: pagina => this.paginaActiva.set(pagina),
+        error: error => {
+          this.paginaActiva.set(null);
+          if (error instanceof RespuestaUsuariosIncompatibleError) {
+            this.mostrarModal('error', 'Backend desactualizado', error.message);
+            return;
+          }
           this.mostrarModal(
             'error',
             'Error al cargar usuarios',
@@ -336,12 +351,16 @@ export class Admin implements OnInit {
      ========================= */
 
   cargarUsuariosEliminados(): void {
-
     this.usuarioService
-      .listarUsuariosEliminados()
+      .listarUsuariosEliminados(this.paginaIndexEliminados(), this.pageSizeEliminados(), this.busquedaUsuariosEliminados())
       .subscribe({
-
-        error: () => {
+        next: pagina => this.paginaEliminada.set(pagina),
+        error: error => {
+          this.paginaEliminada.set(null);
+          if (error instanceof RespuestaUsuariosIncompatibleError) {
+            this.mostrarModal('error', 'Backend desactualizado', error.message);
+            return;
+          }
           this.mostrarModal(
             'error',
             'Error al cargar usuarios',
@@ -398,22 +417,11 @@ export class Admin implements OnInit {
     }
   }
 
-  private obtenerConflictoContacto(excluirUsuarioId?: number): string | null {
-    const usuariosExistentes = [
-      ...(this.usuarioService.usuariosActivos() ?? []),
-      ...(this.usuarioService.usuariosEliminados() ?? [])
-    ].filter(usuario => usuario.id !== excluirUsuarioId);
+  private obtenerConflictoContacto(): string | null {
     const tiposDuplicados: string[] = [];
 
     for (const tipo of ['telefono', 'correo'] as const) {
       const contactos = this.controlesContacto(tipo);
-      const valoresExistentes = new Set(usuariosExistentes.flatMap(usuario =>
-        ((tipo === 'telefono' ? usuario.telefonos : usuario.correos) ?? [])
-          .map(contacto => tipo === 'telefono'
-            ? contacto.valor.replace(/\D/g, '')
-            : contacto.valor.trim().toLowerCase())
-          .filter(Boolean)
-      ));
       const frecuencias = new Map<string, number>();
 
       for (const contacto of contactos) {
@@ -426,10 +434,6 @@ export class Admin implements OnInit {
         if ((frecuencias.get(contacto.valor) ?? 0) > 1) {
           mensajes.push(`Se repite en este formulario.`);
         }
-        if (valoresExistentes.has(contacto.valor)) {
-          mensajes.push('Ya está registrado en otro usuario.');
-        }
-
         if (mensajes.length) {
           contacto.control.setErrors({
             ...contacto.control.errors,
@@ -484,6 +488,7 @@ export class Admin implements OnInit {
 
           this.modalEditarAbierto.set(false);
           this.limpiarFormulario();
+          this.recargarVistaActual();
 
           this.mostrarModal(
             'exito',
@@ -510,25 +515,26 @@ export class Admin implements OnInit {
      ABRIR MODAL DE EDICIÓN
      ========================= */
 
-  editarUsuario(
-    usuario: Usuario
-  ): void {
+  editarUsuario(resumen: UsuarioResumen): void {
+    this.detalleCargando.set(true);
+    this.usuarioService.obtenerUsuario(resumen.id)
+      .pipe(finalize(() => this.detalleCargando.set(false)))
+      .subscribe({
+        next: usuario => this.prepararEdicion(usuario),
+        error: error => this.mostrarErrorHttp(error, 'No fue posible cargar los datos completos del usuario.')
+      });
+  }
 
+  private prepararEdicion(usuario: Usuario): void {
     this.editando.set(true);
-
     this.modalEditarAbierto.set(true);
-
     this.usuarioEditandoId.set(usuario.id);
-
     this.usuarioForm = this.usuarioFormService.crearFormulario(true);
     this.usuarioFormService.cargarUsuario(this.usuarioForm, usuario);
 
     const estado = this.usuarioForm.get('datosContacto.estado')?.value;
     const municipio = this.usuarioForm.get('datosContacto.municipio')?.value;
-    if (!estado || !municipio) {
-      this.actualizarUbicacion();
-    }
-
+    if (!estado || !municipio) this.actualizarUbicacion();
   }
 
   actualizarUbicacion(codigoPostal: string = this.usuarioForm.get('datosContacto.codigo_postal')?.value): void {
@@ -561,6 +567,7 @@ export class Admin implements OnInit {
     this.modalEditarAbierto.set(false);
 
     this.limpiarFormulario();
+    this.usuarioInformacion.set(null);
 
   }
 
@@ -593,7 +600,7 @@ export class Admin implements OnInit {
       return;
     }
 
-    const conflictoContacto = this.obtenerConflictoContacto(this.usuarioEditandoId());
+    const conflictoContacto = this.obtenerConflictoContacto();
     if (conflictoContacto) {
       this.mostrarModal('advertencia', 'Datos de contacto duplicados', conflictoContacto);
       return;
@@ -617,6 +624,7 @@ export class Admin implements OnInit {
           this.modalEditarAbierto.set(false);
 
           this.limpiarFormulario();
+          this.recargarVistaActual();
 
           this.mostrarModal(
             'exito',
@@ -672,6 +680,7 @@ export class Admin implements OnInit {
       .subscribe({
 
         next: () => {
+          this.recargarVistaActual();
 
           this.mostrarModal(
             'exito',
@@ -730,6 +739,7 @@ export class Admin implements OnInit {
       .subscribe({
 
         next: () => {
+          this.recargarVistaActual();
 
           this.mostrarModal(
             'exito',
@@ -856,51 +866,25 @@ export class Admin implements OnInit {
     return respuesta?.mensaje || respuesta?.message || error?.message || '';
   }
 
-  private filtrarUsuarios(usuarios: Usuario[], busqueda: string): Usuario[] {
-    const termino = this.normalizarTexto(busqueda);
-
-    if (!termino) {
-      return usuarios;
-    }
-
-    return usuarios.filter(usuario => {
-      const valores = [
-        usuario.id,
-        usuario.nombre,
-        usuario.primerApellido,
-        usuario.estado,
-        usuario.municipio,
-        ...(usuario.telefonos ?? []).flatMap(contacto => [contacto.tipo, contacto.valor]),
-        ...(usuario.direcciones ?? []).flatMap(contacto => [contacto.tipo, contacto.valor, contacto.codigoPostal]),
-        ...(usuario.correos ?? []).flatMap(contacto => [contacto.tipo, contacto.valor])
-      ];
-
-      return valores.some(valor => this.normalizarTexto(String(valor ?? '')).includes(termino));
-    });
-  }
-
-  obtenerCorreoPrincipal(usuario: Usuario): string {
-    return obtenerContactoPrincipal(usuario.correos)?.valor ?? '';
-  }
-
-  obtenerCodigoPostalPrincipal(usuario: Usuario): string {
-    return usuario.direcciones?.find(direccion => direccion.tipo === 'PRINCIPAL')?.codigoPostal ?? '';
-  }
-
-  abrirInformacion(usuario: Usuario): void {
-    this.usuarioInformacion.set(usuario);
+  abrirInformacion(resumen: UsuarioResumen): void {
+    this.detalleCargando.set(true);
+    this.usuarioService.obtenerContactosUsuario(resumen.id)
+      .pipe(finalize(() => this.detalleCargando.set(false)))
+      .subscribe({
+        next: usuario => this.usuarioInformacion.set(usuario),
+        error: error => this.mostrarErrorHttp(error, 'No fue posible cargar la información del usuario.')
+      });
   }
 
   cerrarInformacion(): void {
     this.usuarioInformacion.set(null);
   }
 
-  private normalizarTexto(valor: string): string {
-    return valor
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toLowerCase()
-      .trim();
+  private recargarVistaActual(): void {
+    this.paginaActiva.set(null);
+    this.paginaEliminada.set(null);
+    if (this.vistaActual() === 'activos') this.cargarUsuarios();
+    else this.cargarUsuariosEliminados();
   }
 
 
@@ -934,11 +918,9 @@ export class Admin implements OnInit {
       finalize(() => this.cargando.set(false))
     ).subscribe({
       next: () => {
-        this.usuarioService.invalidarCacheListas();
         this.router.navigate(['/login']);
       },
       error: () => {
-        this.usuarioService.invalidarCacheListas();
         this.authService.limpiarSesionLocal();
         this.router.navigate(['/login']);
       }
@@ -946,21 +928,5 @@ export class Admin implements OnInit {
 
   }
 
-
-  /* =========================
-     ORDENAR POR ID
-     ========================= */
-
-  private ordenarPorId(
-    usuarios: Usuario[]
-  ): Usuario[] {
-
-    return [...usuarios].sort(
-      (a, b) =>
-        (a.id ?? 0) -
-        (b.id ?? 0)
-    );
-
-  }
 
 }

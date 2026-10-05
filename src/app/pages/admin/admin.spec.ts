@@ -8,13 +8,39 @@ import { OverlayContainer } from '@angular/cdk/overlay';
 import { Admin } from './admin';
 import { UsuariosTablaComponent } from '../../components/usuarios-tabla/usuarios-tabla.component';
 import { environment } from '../../../environments/environment';
-import { Usuario } from '../../models/usuario.model';
+import { Usuario, UsuarioResumen } from '../../models/usuario.model';
 
 describe('Admin', () => {
   let component: Admin;
   let fixture: ComponentFixture<Admin>;
   let httpTesting: HttpTestingController;
   let overlayContainer: OverlayContainer;
+
+  const resumen = (id: number, cambios: Partial<UsuarioResumen> = {}): UsuarioResumen => ({
+    id,
+    nombre: 'Ana',
+    primerApellido: 'Perez',
+    rol: 'USER',
+    telefono: null,
+    correo: null,
+    codigoPostal: null,
+    ...cambios
+  });
+  const pagina = <T>(content: T[], totalElements = content.length) => ({
+    content,
+    totalElements,
+    number: 0,
+    size: 10
+  });
+
+  function responderLista(url: string, content: UsuarioResumen[] = []): void {
+    httpTesting.expectOne(request => request.method === 'GET' && request.url === url)
+      .flush(pagina(content));
+  }
+
+  function responderCsrf(): void {
+    httpTesting.expectOne(`${environment.apiUrl}/auth/csrf`).flush(null);
+  }
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -35,36 +61,27 @@ describe('Admin', () => {
 
   it('should create', () => {
     fixture.detectChanges();
-    httpTesting.expectOne(`${environment.apiUrl}/usuarios`).flush([]);
+    responderLista(`${environment.apiUrl}/usuarios`);
     httpTesting.expectNone(`${environment.apiUrl}/usuarios/eliminados`);
     expect(component).toBeTruthy();
   });
 
-  it('loads deleted users only once when that view is first selected', () => {
+  it('reloads only the selected list when switching views', () => {
     fixture.detectChanges();
-    httpTesting.expectOne(`${environment.apiUrl}/usuarios`).flush([]);
-    httpTesting.expectNone(`${environment.apiUrl}/usuarios/eliminados`);
+    responderLista(`${environment.apiUrl}/usuarios`);
 
     component.cambiarVista('eliminados');
-    httpTesting.expectOne(`${environment.apiUrl}/usuarios/eliminados`).flush([]);
+    responderLista(`${environment.apiUrl}/usuarios/eliminados`);
     component.cambiarVista('activos');
+    responderLista(`${environment.apiUrl}/usuarios`);
     component.cambiarVista('eliminados');
-
-    httpTesting.expectNone(`${environment.apiUrl}/usuarios/eliminados`);
+    responderLista(`${environment.apiUrl}/usuarios/eliminados`);
     expect(component.vistaActual()).toBe('eliminados');
   });
 
-  it('warns when the new user email already belongs to another user', () => {
+  it('uses the backend conflict response when a new user email already exists', () => {
     fixture.detectChanges();
-    httpTesting.expectOne(`${environment.apiUrl}/usuarios`).flush([{
-      id: 1,
-      nombre: 'Ana',
-      primerApellido: 'Perez',
-      fechaNacimiento: '1990-01-01',
-      telefonos: [{ tipo: 'PRINCIPAL', valor: '1112223333' }],
-      correos: [{ tipo: 'PRINCIPAL', valor: 'ana@example.com' }],
-      direcciones: []
-    }]);
+    responderLista(`${environment.apiUrl}/usuarios`);
 
     component.abrirCrearUsuario();
     component.usuarioForm.patchValue({
@@ -83,26 +100,18 @@ describe('Admin', () => {
     });
 
     component.crearUsuario();
+    responderCsrf();
+    const post = httpTesting.expectOne(request => request.method === 'POST' && request.url === `${environment.apiUrl}/usuarios`);
+    post.flush({ message: 'Correo duplicado' }, { status: 409, statusText: 'Conflict' });
 
     expect(component.modalMensajeVisible()).toBeTrue();
     expect(component.modalTitulo()).toBe('Datos de contacto duplicados');
-    expect(component.modalMensaje()).toContain('correo');
-    expect(component.usuarioForm.get('datosPersonales.email')?.getError('duplicadoContacto'))
-      .toContain('Ya está registrado en otro usuario.');
-    httpTesting.expectNone(`${environment.apiUrl}/usuarios`, 'No debe enviar el alta si el correo ya existe.');
+    expect(component.modalMensaje()).toContain('Correo duplicado');
   });
 
-  it('warns when the new user phone already belongs to another user', () => {
+  it('uses the backend conflict response when a new user phone already exists', () => {
     fixture.detectChanges();
-    httpTesting.expectOne(`${environment.apiUrl}/usuarios`).flush([{
-      id: 1,
-      nombre: 'Ana',
-      primerApellido: 'Perez',
-      fechaNacimiento: '1990-01-01',
-      telefonos: [{ tipo: 'PRINCIPAL', valor: '(111) 222-3333' }],
-      correos: [{ tipo: 'PRINCIPAL', valor: 'ana@example.com' }],
-      direcciones: []
-    }]);
+    responderLista(`${environment.apiUrl}/usuarios`);
 
     component.abrirCrearUsuario();
     component.usuarioForm.patchValue({
@@ -121,17 +130,18 @@ describe('Admin', () => {
     });
 
     component.crearUsuario();
+    responderCsrf();
+    const post = httpTesting.expectOne(request => request.method === 'POST' && request.url === `${environment.apiUrl}/usuarios`);
+    post.flush({ message: 'Teléfono duplicado' }, { status: 409, statusText: 'Conflict' });
 
     expect(component.modalMensajeVisible()).toBeTrue();
-    expect(component.modalMensaje()).toContain('teléfono');
-    expect(component.usuarioForm.get('datosContacto.telefono')?.getError('duplicadoContacto'))
-      .toContain('Ya está registrado en otro usuario.');
-    httpTesting.expectNone(`${environment.apiUrl}/usuarios`, 'No debe enviar el alta si el teléfono ya existe.');
+    expect(component.modalTitulo()).toBe('Datos de contacto duplicados');
+    expect(component.modalMensaje()).toContain('Teléfono duplicado');
   });
 
   it('marks both primary and additional fields when contacts repeat in the form', () => {
     fixture.detectChanges();
-    httpTesting.expectOne(`${environment.apiUrl}/usuarios`).flush([]);
+    responderLista(`${environment.apiUrl}/usuarios`);
 
     component.abrirCrearUsuario();
     component.usuarioForm.patchValue({
@@ -185,50 +195,30 @@ describe('Admin', () => {
     };
 
     fixture.detectChanges();
-    httpTesting.expectOne(`${environment.apiUrl}/usuarios`).flush([
-      usuario,
-      {
-        ...usuario,
-        id: 2,
-        nombre: 'Luis',
-        telefonos: [{ tipo: 'PRINCIPAL', valor: '4445556666' }],
-        correos: [{ tipo: 'PRINCIPAL', valor: 'luis@example.com' }]
-      }
-    ]);
+    responderLista(`${environment.apiUrl}/usuarios`, [resumen(1), resumen(2, { nombre: 'Luis' })]);
 
-    component.editarUsuario(usuario);
+    component.editarUsuario(resumen(1));
+    httpTesting.expectOne(`${environment.apiUrl}/usuarios/1`).flush(usuario);
     component.usuarioForm.get('datosContacto.telefono')?.setValue('4445556666');
     component.actualizarUsuario();
+    responderCsrf();
+    httpTesting.expectOne(`${environment.apiUrl}/usuarios/1`).flush(
+      { message: 'Teléfono duplicado' }, { status: 409, statusText: 'Conflict' }
+    );
 
     expect(component.modalMensajeVisible()).toBeTrue();
-    expect(component.modalMensaje()).toContain('teléfono');
-    expect(component.usuarioForm.get('datosContacto.telefono')?.getError('duplicadoContacto'))
-      .toContain('Ya está registrado en otro usuario.');
+    expect(component.modalMensaje()).toContain('Teléfono duplicado');
     expect(component.usuarioForm.get('datosPersonales.email')?.getError('duplicadoContacto')).toBeNull();
-    httpTesting.expectNone(`${environment.apiUrl}/usuarios/1`);
   });
 
-  it('continues filtering by postal code while its column is hidden', () => {
+  it('renders the server-provided postal code even while its column is hidden', () => {
     fixture.detectChanges();
-    const usuario = {
-      id: 21,
-      nombre: 'Ana',
-      primerApellido: 'Lopez',
-      fechaNacimiento: '1990-05-15',
-      estado: 'Hidalgo',
-      municipio: 'Pachuca',
-      telefonos: [{ tipo: 'PRINCIPAL', valor: '7711234567' }],
-      correos: [{ tipo: 'PRINCIPAL', valor: 'ana@example.com' }],
-      direcciones: [{ tipo: 'PRINCIPAL', valor: 'Calle Principal 10', codigoPostal: '42000' }]
-    };
-    httpTesting.expectOne(`${environment.apiUrl}/usuarios`).flush([usuario]);
+    const usuario = resumen(21, { nombre: 'Ana', primerApellido: 'Lopez', codigoPostal: '42000' });
+    responderLista(`${environment.apiUrl}/usuarios`, [usuario]);
     fixture.detectChanges();
 
     const tabla = fixture.debugElement.query(By.directive(UsuariosTablaComponent)).componentInstance as UsuariosTablaComponent;
     expect(tabla.columnasVisibles).not.toContain('codigoPostal');
-
-    component.busquedaUsuarios.set('42000');
-    fixture.detectChanges();
 
     expect(tabla.columnasVisibles).not.toContain('codigoPostal');
     expect(component.usuariosFiltrados()).toEqual([usuario]);
@@ -237,7 +227,7 @@ describe('Admin', () => {
 
   it('runs a destructive action only after the dialog is confirmed', async () => {
     fixture.detectChanges();
-    httpTesting.expectOne(`${environment.apiUrl}/usuarios`).flush([]);
+    responderLista(`${environment.apiUrl}/usuarios`);
     let actionCount = 0;
 
     component.mostrarConfirmacion('¿Eliminar usuario?', 'Confirmación de prueba.', () => actionCount++);

@@ -8,8 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatTableModule } from '@angular/material/table';
-import { Usuario } from '../../models/usuario.model';
-import { obtenerContactoPrincipal } from '../../utils/contactos.util';
+import { UsuarioResumen } from '../../models/usuario.model';
 import { AdminIconsService } from '../../services/admin-icons.service';
 
 type ColumnaOpcionalUsuarios = 'telefono' | 'codigoPostal' | 'correo';
@@ -43,9 +42,11 @@ const COLUMNAS_OPCIONALES: OpcionColumnaUsuarios[] = [
   styleUrl: './usuarios-tabla.component.css'
 })
 export class UsuariosTablaComponent implements OnChanges {
-  @Input() usuarios: Usuario[] = [];
+  @Input() usuarios: UsuarioResumen[] = [];
   @Input() busqueda = '';
   @Input() total = 0;
+  @Input() pageIndex = 0;
+  @Input() pageSize = 5;
   @Input() cargando = false;
   @Input() inactivos = false;
   @Input() set columnasOpcionalesSeleccionadas(columnas: string[] | null | undefined) {
@@ -55,13 +56,11 @@ export class UsuariosTablaComponent implements OnChanges {
   @Output() busquedaChange = new EventEmitter<string>();
   @Output() columnasOpcionalesChange = new EventEmitter<string[]>();
   @Output() registrar = new EventEmitter<void>();
-  @Output() ver = new EventEmitter<Usuario>();
-  @Output() editar = new EventEmitter<Usuario>();
+  @Output() ver = new EventEmitter<UsuarioResumen>();
+  @Output() editar = new EventEmitter<UsuarioResumen>();
   @Output() eliminar = new EventEmitter<number>();
   @Output() reactivar = new EventEmitter<number>();
 
-  pageIndex = 0;
-  pageSize = 10;
   private columnasActivas = new Set<string>(['telefono', 'correo']);
 
   constructor(adminIcons: AdminIconsService) {
@@ -69,7 +68,7 @@ export class UsuariosTablaComponent implements OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['usuarios'] || changes['busqueda']) {
+    if (changes['busqueda']) {
       this.pageIndex = 0;
     }
   }
@@ -82,6 +81,7 @@ export class UsuariosTablaComponent implements OnChanges {
     return [
       'id',
       'nombre',
+      'rol',
       ...opcionalesVisibles,
       'informacion',
       'acciones'
@@ -110,12 +110,11 @@ export class UsuariosTablaComponent implements OnChanges {
     this.columnasOpcionalesChange.emit([...this.columnasActivas]);
   }
 
-  get usuariosPaginados(): Usuario[] {
-    const start = this.pageIndex * this.pageSize;
-    return this.usuarios.slice(start, start + this.pageSize);
+  get usuariosPaginados(): UsuarioResumen[] {
+    return this.usuarios;
   }
 
-  get sugerencias(): Usuario[] {
+  get sugerencias(): UsuarioResumen[] {
     return this.busqueda.trim() ? this.usuarios.slice(0, 8) : [];
   }
 
@@ -128,27 +127,32 @@ export class UsuariosTablaComponent implements OnChanges {
   }
 
   cambiarPagina(event: PageEvent): void {
-    this.pageIndex = event.pageIndex;
-    this.pageSize = event.pageSize;
+    this.paginaChange.emit(event);
   }
 
-  nombreCompleto(usuario: Usuario): string {
+  nombreCompleto(usuario: UsuarioResumen): string {
     return `${usuario.nombre} ${usuario.primerApellido}`.trim();
   }
 
-  valorSugerencia(usuario: Usuario): string {
+  valorSugerencia(usuario: UsuarioResumen): string {
     return String(usuario.id ?? usuario.nombre);
   }
 
-  obtenerTelefonoPrincipal(usuario: Usuario): string {
-    return obtenerContactoPrincipal(usuario.telefonos)?.valor ?? '';
+  obtenerTelefonoPrincipal(usuario: UsuarioResumen): string {
+    return usuario.telefono ?? '';
   }
 
-  obtenerCorreoPrincipal(usuario: Usuario): string {
-    return obtenerContactoPrincipal(usuario.correos)?.valor ?? '';
+  nombreRol(usuario: UsuarioResumen): string {
+    return usuario.rol === 'ADMIN' ? 'Administrador' : 'Usuario';
   }
 
-  obtenerCodigoPostalPrincipal(usuario: Usuario): string {
-    return obtenerContactoPrincipal(usuario.direcciones)?.codigoPostal ?? '';
+  obtenerCorreoPrincipal(usuario: UsuarioResumen): string {
+    return usuario.correo ?? '';
   }
+
+  obtenerCodigoPostalPrincipal(usuario: UsuarioResumen): string {
+    return usuario.codigoPostal ?? '';
+  }
+
+  @Output() paginaChange = new EventEmitter<PageEvent>();
 }

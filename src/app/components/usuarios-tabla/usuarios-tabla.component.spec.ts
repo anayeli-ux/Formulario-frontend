@@ -3,21 +3,21 @@ import { By } from '@angular/platform-browser';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { MatCheckbox } from '@angular/material/checkbox';
-import { Usuario } from '../../models/usuario.model';
+import { UsuarioResumen } from '../../models/usuario.model';
 import { UsuariosTablaComponent } from './usuarios-tabla.component';
 
 describe('UsuariosTablaComponent', () => {
   let component: UsuariosTablaComponent;
   let fixture: ComponentFixture<UsuariosTablaComponent>;
 
-  const crearUsuario = (id: number): Usuario => ({
+  const crearUsuario = (id: number): UsuarioResumen => ({
     id,
     nombre: `Usuario ${id}`,
     primerApellido: 'Prueba',
-    fechaNacimiento: '1990-01-01',
-    telefonos: [],
-    correos: [],
-    direcciones: []
+    rol: 'USER',
+    telefono: null,
+    correo: null,
+    codigoPostal: null
   });
 
   beforeEach(async () => {
@@ -35,12 +35,17 @@ describe('UsuariosTablaComponent', () => {
     fixture.destroy();
   });
 
-  it('paginates the provided filtered users on the frontend', () => {
-    fixture.componentRef.setInput('usuarios', Array.from({ length: 12 }, (_, index) => crearUsuario(index + 1)));
+  it('defaults to five rows per page', () => {
+    expect(component.pageSize).toBe(5);
+  });
+
+  it('emits page changes so the parent can request the next server page', () => {
+    let requestedPage = -1;
+    component.paginaChange.subscribe(event => requestedPage = event.pageIndex);
     fixture.detectChanges();
     component.cambiarPagina({ pageIndex: 1, pageSize: 5, length: 12 });
 
-    expect(component.usuariosPaginados.map(usuario => usuario.id)).toEqual([6, 7, 8, 9, 10]);
+    expect(requestedPage).toBe(1);
   });
 
   it('resets the page when the search changes', () => {
@@ -84,7 +89,7 @@ describe('UsuariosTablaComponent', () => {
 
   it('keeps identity and action columns fixed and offers only current optional columns', () => {
     expect(component.columnasVisibles).toEqual([
-      'id', 'nombre', 'telefono', 'correo', 'informacion', 'acciones'
+      'id', 'nombre', 'rol', 'telefono', 'correo', 'informacion', 'acciones'
     ]);
     expect(component.columnasConfigurables.map(columna => columna.id)).toEqual([
       'telefono', 'codigoPostal', 'correo'
@@ -109,7 +114,7 @@ describe('UsuariosTablaComponent', () => {
     expect(component.columnasVisibles).not.toContain('codigoPostal');
   });
 
-  it('does not mutate users or the paginated datasource when visibility changes', () => {
+  it('does not mutate page results when column visibility changes', () => {
     const usuarios = [crearUsuario(7)];
     const snapshot = JSON.stringify(usuarios);
     fixture.componentRef.setInput('usuarios', usuarios);

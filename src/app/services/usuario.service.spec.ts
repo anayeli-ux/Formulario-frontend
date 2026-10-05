@@ -1,12 +1,9 @@
 import { TestBed } from '@angular/core/testing';
-import { HttpClient } from '@angular/common/http';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { of } from 'rxjs';
-import { Usuario } from '../models/usuario.model';
 import { environment } from '../../environments/environment';
 import { AuthService } from './auth.service';
-import { UsuarioRequest, UsuarioService } from './usuario.service';
-import { USUARIO_CACHE_STORAGE_PREFIX } from './usuario-cache.storage';
+import { RespuestaUsuariosIncompatibleError, UsuarioActualizarRequest, UsuarioService } from './usuario.service';
 
 describe('UsuarioService', () => {
   let service: UsuarioService;
@@ -32,57 +29,27 @@ describe('UsuarioService', () => {
     sessionStorage.clear();
   });
 
-  it('shares an in-flight list request and reuses its signal cache', () => {
-    const usuario: Usuario = {
-      id: 1,
-      nombre: 'Ana',
-      primerApellido: 'Perez',
-      fechaNacimiento: '1990-01-01',
-      telefonos: [],
-      correos: [],
-      direcciones: []
-    };
-    const resultados: Usuario[][] = [];
+  it('requests only the requested page and search term for active users', () => {
+    service.listarUsuarios(2, 5, '42000').subscribe();
+    const request = httpTesting.expectOne(item => item.url === `${environment.apiUrl}/usuarios`);
 
-    service.listarUsuarios().subscribe(valor => resultados.push(valor));
-    service.listarUsuarios().subscribe(valor => resultados.push(valor));
-
-    httpTesting.expectOne(`${environment.apiUrl}/usuarios`).flush([usuario]);
-    service.listarUsuarios().subscribe(valor => resultados.push(valor));
-
-    expect(resultados).toEqual([[usuario], [usuario], [usuario]]);
-    httpTesting.expectNone(`${environment.apiUrl}/usuarios`);
+    expect(request.request.params.get('page')).toBe('2');
+    expect(request.request.params.get('size')).toBe('5');
+    expect(request.request.params.get('search')).toBe('42000');
+    request.flush({ content: [], totalElements: 0, number: 2, size: 5 });
   });
 
-  it('reuses the session cache after the service is recreated on page reload', () => {
-    const usuario: Usuario = {
-      id: 1,
-      nombre: 'Ana',
-      primerApellido: 'Perez',
-      fechaNacimiento: '1990-01-01',
-      telefonos: [],
-      correos: [],
-      direcciones: []
-    };
-
+  it('defaults active user pages to five rows', () => {
     service.listarUsuarios().subscribe();
-    httpTesting.expectOne(`${environment.apiUrl}/usuarios`).flush([usuario]);
-
-    const servicioTrasRecarga = new UsuarioService(
-      TestBed.inject(HttpClient),
-      authServiceMock as unknown as AuthService
-    );
-    let resultado: Usuario[] = [];
-
-    servicioTrasRecarga.listarUsuarios().subscribe(usuarios => resultado = usuarios);
-
-    expect(resultado).toEqual([usuario]);
-    expect(sessionStorage.getItem(`${USUARIO_CACHE_STORAGE_PREFIX}1:activos`)).toContain('Ana');
-    httpTesting.expectNone(`${environment.apiUrl}/usuarios`);
+    const request = httpTesting.expectOne(item => item.url === `${environment.apiUrl}/usuarios`);
+    expect(request.request.params.get('size')).toBe('5');
+    request.flush({ content: [], totalElements: 0, number: 0, size: 5 });
   });
 
-  it('updates the active-list cache after creating a user', () => {
-    const existente: Usuario = {
+  it('rejects the old full-array response instead of presenting it as an empty page', () => {
+    let error: unknown;
+    service.listarUsuarios().subscribe({ error: received => error = received });
+    httpTesting.expectOne(item => item.url === `${environment.apiUrl}/usuarios`).flush([{
       id: 1,
       nombre: 'Ana',
       primerApellido: 'Perez',
@@ -90,92 +57,81 @@ describe('UsuarioService', () => {
       telefonos: [],
       correos: [],
       direcciones: []
-    };
-    const nuevo: Usuario = {
-      ...existente,
-      id: 2,
-      nombre: 'Luis'
-    };
-    const solicitudUsuario: UsuarioRequest = {
-      nombre: 'Luis',
-      primerApellido: 'Perez',
-      fechaNacimiento: '1990-01-01',
-      password: 'validPassword!1',
-      telefonos: [],
-      correos: [],
-      direcciones: []
-    };
+    }]);
 
-    service.listarUsuarios().subscribe();
-    httpTesting.expectOne(`${environment.apiUrl}/usuarios`).flush([existente]);
-
-    service.crearUsuario(solicitudUsuario).subscribe();
-    httpTesting.expectOne(`${environment.apiUrl}/usuarios`).flush(nuevo);
-
-    service.listarUsuarios().subscribe(usuarios => expect(usuarios).toEqual([existente, nuevo]));
-    httpTesting.expectNone(`${environment.apiUrl}/usuarios`);
+    expect(error).toEqual(jasmine.any(RespuestaUsuariosIncompatibleError));
   });
 
-  it('updates the active-list signal from the request after a 204 response without refetching', () => {
-    const existente: Usuario = {
-      id: 1,
+  it('requests full details only for an explicitly selected user', () => {
+    service.obtenerUsuario(17).subscribe();
+    const request = httpTesting.expectOne(`${environment.apiUrl}/usuarios/17`);
+    expect(request.request.method).toBe('GET');
+    request.flush({
+      id: 17,
       nombre: 'Ana',
       primerApellido: 'Perez',
       fechaNacimiento: '1990-01-01',
       telefonos: [],
       correos: [],
       direcciones: []
-    };
-    const actualizado = { ...existente, nombre: 'Ana Maria' };
-
-    service.listarUsuarios().subscribe();
-    httpTesting.expectOne(`${environment.apiUrl}/usuarios`).flush([existente]);
-
-    service.actualizarUsuario(1, {
-      nombre: actualizado.nombre,
-      primerApellido: actualizado.primerApellido,
-      fechaNacimiento: actualizado.fechaNacimiento,
-      telefonos: [],
-      correos: [],
-      direcciones: []
-    }).subscribe();
-    httpTesting.expectOne(`${environment.apiUrl}/usuarios/1`).flush(null, {
-      status: 204,
-      statusText: 'No Content'
     });
-
-    expect(service.usuariosActivos()).toEqual([actualizado]);
-    expect(authServiceMock.actualizarPerfilSesion).toHaveBeenCalledWith(actualizado);
-    httpTesting.expectNone(`${environment.apiUrl}/usuarios`);
   });
 
-  it('moves users between cached lists after delete and reactivate responses', () => {
-    const usuario: Usuario = {
-      id: 1,
+  it('requests only displayed contact fields for the information modal', () => {
+    service.obtenerContactosUsuario(17).subscribe();
+    const request = httpTesting.expectOne(`${environment.apiUrl}/usuarios/17/contactos`);
+    expect(request.request.method).toBe('GET');
+    request.flush({ id: 17, nombre: 'Ana', primerApellido: 'Perez', telefonos: [], correos: [], direcciones: [] });
+  });
+
+  it('sends persistent contact IDs unchanged in the update PUT body', () => {
+    const request: UsuarioActualizarRequest = {
       nombre: 'Ana',
       primerApellido: 'Perez',
       fechaNacimiento: '1990-01-01',
-      activo: true,
-      telefonos: [],
-      correos: [],
-      direcciones: []
+      telefonos: [
+        { id: 31, tipo: 'PRINCIPAL', valor: '7711234567' },
+        { id: 32, tipo: 'TRABAJO', valor: '7717654321' }
+      ],
+      correos: [
+        { id: 33, tipo: 'PRINCIPAL', valor: 'ana@example.com' },
+        { id: 25, tipo: 'TRABAJO', valor: 'aldo2@gmail.com' }
+      ],
+      direcciones: [
+        { id: 34, tipo: 'PRINCIPAL', valor: 'Calle Principal 10', codigoPostal: '42000' },
+        { id: 35, tipo: 'CASA', valor: 'Calle Secundaria 20', codigoPostal: '42010' }
+      ]
     };
 
-    service.listarUsuarios().subscribe();
-    httpTesting.expectOne(`${environment.apiUrl}/usuarios`).flush([usuario]);
-    service.listarUsuariosEliminados().subscribe();
-    httpTesting.expectOne(`${environment.apiUrl}/usuarios/eliminados`).flush([]);
+    service.actualizarUsuario(1, request).subscribe();
 
+    const put = httpTesting.expectOne(`${environment.apiUrl}/usuarios/1`);
+    expect(put.request.method).toBe('PUT');
+    expect(put.request.body).toEqual(request);
+    put.flush(null, { status: 204, statusText: 'No Content' });
+  });
+
+  it('loads deleted summaries using their own page and search parameters', () => {
+    service.listarUsuariosEliminados(1, 25, 'Lopez').subscribe();
+    const request = httpTesting.expectOne(item => item.url === `${environment.apiUrl}/usuarios/eliminados`);
+    expect(request.request.params.get('page')).toBe('1');
+    expect(request.request.params.get('size')).toBe('25');
+    expect(request.request.params.get('search')).toBe('Lopez');
+    request.flush({ content: [], totalElements: 0, number: 1, size: 25 });
+  });
+
+  it('sends delete and reactivation requests without retaining full-list data', () => {
     service.eliminarUsuario(1).subscribe();
     httpTesting.expectOne(`${environment.apiUrl}/usuarios/1`).flush(null);
-    expect(service.usuariosActivos()).toEqual([]);
-    expect(service.usuariosEliminados()).toEqual([{ ...usuario, activo: false }]);
-
     service.reactivarUsuario(1).subscribe();
-    httpTesting.expectOne(`${environment.apiUrl}/usuarios/1/reactivar`).flush(usuario);
-    expect(service.usuariosActivos()).toEqual([usuario]);
-    expect(service.usuariosEliminados()).toEqual([]);
-    httpTesting.expectNone(`${environment.apiUrl}/usuarios`);
-    httpTesting.expectNone(`${environment.apiUrl}/usuarios/eliminados`);
+    httpTesting.expectOne(`${environment.apiUrl}/usuarios/1/reactivar`).flush({
+      id: 1,
+      nombre: 'Ana',
+      primerApellido: 'Perez',
+      fechaNacimiento: '1990-01-01',
+      telefonos: [],
+      correos: [],
+      direcciones: []
+    });
   });
 });

@@ -55,6 +55,11 @@
         <td mat-cell *matCellDef="let usuario">{{ usuario.nombre }} {{ usuario.primerApellido }}</td>
       </ng-container>
 
+      <ng-container matColumnDef="rol">
+        <th mat-header-cell *matHeaderCellDef>Rol</th>
+        <td mat-cell *matCellDef="let usuario">{{ nombreRol(usuario) }}</td>
+      </ng-container>
+
       <ng-container matColumnDef="telefono">
         <th mat-header-cell *matHeaderCellDef>Teléfono</th>
         <td mat-cell *matCellDef="let usuario">{{ obtenerTelefonoPrincipal(usuario) }}</td>
@@ -113,10 +118,10 @@
   </div>
 
   <mat-paginator
-    [length]="usuarios.length"
+    [length]="total"
     [pageIndex]="pageIndex"
     [pageSize]="pageSize"
-    [pageSizeOptions]="[5, 10, 25]"
+    [pageSizeOptions]="[5]"
     showFirstLastButtons
     (page)="cambiarPagina($event)"
     aria-label="Paginación de usuarios"
