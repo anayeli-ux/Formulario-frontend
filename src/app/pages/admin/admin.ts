@@ -1,15 +1,9 @@
 import { CommonModule } from '@angular/common';
-
-import {
-  Component,
-  OnInit,
-  computed,
-  signal
-} from '@angular/core';
-
+import { Component, DestroyRef, OnInit, computed, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { finalize } from 'rxjs';
+import { EMPTY, Subject, catchError, debounceTime, distinctUntilChanged, filter, finalize, switchMap } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -17,9 +11,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { Usuario } from '../../models/usuario.model';
-
 import { UsuarioService } from '../../services/usuario.service';
-
 import { AuthService } from '../../services/auth.service';
 import { PostaliaService } from '../../services/postalia.service';
 import { UsuarioFormService } from '../../services/usuario-form.service';
@@ -38,16 +30,11 @@ import {
 import { ConfirmacionAdminDialogComponent } from '../../components/confirmacion-admin-dialog/confirmacion-admin-dialog.component';
 import { AdminIconsService } from '../../services/admin-icons.service';
 
-type TipoModal =
-  | 'exito'
-  | 'advertencia'
-  | 'error'
-  | 'confirmacion';
+type TipoModal = 'exito' | 'advertencia' | 'error' | 'confirmacion';
 
 @Component({
   selector: 'app-admin',
   standalone: true,
-
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -63,15 +50,11 @@ type TipoModal =
     MatIconModule,
     MatSnackBarModule
   ],
-
   templateUrl: './admin.html',
   styleUrl: './admin.css'
 })
 export class Admin implements OnInit {
-
-  /* =========================
-     USUARIOS
-     ========================= */
+  private readonly codigoPostalCambios = new Subject<string>();
 
   vistaActual = signal<'activos' | 'eliminados'>('activos');
 
@@ -82,11 +65,8 @@ export class Admin implements OnInit {
   usuariosEliminados = computed(() =>
     this.ordenarPorId(this.usuarioService.usuariosEliminados() ?? [])
   );
-
   usuarioInformacion = signal<Usuario | null>(null);
-
   busquedaUsuarios = signal('');
-
   busquedaUsuariosEliminados = signal('');
 
   columnasOpcionalesUsuarios = signal<string[]>(['telefono', 'correo']);
@@ -113,52 +93,27 @@ export class Admin implements OnInit {
     )
   );
 
-  totalUsuariosActivos =
-    computed(
-      () => this.usuariosActivos().filter(usuario => usuario.rol !== 'ADMIN').length
-    );
+  totalUsuariosActivos = computed(
+    () => this.usuariosActivos().filter(usuario => usuario.rol !== 'ADMIN').length
+  );
 
-  totalUsuariosEliminados =
-    computed(
-      () => this.usuariosEliminados().filter(usuario => usuario.rol !== 'ADMIN').length
-    );
-
-
-  /* =========================
-     MODAL DE EDICIÓN
-     ========================= */
+  totalUsuariosEliminados = computed(
+    () => this.usuariosEliminados().filter(usuario => usuario.rol !== 'ADMIN').length
+  );
 
   editando = signal(false);
-
   modalEditarAbierto = signal(false);
-
   usuarioEditandoId = signal<number | undefined>(undefined);
-
   usuarioForm!: FormGroup;
 
-
-  /* =========================
-     MODAL DE MENSAJES
-     ========================= */
-
   modalMensajeVisible = signal(false);
-
   modalTipo = signal<TipoModal>('exito');
-
   modalTitulo = signal('');
-
   modalMensaje = signal('');
-
   cargando = signal(false);
 
-
-  /*
-   * Guarda temporalmente una acción
-   * que se ejecutará al confirmar.
-   */
-  private accionConfirmada:
-    (() => void) | null = null;
-
+  private accionConfirmada: (() => void) | null = null;
+  private eliminadosCargados = false;
 
   constructor(
     private router: Router,
@@ -168,23 +123,33 @@ export class Admin implements OnInit {
     private usuarioFormService: UsuarioFormService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
-    private adminIcons: AdminIconsService
+    private adminIcons: AdminIconsService,
+    private destroyRef: DestroyRef
   ) {
     this.adminIcons.registrar();
   }
 
-
   ngOnInit(): void {
-
     this.usuarioForm = this.usuarioFormService.crearFormulario();
-
     this.cargarUsuarios();
 
+    this.codigoPostalCambios.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      filter(codigoPostal => /^\d{5}$/.test(codigoPostal)),
+      switchMap(codigoPostal => this.postaliaService.buscarCodigoPostal(codigoPostal).pipe(
+        catchError(() => EMPTY)
+      )),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(ubicacion => {
+      const codigoPostal = this.usuarioForm.get('datosContacto.codigo_postal')?.value;
+      this.aplicarUbicacion(codigoPostal, ubicacion);
+    });
   }
 
   cambiarVista(vista: 'activos' | 'eliminados'): void {
     this.vistaActual.set(vista);
-    if (vista === 'eliminados' && this.usuarioService.usuariosEliminados() === null) {
+    if (vista === 'eliminados' && !this.eliminadosCargados) {
       this.cargarUsuariosEliminados();
     }
   }
@@ -193,17 +158,28 @@ export class Admin implements OnInit {
     this.columnasOpcionalesUsuarios.set(columnas);
   }
 
+  private cargarUsuarios(): void {
+    this.usuarioService.listarUsuarios().subscribe({
+      error: () => this.mostrarModal(
+        'error',
+        'Error al cargar usuarios',
+        'No fue posible obtener la lista de usuarios activos.'
+      )
+    });
+  }
 
-  /* =========================
-     MODAL DE MENSAJES
-     ========================= */
+  private cargarUsuariosEliminados(): void {
+    this.usuarioService.listarUsuariosEliminados().subscribe({
+      next: () => this.eliminadosCargados = true,
+      error: () => this.mostrarModal(
+        'error',
+        'Error al cargar usuarios',
+        'No fue posible obtener la lista de usuarios eliminados.'
+      )
+    });
+  }
 
-  mostrarModal(
-    tipo: TipoModal,
-    titulo: string,
-    mensaje: string
-  ): void {
-
+  mostrarModal(tipo: TipoModal, titulo: string, mensaje: string): void {
     if (tipo === 'exito') {
       this.snackBar.open(`${titulo}: ${mensaje}`, 'Cerrar', {
         duration: 5000,
@@ -215,28 +191,15 @@ export class Admin implements OnInit {
     }
 
     this.modalTipo.set(tipo);
-
     this.modalTitulo.set(titulo);
-
     this.modalMensaje.set(mensaje);
-
     this.modalMensajeVisible.set(true);
-
   }
-
 
   cerrarModalMensaje(): void {
-
     this.modalMensajeVisible.set(false);
-
     this.accionConfirmada = null;
-
   }
-
-
-  /* =========================
-     MODAL DE CONFIRMACIÓN
-     ========================= */
 
   mostrarConfirmacion(
     titulo: string,
@@ -260,88 +223,18 @@ export class Admin implements OnInit {
 
   }
 
-
   confirmarAccion(): void {
-
-    if (!this.accionConfirmada) {
-      return;
-    }
-
+    if (!this.accionConfirmada) return;
     const accion = this.accionConfirmada;
-
-    /*
-     * Primero cerramos el modal
-     * y después ejecutamos la acción.
-     */
     this.modalMensajeVisible.set(false);
-
     this.accionConfirmada = null;
-
     accion();
-
   }
-
 
   cancelarConfirmacion(): void {
-
     this.modalMensajeVisible.set(false);
-
     this.accionConfirmada = null;
-
   }
-
-
-  /* =========================
-     USUARIOS ACTIVOS
-     ========================= */
-
-  cargarUsuarios(): void {
-
-    this.usuarioService
-      .listarUsuarios()
-      .subscribe({
-
-        error: () => {
-          this.mostrarModal(
-            'error',
-            'Error al cargar usuarios',
-            'No fue posible obtener la lista de usuarios activos.'
-          );
-
-        }
-
-      });
-
-  }
-
-
-  /* =========================
-     USUARIOS ELIMINADOS
-     ========================= */
-
-  cargarUsuariosEliminados(): void {
-
-    this.usuarioService
-      .listarUsuariosEliminados()
-      .subscribe({
-
-        error: () => {
-          this.mostrarModal(
-            'error',
-            'Error al cargar usuarios',
-            'No fue posible obtener la lista de usuarios eliminados.'
-          );
-
-        }
-
-      });
-
-  }
-
-
-  /* =========================
-    CREAR USUARIO
-     ========================= */
 
   abrirCrearUsuario(): void {
     this.editando.set(false);
@@ -351,63 +244,34 @@ export class Admin implements OnInit {
   }
 
   crearUsuario(): void {
-
-    if (this.cargando()) {
-      return;
-    }
-
-    if (this.usuarioForm.invalid) {
-      this.usuarioForm.markAllAsTouched();
+    if (this.cargando() || this.usuarioForm.invalid) {
+      if (this.usuarioForm.invalid) this.usuarioForm.markAllAsTouched();
       return;
     }
 
     const usuario = this.usuarioFormService.crearRequest(this.usuarioForm);
-
     this.cargando.set(true);
 
-    this.usuarioService
-      .crearUsuario(usuario)
-      .pipe(finalize(() => this.cargando.set(false)))
+    this.usuarioService.crearUsuario(usuario)
+      .pipe(
+        finalize(() => this.cargando.set(false)),
+        takeUntilDestroyed(this.destroyRef)
+      )
       .subscribe({
-
         next: () => {
-
           this.modalEditarAbierto.set(false);
           this.limpiarFormulario();
-
-          this.mostrarModal(
-            'exito',
-            'Usuario registrado',
-            'El usuario fue creado correctamente.'
-          );
-
+          this.mostrarModal('exito', 'Usuario registrado', 'El usuario fue creado correctamente.');
         },
-
         error: (error: any) => {
-          this.mostrarErrorHttp(
-            error,
-            'No se pudo crear el usuario.'
-          );
-
+          this.mostrarErrorHttp(error, 'No se pudo crear el usuario.');
         }
-
       });
-
   }
 
-
-  /* =========================
-     ABRIR MODAL DE EDICIÓN
-     ========================= */
-
-  editarUsuario(
-    usuario: Usuario
-  ): void {
-
+  editarUsuario(usuario: Usuario): void {
     this.editando.set(true);
-
     this.modalEditarAbierto.set(true);
-
     this.usuarioEditandoId.set(usuario.id);
 
     this.usuarioForm = this.usuarioFormService.crearFormulario(true);
@@ -416,334 +280,156 @@ export class Admin implements OnInit {
     const estado = this.usuarioForm.get('datosContacto.estado')?.value;
     const municipio = this.usuarioForm.get('datosContacto.municipio')?.value;
     if (!estado || !municipio) {
-      this.actualizarUbicacion();
+      this.consultarUbicacionAlEditar(this.usuarioForm.get('datosContacto.codigo_postal')?.value);
     }
-
   }
 
-  actualizarUbicacion(codigoPostal: string = this.usuarioForm.get('datosContacto.codigo_postal')?.value): void {
-
+  actualizarUbicacion(codigoPostal: string): void {
     if (!/^\d{5}$/.test(codigoPostal)) {
       this.usuarioForm.get('datosContacto.estado')?.setValue('');
       this.usuarioForm.get('datosContacto.municipio')?.setValue('');
       return;
     }
 
-    this.postaliaService.buscarCodigoPostal(codigoPostal).subscribe({
-      next: ubicacion => {
-        if (this.usuarioForm.get('datosContacto.codigo_postal')?.value !== codigoPostal) {
-          return;
-        }
-        this.usuarioForm.get('datosContacto.estado')?.setValue(ubicacion.estado);
-        this.usuarioForm.get('datosContacto.municipio')?.setValue(ubicacion.municipio);
-      },
-      error: () => undefined
-    });
+    this.usuarioForm.get('datosContacto.estado')?.setValue('');
+    this.usuarioForm.get('datosContacto.municipio')?.setValue('');
+    this.codigoPostalCambios.next(codigoPostal);
   }
 
+  private consultarUbicacionAlEditar(codigoPostal: string): void {
+    if (!/^\d{5}$/.test(codigoPostal)) return;
 
-  /* =========================
-     CERRAR MODAL DE EDICIÓN
-     ========================= */
+    this.postaliaService.buscarCodigoPostal(codigoPostal)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: ubicacion => this.aplicarUbicacion(codigoPostal, ubicacion),
+        error: () => undefined
+      });
+  }
+
+  private aplicarUbicacion(codigoPostal: string, ubicacion: { estado: string; municipio: string }): void {
+    if (this.usuarioForm.get('datosContacto.codigo_postal')?.value !== codigoPostal) return;
+    this.usuarioForm.get('datosContacto.estado')?.setValue(ubicacion.estado);
+    this.usuarioForm.get('datosContacto.municipio')?.setValue(ubicacion.municipio);
+  }
 
   cerrarModalEditar(): void {
-
     this.modalEditarAbierto.set(false);
-
     this.limpiarFormulario();
-
   }
-
 
   cancelarEdicion(): void {
-
     this.cerrarModalEditar();
-
   }
 
-
-  /* =========================
-     ACTUALIZAR USUARIO
-     ========================= */
-
   actualizarUsuario(): void {
-
-    if (this.cargando()) {
-      return;
-    }
-
-    if (this.usuarioEditandoId() === undefined) {
-      return;
-    }
-
-    if (this.usuarioForm.invalid) {
-      this.usuarioForm.markAllAsTouched();
+    if (this.cargando() || this.usuarioEditandoId() === undefined || this.usuarioForm.invalid) {
+      if (this.usuarioForm.invalid) this.usuarioForm.markAllAsTouched();
       return;
     }
 
     const usuario = this.usuarioFormService.crearRequest(this.usuarioForm, false);
-
-
     this.cargando.set(true);
 
-    this.usuarioService
-      .actualizarUsuario(
-        this.usuarioEditandoId()!,
-        usuario
+    this.usuarioService.actualizarUsuario(this.usuarioEditandoId()!, usuario)
+      .pipe(
+        finalize(() => this.cargando.set(false)),
+        takeUntilDestroyed(this.destroyRef)
       )
-      .pipe(finalize(() => this.cargando.set(false)))
       .subscribe({
-
         next: () => {
-
           this.modalEditarAbierto.set(false);
-
           this.limpiarFormulario();
-
-          this.mostrarModal(
-            'exito',
-            'Usuario actualizado',
-            'Los datos del usuario fueron actualizados correctamente.'
-          );
-
+          this.mostrarModal('exito', 'Usuario actualizado', 'Los datos del usuario fueron actualizados correctamente.');
         },
-
         error: (error: any) => {
-          this.mostrarErrorHttp(
-            error,
-            'No se pudo actualizar el usuario.'
-          );
-
+          this.mostrarErrorHttp(error, 'No se pudo actualizar el usuario.');
         }
-
       });
-
   }
 
-
-  /* =========================
-     SOLICITAR ELIMINACIÓN
-     ========================= */
-
-  eliminarUsuario(
-    id: number
-  ): void {
-
+  eliminarUsuario(id: number): void {
     this.mostrarConfirmacion(
       '¿Eliminar usuario?',
       'El usuario será marcado como inactivo y aparecerá en la sección de usuarios eliminados.',
       () => this.confirmarEliminacion(id)
     );
-
   }
 
-
-  /* =========================
-     CONFIRMAR ELIMINACIÓN
-     ========================= */
-
-  private confirmarEliminacion(
-    id: number
-  ): void {
-
+  private confirmarEliminacion(id: number): void {
     this.cargando.set(true);
 
-    this.usuarioService
-      .eliminarUsuario(id)
-      .pipe(finalize(() => this.cargando.set(false)))
+    this.usuarioService.eliminarUsuario(id)
+      .pipe(
+        finalize(() => this.cargando.set(false)),
+        takeUntilDestroyed(this.destroyRef)
+      )
       .subscribe({
-
         next: () => {
-
-          this.mostrarModal(
-            'exito',
-            'Usuario eliminado',
-            'El usuario fue eliminado correctamente.'
-          );
-
+          this.mostrarModal('exito', 'Usuario eliminado', 'El usuario fue eliminado correctamente.');
         },
-
         error: (error: any) => {
-          this.mostrarErrorHttp(
-            error,
-            'No se pudo eliminar el usuario.'
-          );
-
+          this.mostrarErrorHttp(error, 'No se pudo eliminar el usuario.');
         }
-
       });
-
   }
 
-
-  /* =========================
-     REACTIVAR USUARIO
-     ========================= */
-
-  reactivarUsuario(
-    id: number
-  ): void {
-
+  reactivarUsuario(id: number): void {
     this.mostrarConfirmacion(
       '¿Reactivar usuario?',
       'El usuario volverá a aparecer en la lista de usuarios activos.',
       () => this.confirmarReactivacion(id)
     );
-
   }
 
-
-  private confirmarReactivacion(
-    id: number
-  ): void {
-
+  private confirmarReactivacion(id: number): void {
     this.cargando.set(true);
 
-    /*
-     * Este método requiere que
-     * usuario.service.ts tenga:
-     *
-     * reactivarUsuario(id: number)
-     */
-
-    this.usuarioService
-      .reactivarUsuario(id)
-      .pipe(finalize(() => this.cargando.set(false)))
+    this.usuarioService.reactivarUsuario(id)
+      .pipe(
+        finalize(() => this.cargando.set(false)),
+        takeUntilDestroyed(this.destroyRef)
+      )
       .subscribe({
-
         next: () => {
-
-          this.mostrarModal(
-            'exito',
-            'Usuario reactivado',
-            'El usuario fue reactivado correctamente.'
-          );
-
+          this.mostrarModal('exito', 'Usuario reactivado', 'El usuario fue reactivado correctamente.');
         },
-
         error: (error: any) => {
-          this.mostrarErrorHttp(
-            error,
-            'No se pudo reactivar el usuario.'
-          );
-
+          this.mostrarErrorHttp(error, 'No se pudo reactivar el usuario.');
         }
-
       });
-
   }
 
-
-  /* =========================
-     ERRORES HTTP
-     ========================= */
-
-  private mostrarErrorHttp(
-    error: any,
-    mensajePredeterminado: string
-  ): void {
-
+  private mostrarErrorHttp(error: any, mensajePredeterminado: string): void {
     const mensajeBackend = this.obtenerMensajeError(error);
 
-
     if (error.status === 400) {
-
-      this.mostrarModal(
-        'advertencia',
-        'Datos incorrectos',
-        mensajeBackend ||
-        'Hay datos incorrectos o incompletos.'
-      );
-
+      this.mostrarModal('advertencia', 'Datos incorrectos', mensajeBackend || 'Hay datos incorrectos o incompletos.');
+    } else if (error.status === 403) {
+      const detalle = typeof error.error === 'string' ? error.error : error.error?.mensaje || error.error?.message || '';
+      this.mostrarModal('error', 'Acceso denegado', detalle || 'El servidor rechazó la actualización.');
+    } else if (error.status === 404) {
+      this.mostrarModal('error', 'Usuario no encontrado', mensajeBackend || 'El usuario solicitado no fue encontrado.');
+    } else if (error.status === 409) {
+      this.mostrarModal('advertencia', 'Conflicto de datos', mensajeBackend || 'Ya existe un usuario con esos datos.');
+    } else if (error.status === 503) {
+      this.mostrarModal('error', 'Servicio no disponible', mensajeBackend || 'No fue posible consultar el código postal.');
+    } else if (error.status === 0) {
+      this.mostrarModal('error', 'Sin conexión', 'No fue posible conectarse con el servidor.');
+    } else {
+      this.mostrarModal('error', 'Ocurrió un error', mensajeBackend || mensajePredeterminado);
     }
-
-    else if (error.status === 403) {
-
-      const detalle = typeof error.error === 'string'
-        ? error.error
-        : error.error?.mensaje || error.error?.message || '';
-
-      this.mostrarModal(
-        'error',
-        'Acceso denegado',
-        detalle || 'El servidor rechazó la actualización. Verifica que la sesión tenga permisos de administrador y que el backend permita actualizar este usuario.'
-      );
-
-    }
-
-    else if (error.status === 404) {
-
-      this.mostrarModal(
-        'error',
-        'Usuario no encontrado',
-        mensajeBackend ||
-        'El usuario solicitado no fue encontrado.'
-      );
-
-    }
-
-    else if (error.status === 409) {
-
-      this.mostrarModal(
-        'advertencia',
-        'Conflicto de datos',
-        mensajeBackend ||
-        'Ya existe un usuario con esos datos.'
-      );
-
-    }
-
-    else if (error.status === 503) {
-
-      this.mostrarModal(
-        'error',
-        'Servicio no disponible',
-        mensajeBackend ||
-        'No fue posible consultar el código postal.'
-      );
-
-    }
-
-    else if (error.status === 0) {
-
-      this.mostrarModal(
-        'error',
-        'Sin conexión',
-        'No fue posible conectarse con el servidor.'
-      );
-
-    }
-
-    else {
-
-      this.mostrarModal(
-        'error',
-        'Ocurrió un error',
-        mensajeBackend ||
-        mensajePredeterminado
-      );
-
-    }
-
   }
-
 
   private obtenerMensajeError(error: any): string {
     const respuesta = error?.error;
-
-    if (typeof respuesta === 'string') {
-      return respuesta;
-    }
-
+    if (typeof respuesta === 'string') return respuesta;
     return respuesta?.mensaje || respuesta?.message || error?.message || '';
   }
 
   private filtrarUsuarios(usuarios: Usuario[], busqueda: string): Usuario[] {
     const termino = this.normalizarTexto(busqueda);
-
-    if (!termino) {
-      return usuarios;
-    }
+    if (!termino) return usuarios;
 
     return usuarios.filter(usuario => {
       const valores = [
@@ -778,71 +464,36 @@ export class Admin implements OnInit {
   }
 
   private normalizarTexto(valor: string): string {
-    return valor
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toLowerCase()
-      .trim();
+    return valor.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
   }
 
-
-  /* =========================
-     LIMPIAR FORMULARIO
-     ========================= */
+  private ordenarPorId(usuarios: Usuario[]): Usuario[] {
+    return [...usuarios].sort((a, b) => (a.id ?? 0) - (b.id ?? 0));
+  }
 
   limpiarFormulario(): void {
-
     this.editando.set(false);
-
     this.usuarioEditandoId.set(undefined);
-
     this.usuarioForm = this.usuarioFormService.crearFormulario();
   }
 
-
-  /* =========================
-     CERRAR SESIÓN
-     ========================= */
-
   cerrarSesion(): void {
-
-    if (this.cargando()) {
-      return;
-    }
-
+    if (this.cargando()) return;
     this.cargando.set(true);
 
     this.authService.cerrarSesion().pipe(
-      finalize(() => this.cargando.set(false))
+      finalize(() => this.cargando.set(false)),
+      takeUntilDestroyed(this.destroyRef)
     ).subscribe({
       next: () => {
-        this.usuarioService.invalidarCacheListas();
+        this.usuarioService.limpiarListas();
         this.router.navigate(['/login']);
       },
       error: () => {
-        this.usuarioService.invalidarCacheListas();
+        this.usuarioService.limpiarListas();
         this.authService.limpiarSesionLocal();
         this.router.navigate(['/login']);
       }
     });
-
   }
-
-
-  /* =========================
-     ORDENAR POR ID
-     ========================= */
-
-  private ordenarPorId(
-    usuarios: Usuario[]
-  ): Usuario[] {
-
-    return [...usuarios].sort(
-      (a, b) =>
-        (a.id ?? 0) -
-        (b.id ?? 0)
-    );
-
-  }
-
 }

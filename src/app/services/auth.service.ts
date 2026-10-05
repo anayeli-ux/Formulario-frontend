@@ -14,7 +14,6 @@ import {
 } from 'rxjs';
 
 import { environment } from '../../environments/environment';
-import { limpiarCacheUsuariosPersistida } from './usuario-cache.storage';
 import { Usuario } from '../models/usuario.model';
 
 export interface LoginResponse {
@@ -86,9 +85,6 @@ export class AuthService {
         tap(response => {
           this.estadoPerfilActual.set(null);
           this.sesionVerificada = true;
-          if (response?.acceso === true) {
-            limpiarCacheUsuariosPersistida();
-          }
           this.estadoUsuarioActual.set(response?.acceso === true ? response.usuario : null);
         })
       );
@@ -171,7 +167,6 @@ export class AuthService {
       ),
 
       tap(() => {
-        limpiarCacheUsuariosPersistida();
         this.estadoPerfilActual.set(null);
         this.estadoUsuarioActual.set(null);
         this.sesionVerificada = true;
@@ -180,7 +175,6 @@ export class AuthService {
   }
 
   limpiarSesionLocal(): void {
-    limpiarCacheUsuariosPersistida();
     this.estadoPerfilActual.set(null);
     this.estadoUsuarioActual.set(null);
     this.sesionVerificada = true;
