@@ -1,0 +1,25 @@
+<header
+  class="page-header"
+  [class.page-header--principal]="variante === 'principal'"
+  [class.page-header--login]="variante === 'login'"
+  [class.page-header--registro]="variante === 'registro'"
+>
+  <div class="page-header-content">
+    <span class="page-header-label" *ngIf="etiqueta">{{ etiqueta }}</span>
+    <ng-container [ngSwitch]="nivelTitulo">
+      <h1 *ngSwitchCase="1" [id]="tituloId || null">{{ titulo }}</h1>
+      <h2 *ngSwitchDefault [id]="tituloId || null">{{ titulo }}</h2>
+    </ng-container>
+    <p *ngIf="descripcion">{{ descripcion }}</p>
+  </div>
+  <div class="page-header-actions" *ngIf="variante === 'principal'">
+    <div class="page-header-identity" *ngIf="nombreUsuario || correoUsuario">
+      <strong *ngIf="nombreUsuario">{{ nombreUsuario }}</strong>
+      <span *ngIf="correoUsuario">{{ correoUsuario }}</span>
+    </div>
+    <button mat-button type="button" class="page-header-logout" (click)="cerrarSesion.emit()">
+      <mat-icon svgIcon="logout"></mat-icon>
+      Cerrar sesión
+    </button>
+  </div>
+</header>

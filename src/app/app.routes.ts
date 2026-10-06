@@ -1,21 +1,42 @@
 import { Routes } from '@angular/router';
-import { LoginComponent } from './pages/login/login.component';
-import { RegistroComponent } from './pages/registro/registro.component';
-import { Exito } from './exito/exito';
-import { Admin } from './admin/admin';
 import { adminGuard } from './guards/admin.guard';
+import { authGuard } from './guards/auth.guard';
+import { guestGuard } from './guards/guest.guard';
+import { homeRedirectGuard } from './guards/home-redirect.guard';
 
 export const routes: Routes = [
-  { path: 'login', component: LoginComponent },
-  { path: 'registro', component: RegistroComponent },
-
-  { path: 'exito', component: Exito },
   {
-    path: 'admin',
-    component: Admin,
-    canActivate: [adminGuard]
+    path: 'login',
+    loadComponent: () => import('./pages/login/login.component').then(module => module.LoginComponent),
+    canActivate: [guestGuard]
+  },
+  {
+    path: 'registro',
+    loadComponent: () => import('./pages/registro/registro.component').then(module => module.RegistroComponent),
+    canActivate: [guestGuard]
   },
 
-  { path: '', redirectTo: 'login', pathMatch: 'full' },
+  {
+    path: 'exito',
+    loadComponent: () => import('./pages/exito/exito').then(module => module.Exito),
+    canActivate: [guestGuard]
+  },
+  {
+    path: 'admin',
+    loadComponent: () => import('./pages/admin/admin').then(module => module.Admin),
+    canActivate: [adminGuard]
+  },
+  {
+    path: 'usuario',
+    loadComponent: () => import('./pages/usuario-perfil/usuario-perfil.component').then(module => module.UsuarioPerfilComponent),
+    canActivate: [authGuard]
+  },
+
+  {
+    path: '',
+    loadComponent: () => import('./pages/home-redirect/home-redirect.component').then(module => module.HomeRedirectComponent),
+    canActivate: [homeRedirectGuard],
+    pathMatch: 'full'
+  },
   { path: '**', redirectTo: 'login' }
 ];

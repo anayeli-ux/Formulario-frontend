@@ -27,7 +27,8 @@
               }
             ],
             "styles": [
-              "src/styles.css"
+              "src/styles.css",
+              "src/material-theme.scss"
             ],
             "scripts": []
           },
@@ -41,8 +42,8 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "6kB",
-                  "maximumError": "10kB"
+                  "maximumWarning": "11.5kB",
+                  "maximumError": "12kB"
                 }
               ],
               "outputHashing": "all"
@@ -87,7 +88,8 @@
             "styles": [
               "src/styles.css"
             ],
-            "scripts": []
+            "scripts": [],
+            "karmaConfig": "karma.conf.cjs"
           }
         }
       }

@@ -4,13 +4,12 @@ import {
   HttpClient
 } from '@angular/common/http';
 
-import {
-  Observable
-} from 'rxjs';
+import { finalize, Observable, shareReplay } from 'rxjs';
 
 import {
   PostaliaResponse
 } from '../models/postalia.model';
+import { environment } from '../../environments/environment';
 
 
 @Injectable({
@@ -19,7 +18,9 @@ import {
 export class PostaliaService {
 
   private apiUrl =
-    'http://localhost:8081/api/postalia';
+    `${environment.apiUrl}/postalia`;
+
+  private solicitudes = new Map<string, Observable<PostaliaResponse>>();
 
 
   constructor(
@@ -31,9 +32,22 @@ export class PostaliaService {
     cp: string
   ): Observable<PostaliaResponse> {
 
-    return this.http.get<PostaliaResponse>(
-      `${this.apiUrl}/${cp}`
+    const codigoPostal = cp.trim();
+    const solicitudExistente = this.solicitudes.get(codigoPostal);
+
+    if (solicitudExistente) {
+      return solicitudExistente;
+    }
+
+    const solicitud = this.http.get<PostaliaResponse>(
+      `${this.apiUrl}/${codigoPostal}`
+    ).pipe(
+      finalize(() => this.solicitudes.delete(codigoPostal)),
+      shareReplay({ bufferSize: 1, refCount: false })
     );
+
+    this.solicitudes.set(codigoPostal, solicitud);
+    return solicitud;
   }
 
 }

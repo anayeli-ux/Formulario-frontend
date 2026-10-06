@@ -1,15 +1,20 @@
-<div class="registro-page">
+<main class="registro-page">
 
   <div class="registro-shell">
 
-    <!-- ENCABEZADO -->
-    <div class="registro-brand">
+
+    <!-- =========================
+         IDENTIDAD
+         ========================= -->
+
+    <header class="registro-brand">
 
       <div class="brand-mark">
         H
       </div>
 
       <div>
+
         <span class="brand-label">
           Sistema de Administración
         </span>
@@ -17,233 +22,155 @@
         <h1>
           Registro de Usuario
         </h1>
+
       </div>
 
-    </div>
+    </header>
+
 
     <div class="registro-accent"></div>
 
-    <!-- TARJETA PRINCIPAL -->
-    <div class="registro-container">
 
-      <div class="registro-header">
+    <!-- =========================
+         FORMULARIO
+         ========================= -->
 
-        <span class="section-label">
-          REGISTRO
-        </span>
+    <section class="registro-container">
 
-        <h2>
-          Formulario de Registro General
-        </h2>
 
-        <p>
-          Completa la información solicitada para crear un nuevo registro.
-        </p>
+      <app-page-header
+        etiqueta="REGISTRO"
+        titulo="Formulario de Registro General"
+        descripcion="Completa la información solicitada para crear un nuevo registro."
+        variante="registro"
+      ></app-page-header>
 
-      </div>
 
       <form
         [formGroup]="registroForm"
-        (ngSubmit)="enviarRegistro()"
+        (ngSubmit)="stepper.selectedIndex === 2 && enviarRegistro()"
+        #registroFormElement
       >
-
-        <!-- DATOS PERSONALES -->
-        <section class="form-section">
-
-          <div class="section-header">
-
-            <span class="section-number">
-              01
-            </span>
-
-            <div>
-              <h3>
-                Datos personales
-              </h3>
-
-              <p>
-                Información general del usuario.
-              </p>
+        <mat-stepper linear #stepper class="registro-stepper">
+          <ng-template matStepperIcon="number" let-index="index">{{ index + 1 }}</ng-template>
+          <ng-template matStepperIcon="done" let-index="index">{{ index + 1 }}</ng-template>
+          <ng-template matStepperIcon="edit" let-index="index">{{ index + 1 }}</ng-template>
+          <mat-step [stepControl]="registroForm.get('datosPersonales')!">
+            <ng-template matStepLabel>Datos personales</ng-template>
+            <app-form-section
+              numero="01"
+              titulo="Datos personales"
+              descripcion="Información general del usuario."
+              class="registro-section"
+            >
+              <app-datos-personales formGroupName="datosPersonales"></app-datos-personales>
+            </app-form-section>
+            <div class="registro-step-navigation registro-step-navigation-end">
+              <button
+                mat-flat-button
+                type="button"
+                class="step-next"
+                [disabled]="cargando()"
+                (click)="avanzarPaso(stepper, 'datosPersonales')"
+              >Siguiente</button>
             </div>
+          </mat-step>
 
-          </div>
-
-          <app-datos-personales
-            formGroupName="datosPersonales"
-          >
-          </app-datos-personales>
-
-        </section>
-
-
-        <!-- DATOS DE CONTACTO -->
-        <section class="form-section">
-
-          <div class="section-header">
-
-            <span class="section-number">
-              02
-            </span>
-
-            <div>
-              <h3>
-                Datos de contacto
-              </h3>
-
-              <p>
-                Información de contacto y ubicación.
-              </p>
+          <mat-step [stepControl]="registroForm.get('datosContacto')!">
+            <ng-template matStepLabel>Datos de contacto</ng-template>
+            <app-form-section
+              numero="02"
+              titulo="Datos de contacto"
+              descripcion="Información de contacto y ubicación."
+              class="registro-section registro-section-final"
+            >
+              <app-datos-contacto formGroupName="datosContacto"></app-datos-contacto>
+            </app-form-section>
+            <div class="registro-step-navigation">
+              <button mat-button type="button" class="step-back" [disabled]="cargando()" (click)="stepper.previous()">Anterior</button>
+              <button
+                mat-flat-button
+                type="button"
+                class="step-next"
+                [disabled]="cargando()"
+                (click)="avanzarPaso(stepper, 'datosContacto')"
+              >Siguiente</button>
             </div>
+          </mat-step>
 
-          </div>
+          <mat-step>
+            <ng-template matStepLabel>Confirmación</ng-template>
+            <section class="registro-resumen" aria-labelledby="registro-resumen-title">
+              <h3 id="registro-resumen-title">Revisa la información</h3>
+              <div class="registro-resumen-grid">
+                <div><span>Nombre</span><strong>{{ registroForm.get('datosPersonales.nombre')?.value || '—' }}</strong></div>
+                <div><span>Primer apellido</span><strong>{{ registroForm.get('datosPersonales.primer_apellido')?.value || '—' }}</strong></div>
+                <div><span>Fecha de nacimiento</span><strong>{{ registroForm.get('datosPersonales.fecha_nacimiento')?.value || '—' }}</strong></div>
+                <div><span>Correo principal</span><strong>{{ registroForm.get('datosPersonales.email')?.value || '—' }}</strong></div>
+                <div><span>Teléfono principal</span><strong>{{ registroForm.get('datosContacto.telefono')?.value || '—' }}</strong></div>
+                <div><span>Dirección principal</span><strong>{{ registroForm.get('datosContacto.direccion')?.value || '—' }}</strong></div>
+                <div><span>Código postal</span><strong>{{ registroForm.get('datosContacto.codigo_postal')?.value || '—' }}</strong></div>
+                <div><span>Estado / municipio</span><strong>{{ registroForm.get('datosContacto.estado')?.value || '—' }} / {{ registroForm.get('datosContacto.municipio')?.value || '—' }}</strong></div>
+              </div>
 
-          <app-datos-contacto
-            formGroupName="datosContacto"
-          >
-          </app-datos-contacto>
+              <div class="registro-resumen-adicional" *ngIf="registroForm.get('datosContacto.telefonos')?.value?.length || registroForm.get('datosContacto.correos')?.value?.length || registroForm.get('datosContacto.direcciones')?.value?.length">
+                <h4>Contactos adicionales</h4>
+                <ul>
+                  <li *ngFor="let contacto of registroForm.get('datosContacto.telefonos')?.value">Teléfono {{ contacto.tipo }}: {{ contacto.valor }}</li>
+                  <li *ngFor="let contacto of registroForm.get('datosContacto.correos')?.value">Correo {{ contacto.tipo }}: {{ contacto.valor }}</li>
+                  <li *ngFor="let direccion of registroForm.get('datosContacto.direcciones')?.value">Dirección {{ direccion.tipo }}: {{ direccion.valor }}, CP {{ direccion.codigoPostal }}</li>
+                </ul>
+              </div>
+            </section>
 
-        </section>
-
-
-        <!-- DATOS ADICIONALES -->
-        <section class="form-section">
-
-          <div class="section-header">
-
-            <span class="section-number">
-              03
-            </span>
-
-            <div>
-              <h3>
-                Datos adicionales
-              </h3>
-
-              <p>
-                Información complementaria.
-              </p>
+            <div class="registro-step-navigation">
+              <button mat-button type="button" class="step-back" [disabled]="cargando()" (click)="stepper.previous()">Anterior</button>
+              <button
+                mat-flat-button
+                type="submit"
+                class="btn-submit"
+                [disabled]="cargando()"
+              >
+                {{ cargando() ? 'Registrando...' : 'Registrar usuario' }}
+              </button>
             </div>
-
-          </div>
-
-          <app-datos-adicionales
-            formGroupName="datosAdicionales"
-          >
-          </app-datos-adicionales>
-
-        </section>
-
-
-        <!-- BOTÓN -->
-        <div class="registro-actions">
-
-          <button
-            type="submit"
-            [disabled]="registroForm.invalid"
-            class="btn-submit"
-          >
-            Registrar usuario
-          </button>
-
-        </div>
-
+          </mat-step>
+        </mat-stepper>
       </form>
 
-    </div>
+    </section>
 
   </div>
 
-</div>
+</main>
 
 
-<!-- =========================================
-    MODAL DE MENSAJES
-    ========================================= -->
+<!-- =========================
+     LOADING
+     ========================= -->
 
-<div
-  class="mensaje-overlay"
-  *ngIf="modalVisible"
-  (click)="cerrarModal()"
->
-
-  <div
-    class="mensaje-modal"
-    [ngClass]="modalTipo"
-    (click)="$event.stopPropagation()"
-  >
-
-    <!-- BOTÓN CERRAR -->
-    <button
-      type="button"
-      class="modal-close"
-      (click)="cerrarModal()"
-      aria-label="Cerrar"
-    >
-      ×
-    </button>
+<app-loading-overlay
+  *ngIf="cargando()"
+  mensaje="Registrando usuario"
+  tema="registro">
+</app-loading-overlay>
 
 
-    <!-- IDENTIDAD VISUAL -->
-    <div class="modal-brand">
+<!-- =========================
+     MODAL REUTILIZABLE
+     ========================= -->
 
-      <div class="modal-logo">
-        H
-      </div>
-
-      <div class="modal-brand-text">
-
-        <span>
-          Sistema de Administración
-        </span>
-
-        <strong>
-          Hidalgo
-        </strong>
-
-      </div>
-
-    </div>
-
-
-    <!-- ICONO SEGÚN EL TIPO -->
-    <div class="modal-icon">
-
-      <span *ngIf="modalTipo === 'exito'">
-        ✓
-      </span>
-
-      <span *ngIf="modalTipo === 'advertencia'">
-        !
-      </span>
-
-      <span *ngIf="modalTipo === 'error'">
-        !
-      </span>
-
-    </div>
-
-
-    <!-- TÍTULO -->
-    <h2>
-      {{ modalTitulo }}
-    </h2>
-
-
-    <!-- MENSAJE -->
-    <p>
-      {{ modalMensaje }}
-    </p>
-
-
-    <!-- BOTÓN -->
-    <button
-      type="button"
-      class="modal-aceptar"
-      (click)="cerrarModal()"
-    >
-      Aceptar
-    </button>
-
-  </div>
-
-</div>
+<app-modal-mensaje
+  [visible]="modalVisible()"
+  [tipo]="modalTipo()"
+  [titulo]="modalTitulo()"
+  [mensaje]="modalMensaje()"
+  [imagen]="
+    esRegistroExitoso()
+      ? 'gatito.jpg'
+      : null
+  "
+  imagenAlt="Registro completado"
+  [bloquearCierre]="esRegistroExitoso()"
+  (cerrar)="cerrarModal()">
+</app-modal-mensaje>

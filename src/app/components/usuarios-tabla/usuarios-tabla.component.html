@@ -1,0 +1,125 @@
+<mat-card class="admin-card">
+  <div class="admin-card-header">
+    <div>
+      <span class="admin-label">
+        {{ entidad === 'administradores' ? (inactivos ? 'ADMINISTRADORES ELIMINADOS' : 'ACCESO ADMINISTRATIVO') : (inactivos ? 'USUARIOS ELIMINADOS' : 'USUARIOS ACTIVOS') }}
+      </span>
+      <h2>{{ entidad === 'administradores' ? (inactivos ? 'Administradores eliminados' : 'Administradores') : (inactivos ? 'Registros inactivos' : 'Registros actuales') }}</h2>
+    </div>
+    <div class="active-users-actions">
+      <button *ngIf="!inactivos && entidad === 'usuarios'" mat-flat-button type="button" class="admin-primary" (click)="registrar.emit()" [disabled]="cargando">
+        <mat-icon svgIcon="person-add"></mat-icon>
+        Registrar usuario
+      </button>
+    </div>
+  </div>
+
+  <div class="columnas-configuracion" role="group" aria-label="Seleccionar columnas visibles">
+    <span class="columnas-configuracion-titulo">Columnas visibles</span>
+    <div class="columnas-configuracion-opciones">
+      <mat-checkbox
+        *ngFor="let columna of columnasConfigurables"
+        [checked]="columnaSeleccionada(columna.id)"
+        (change)="cambiarVisibilidadColumna(columna.id, $event)"
+      >{{ columna.etiqueta }}</mat-checkbox>
+    </div>
+  </div>
+
+  <mat-form-field appearance="outline" class="search-field">
+    <mat-label>Buscar {{ entidad === 'administradores' ? 'administradores' : 'usuarios' }}{{ inactivos ? ' eliminados' : '' }}</mat-label>
+    <input matInput
+      [id]="entidad === 'administradores' ? 'buscarAdministradores' : (inactivos ? 'buscarUsuariosEliminados' : 'buscarUsuarios')"
+      type="search"
+      [value]="busqueda"
+      (input)="actualizarBusqueda($event)"
+      [name]="entidad === 'administradores' ? 'buscarAdministradores' : (inactivos ? 'buscarUsuariosEliminados' : 'buscarUsuarios')"
+      [placeholder]="entidad === 'administradores' ? 'Nombre, apellido o correo electrónico' : 'Nombre, apellido, teléfono, dirección o código postal'"
+      [matAutocomplete]="usuariosAutocomplete"
+    >
+    <mat-autocomplete #usuariosAutocomplete="matAutocomplete" (optionSelected)="seleccionarSugerencia($event)">
+      <mat-option *ngFor="let usuario of sugerencias" [value]="valorSugerencia(usuario)">
+        <span>{{ nombreCompleto(usuario) }}</span>
+        <small class="suggestion-detail">ID {{ usuario.id }}</small>
+      </mat-option>
+    </mat-autocomplete>
+  </mat-form-field>
+
+  <div class="table-wrapper">
+    <table mat-table [dataSource]="usuariosPaginados" class="admin-table">
+      <ng-container matColumnDef="id">
+        <th mat-header-cell *matHeaderCellDef>ID</th>
+        <td mat-cell *matCellDef="let usuario">{{ usuario.id }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="nombre">
+        <th mat-header-cell *matHeaderCellDef>Nombre</th>
+        <td mat-cell *matCellDef="let usuario">{{ usuario.nombre }} {{ usuario.primerApellido }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="telefono">
+        <th mat-header-cell *matHeaderCellDef>Teléfono</th>
+        <td mat-cell *matCellDef="let usuario">{{ obtenerTelefonoPrincipal(usuario) }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="codigoPostal">
+        <th mat-header-cell *matHeaderCellDef>Código postal</th>
+        <td mat-cell *matCellDef="let usuario">{{ obtenerCodigoPostalPrincipal(usuario) }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="correo">
+        <th mat-header-cell *matHeaderCellDef>Correo electrónico</th>
+        <td mat-cell *matCellDef="let usuario">{{ obtenerCorreoPrincipal(usuario) }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="informacion">
+        <th mat-header-cell *matHeaderCellDef>Información adicional</th>
+        <td mat-cell *matCellDef="let usuario">
+          <button mat-button type="button" class="table-edit" (click)="ver.emit(usuario)">
+            <mat-icon svgIcon="info"></mat-icon>
+            Ver datos
+          </button>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="acciones">
+        <th mat-header-cell *matHeaderCellDef>Acciones</th>
+        <td mat-cell *matCellDef="let usuario" class="table-actions">
+          <ng-container *ngIf="!inactivos; else accionReactivar">
+            <button mat-button type="button" class="table-edit" (click)="editar.emit(usuario)" [disabled]="cargando">
+              <mat-icon svgIcon="edit"></mat-icon>
+              Editar
+            </button>
+            <button mat-button type="button" class="table-delete" (click)="eliminar.emit(usuario.id!)" [disabled]="cargando">
+              <mat-icon svgIcon="delete"></mat-icon>
+              Eliminar
+            </button>
+          </ng-container>
+          <ng-template #accionReactivar>
+            <button mat-button type="button" class="table-edit" (click)="reactivar.emit(usuario.id!)" [disabled]="cargando">
+              <mat-icon svgIcon="restore"></mat-icon>
+              Reactivar
+            </button>
+          </ng-template>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="columnasVisibles"></tr>
+      <tr mat-row *matRowDef="let usuario; columns: columnasVisibles"></tr>
+      <tr class="empty-row" *matNoDataRow>
+        <td [attr.colspan]="columnasVisibles.length">
+          {{ busqueda ? 'No hay coincidencias.' : (entidad === 'administradores' ? (inactivos ? 'No hay administradores eliminados.' : 'No hay administradores.') : (inactivos ? 'No hay usuarios eliminados.' : 'No hay usuarios activos.')) }}
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <mat-paginator
+    [length]="paginatorLength"
+    [pageIndex]="pageIndex"
+    [pageSize]="pageSize"
+    [hidePageSize]="true"
+    showFirstLastButtons
+    (page)="cambiarPagina($event)"
+    [attr.aria-label]="entidad === 'administradores' ? 'Paginación de administradores' : 'Paginación de usuarios'"
+  ></mat-paginator>
+</mat-card>

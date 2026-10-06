@@ -1,0 +1,46 @@
+@use '@angular/material' as mat;
+
+@include mat.core();
+
+$app-theme: mat.define-theme((
+  color: (
+    theme-type: light,
+    primary: mat.$azure-palette,
+    tertiary: mat.$blue-palette
+  ),
+  density: (
+    scale: 0
+  )
+));
+
+:root {
+  @include mat.autocomplete-theme($app-theme);
+  @include mat.button-theme($app-theme);
+  @include mat.icon-button-theme($app-theme);
+  @include mat.card-theme($app-theme);
+  @include mat.checkbox-theme($app-theme);
+  @include mat.datepicker-theme($app-theme);
+  @include mat.dialog-theme($app-theme);
+  @include mat.form-field-theme($app-theme);
+  @include mat.icon-theme($app-theme);
+  @include mat.input-theme($app-theme);
+  @include mat.paginator-theme($app-theme);
+  @include mat.select-theme($app-theme);
+  @include mat.snack-bar-theme($app-theme);
+  @include mat.stepper-theme($app-theme);
+  @include mat.tabs-theme($app-theme);
+  @include mat.table-theme($app-theme);
+
+  --mat-sys-primary: #3159c7;
+  --mat-sys-on-primary: #ffffff;
+  --mat-sys-primary-container: #e8edff;
+  --mat-sys-on-primary-container: #264aa9;
+  --mat-sys-surface: #ffffff;
+  --mat-sys-on-surface: #26364f;
+  --mat-sys-outline: #d9e0ea;
+  --mat-sys-error: #d64545;
+}
+
+.cdk-overlay-container {
+  z-index: 1600;
+}

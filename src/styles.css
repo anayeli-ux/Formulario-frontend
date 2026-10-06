@@ -1,4 +1,8 @@
-:host {
+:root {
+    --palette-coral: #F27781;
+    --palette-rose: #D95F80;
+    --palette-magenta: #BF4EA1;
+    --palette-on-dark: #FFF5F8;
     --color-primary: #4163ad;
     --color-primary-hover: #35589f;
     --color-primary-active: #2f4f92;
@@ -13,12 +17,64 @@
     --color-text-on-primary: #ffffff;
     --color-error: #d64545;
 
-    font-family: "Inter", "Segoe UI", Arial, sans-serif;
+}
+
+.admin-page .admin-view-switch {
+    border-bottom-color: rgba(242, 119, 129, .55);
+}
+
+.admin-page .admin-view-switch button {
+    color: var(--palette-on-dark);
+    transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease;
+}
+
+.admin-page .admin-view-switch button:hover {
+    color: var(--palette-coral);
+    background: rgba(191, 78, 161, .16);
+}
+
+.admin-page .admin-view-switch button.selected {
+    border-bottom-color: var(--palette-coral);
+    color: var(--palette-coral);
+    background: rgba(217, 95, 128, .14);
+}
+
+.admin-page .admin-tabs .mat-mdc-tab {
+    margin-right: 4px;
+    border-radius: 7px 7px 0 0;
+    background: var(--palette-coral);
+}
+
+.admin-page .admin-tabs .mat-mdc-tab:nth-child(2) {
+    background: var(--palette-rose);
+}
+
+.admin-page .admin-tabs .mat-mdc-tab .mdc-tab__text-label {
+    color: #241020;
+}
+
+.admin-page .admin-tabs .mat-mdc-tab.mdc-tab--active {
+    background: var(--palette-magenta);
+}
+
+.admin-page .admin-tabs .mat-mdc-tab.mdc-tab--active .mdc-tab__text-label {
+    color: #ffffff;
+}
+
+.admin-page .admin-tabs .mdc-tab-indicator__content--underline {
+    border-color: var(--palette-coral);
+    border-top-width: 3px;
+}
+
+.admin-page .admin-tabs .mat-mdc-tab-ripple,
+.admin-page .admin-tabs .mat-mdc-tab .mat-ripple-element {
+    --mat-ripple-color: rgba(242, 119, 129, .18);
 }
 
 body {
     margin: 0;
     background: var(--color-background);
+    font-family: "Inter", "Segoe UI", Arial, sans-serif;
 }
 
 /* Contenedor general de la página de registro */
@@ -110,7 +166,7 @@ body {
     box-shadow: 0 0 0 3px rgba(65, 99, 173, 0.15);
 }
 
-::ng-deep label {
+::ng-deep label:not(.mdc-floating-label):not(.mat-mdc-floating-label) {
     font-weight: 600;
     font-size: 13px;
     color: var(--color-text-primary);
@@ -143,11 +199,11 @@ body {
 }
 
 /* Forzar diseño original a todos los inputs y selects de la app */
-input[type="text"],
-input[type="date"],
-input[type="email"],
-input[type="password"],
-select {
+input[type="text"]:not(.mat-mdc-input-element),
+input[type="date"]:not(.mat-mdc-input-element),
+input[type="email"]:not(.mat-mdc-input-element),
+input[type="password"]:not(.mat-mdc-input-element),
+select:not(.mat-mdc-native-select) {
     width: 100%;
     height: 44px;
     padding: 0 12px;
@@ -162,15 +218,36 @@ select {
     margin-bottom: 12px !important;
 }
 
-input:focus {
+input:focus:not(.mat-mdc-input-element) {
     outline: none !important;
     border-color: #4163ad !important;
     box-shadow: 0 0 0 3px rgba(65, 99, 173, 0.15) !important;
 }
 
-label {
+input.ng-invalid.ng-touched,
+select.ng-invalid.ng-touched,
+textarea.ng-invalid.ng-touched {
+    border-color: #b2183b !important;
+    box-shadow: 0 0 0 2px rgba(178, 24, 59, 0.14) !important;
+}
+
+label:not(.mdc-floating-label):not(.mat-mdc-floating-label) {
     font-weight: 600 !important;
     font-size: 13px !important;
     color: #26364f !important;
     display: block !important;
+}
+
+.admin-confirm-dialog-panel .mat-mdc-dialog-surface {
+    border-top: 4px solid #3159c7;
+    border-radius: 10px;
+}
+
+.admin-snackbar-success {
+    --mdc-snackbar-container-color: #e4f3ed;
+    --mat-snack-bar-button-color: #1f725a;
+}
+
+.admin-snackbar-success .mdc-snackbar__label {
+    color: #1f725a;
 }

@@ -1,0 +1,214 @@
+<main class="admin-page">
+  <app-page-header
+    etiqueta="SISTEMA DE ADMINISTRACIÓN"
+    titulo="Gestión de usuarios"
+    descripcion="Administra los registros activos y eliminados."
+    variante="principal"
+    [nivelTitulo]="1"
+    [nombreUsuario]="nombreAdministrador()"
+    [correoUsuario]="correoAdministrador()"
+    (cerrarSesion)="cerrarSesion()"
+  ></app-page-header>
+
+  <div class="admin-content-layout">
+    <nav class="admin-view-switch" aria-label="Vista de usuarios">
+      <button
+        mat-button
+        type="button"
+        [class.selected]="vistaActual() === 'activos'"
+        [attr.aria-pressed]="vistaActual() === 'activos'"
+        (click)="cambiarVista('activos')"
+      >Activos</button>
+      <button
+        mat-button
+        type="button"
+        [class.selected]="vistaActual() === 'eliminados'"
+        [attr.aria-pressed]="vistaActual() === 'eliminados'"
+        (click)="cambiarVista('eliminados')"
+      >Eliminados</button>
+    </nav>
+
+    <mat-tab-group
+      class="admin-tabs"
+      aria-label="Administración de usuarios y administradores"
+      (selectedTabChange)="cambiarSeccionTabla($event.index)"
+    >
+      <mat-tab label="Usuarios"></mat-tab>
+      <mat-tab label="Administradores"></mat-tab>
+    </mat-tab-group>
+
+    <div class="admin-tab-content">
+      <app-usuarios-tabla
+        [usuarios]="filasTabla()"
+        [entidad]="tipoTabla()"
+        [inactivos]="vistaActual() === 'eliminados'"
+        [busqueda]="busquedaTabla()"
+        [totalPages]="totalPaginasTabla()"
+        [pageIndex]="paginaIndexTabla()"
+        [pageSize]="tamanioPaginaTabla()"
+        [cargando]="cargandoTabla()"
+        [columnasOpcionalesSeleccionadas]="columnasOpcionalesUsuarios()"
+        (busquedaChange)="buscarEnTabla($event)"
+        (paginaChange)="cambiarPaginaTabla($event)"
+        (columnasOpcionalesChange)="actualizarColumnasOpcionales($event)"
+        (registrar)="abrirCrearUsuario()"
+        (ver)="abrirInformacion($event)"
+        (editar)="editarUsuario($event)"
+        (eliminar)="eliminarUsuario($event)"
+        (reactivar)="reactivarUsuario($event)"
+      ></app-usuarios-tabla>
+    </div>
+  </div>
+</main>
+
+<div class="modal-overlay" *ngIf="usuarioInformacion() as usuario" (click)="cerrarInformacion()">
+  <section class="modal-card contacts-modal" role="dialog" aria-modal="true" aria-labelledby="contacts-modal-title" (click)="$event.stopPropagation()">
+    <header class="modal-header">
+      <div>
+        <span class="modal-section-label">INFORMACIÓN ADICIONAL</span>
+        <h2 id="contacts-modal-title">{{ usuario.nombre }} {{ usuario.primerApellido }}</h2>
+      </div>
+      <button mat-icon-button type="button" class="modal-close" (click)="cerrarInformacion()" aria-label="Cerrar información">
+        <mat-icon svgIcon="close"></mat-icon>
+      </button>
+    </header>
+    <app-contactos-usuario [usuario]="usuario" presentacion="modal"></app-contactos-usuario>
+  </section>
+</div>
+
+<!-- =====================================================
+    MODAL DE USUARIO
+    ===================================================== -->
+
+<div
+  class="modal-overlay"
+  *ngIf="modalEditarAbierto()"
+>
+  <div class="modal-card">
+
+    <!-- ENCABEZADO -->
+    <div class="modal-header">
+
+      <div>
+        <span class="modal-section-label">
+          ADMINISTRACIÓN
+        </span>
+
+        <h2>
+          {{ editando() ? 'Editar usuario' : 'Registrar usuario' }}
+        </h2>
+      </div>
+
+      <button
+        mat-icon-button
+        type="button"
+        class="modal-close"
+        (click)="cerrarModalEditar()"
+        aria-label="Cerrar"
+      >
+        <mat-icon svgIcon="close"></mat-icon>
+      </button>
+
+    </div>
+
+
+    <!-- FORMULARIO -->
+    <form class="user-form" [formGroup]="usuarioForm" (ngSubmit)="adminStepper.selectedIndex === 2 && (editando() ? actualizarUsuario() : crearUsuario())">
+      <mat-stepper linear #adminStepper class="admin-user-stepper">
+        <ng-template matStepperIcon="number" let-index="index">{{ index + 1 }}</ng-template>
+        <ng-template matStepperIcon="done" let-index="index">{{ index + 1 }}</ng-template>
+        <ng-template matStepperIcon="edit" let-index="index">{{ index + 1 }}</ng-template>
+        <mat-step [stepControl]="usuarioForm.get('datosPersonales')!">
+          <ng-template matStepLabel>Datos personales</ng-template>
+          <app-form-section
+            numero="01"
+            titulo="Datos personales"
+            descripcion="Información general del usuario."
+          >
+            <app-datos-personales
+              formGroupName="datosPersonales"
+              [passwordOpcional]="editando()"
+            ></app-datos-personales>
+          </app-form-section>
+          <div class="admin-step-navigation admin-step-navigation-end">
+            <button mat-flat-button class="step-next" type="button" [disabled]="cargando()" (click)="avanzarPaso(adminStepper, 'datosPersonales')">Siguiente</button>
+          </div>
+        </mat-step>
+
+        <mat-step [stepControl]="usuarioForm.get('datosContacto')!">
+          <ng-template matStepLabel>Datos de contacto</ng-template>
+          <app-form-section
+            numero="02"
+            titulo="Datos de contacto"
+            descripcion="Información de contacto y ubicación."
+          >
+            <app-datos-contacto
+              formGroupName="datosContacto"
+              (codigoPostalChange)="actualizarUbicacion($event)"
+            ></app-datos-contacto>
+          </app-form-section>
+          <div class="admin-step-navigation">
+            <button mat-button class="step-back" type="button" [disabled]="cargando()" (click)="adminStepper.previous()">Anterior</button>
+            <button mat-flat-button class="step-next" type="button" [disabled]="cargando()" (click)="avanzarPaso(adminStepper, 'datosContacto')">Siguiente</button>
+          </div>
+        </mat-step>
+
+        <mat-step>
+          <ng-template matStepLabel>Confirmación</ng-template>
+          <section class="admin-user-review" aria-labelledby="admin-user-review-title">
+            <h3 id="admin-user-review-title">Revisa la información</h3>
+            <div class="admin-user-review-grid">
+              <div><span>Nombre</span><strong>{{ usuarioForm.get('datosPersonales.nombre')?.value || '—' }}</strong></div>
+              <div><span>Primer apellido</span><strong>{{ usuarioForm.get('datosPersonales.primer_apellido')?.value || '—' }}</strong></div>
+              <div><span>Fecha de nacimiento</span><strong>{{ usuarioForm.get('datosPersonales.fecha_nacimiento')?.value || '—' }}</strong></div>
+              <div><span>Correo principal</span><strong>{{ usuarioForm.get('datosPersonales.email')?.value || '—' }}</strong></div>
+              <div><span>Teléfono principal</span><strong>{{ usuarioForm.get('datosContacto.telefono')?.value || '—' }}</strong></div>
+              <div><span>Dirección principal</span><strong>{{ usuarioForm.get('datosContacto.direccion')?.value || '—' }}</strong></div>
+              <div><span>Código postal</span><strong>{{ usuarioForm.get('datosContacto.codigo_postal')?.value || '—' }}</strong></div>
+              <div><span>Estado / municipio</span><strong>{{ usuarioForm.get('datosContacto.estado')?.value || '—' }} / {{ usuarioForm.get('datosContacto.municipio')?.value || '—' }}</strong></div>
+            </div>
+
+            <fieldset class="admin-role-selection" *ngIf="puedeAsignarRol()">
+              <legend>Rol del usuario</legend>
+              <mat-radio-group aria-label="Rol del usuario" [value]="rolSeleccionado()" (change)="rolSeleccionado.set($event.value)">
+                <mat-radio-button value="USER">Usuario</mat-radio-button>
+                <mat-radio-button value="ADMIN">Administrador</mat-radio-button>
+              </mat-radio-group>
+            </fieldset>
+          </section>
+
+          <div class="admin-step-navigation">
+            <button mat-button class="step-back" type="button" [disabled]="cargando()" (click)="adminStepper.previous()">Anterior</button>
+            <button mat-flat-button class="save" type="submit" [disabled]="cargando()">
+              <mat-icon svgIcon="save"></mat-icon>
+              {{ cargando() ? 'Guardando usuario...' : (editando() ? 'Actualizar usuario' : 'Registrar usuario') }}
+            </button>
+            <button mat-button class="cancel" type="button" (click)="cerrarModalEditar()" [disabled]="cargando()">
+              <mat-icon svgIcon="close"></mat-icon>
+              Cancelar
+            </button>
+          </div>
+        </mat-step>
+      </mat-stepper>
+    </form>
+
+  </div>
+</div>
+
+<div class="mensaje-overlay" *ngIf="cargando()" aria-live="polite" aria-busy="true">
+  <div class="mensaje-modal">
+    <div class="mensaje-icon">...</div>
+    <h2>Procesando solicitud</h2>
+    <p>Espera un momento...</p>
+  </div>
+</div>
+
+
+
+<app-modal-mensaje
+  [visible]="modalMensajeVisible()"
+  [tipo]="modalTipo()"
+  [titulo]="modalTitulo()"
+  [mensaje]="modalMensaje()"
+  (cerrar)="cerrarModalMensaje()"
+></app-modal-mensaje>

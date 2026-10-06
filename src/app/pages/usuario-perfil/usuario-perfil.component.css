@@ -1,0 +1,283 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  color: #203047;
+}
+
+.perfil-page {
+  min-height: 100vh;
+  padding: 42px 24px 64px;
+  box-sizing: border-box;
+  background:
+    linear-gradient(rgba(12, 30, 54, .42), rgba(12, 30, 54, .42)),
+    url('/fondo-usuario.jpg') center / cover fixed no-repeat;
+  overflow: hidden;
+  isolation: isolate;
+  animation: perfilEntrada .7s ease both;
+}
+
+.perfil-page::before {
+  content: '';
+  position: fixed;
+  z-index: -1;
+  width: 36vw;
+  height: 36vw;
+  top: -14vw;
+  left: -10vw;
+  border: 1px solid rgba(255, 255, 255, .2);
+  border-radius: 50%;
+  animation: perfilPulso 14s ease-in-out infinite alternate;
+}
+
+.perfil-shell {
+  width: min(100%, 920px);
+  margin: 0 auto;
+}
+
+.card-kicker,
+.dato-label {
+  display: block;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+}
+
+.perfil-card {
+  padding: 38px;
+  border: 1px solid rgba(255, 255, 255, .65);
+  border-radius: 8px;
+  background: rgba(245, 249, 255, .88);
+  box-shadow: 0 20px 45px rgba(10, 24, 42, .24);
+  backdrop-filter: blur(12px);
+  animation: perfilTarjeta .65s .1s ease both;
+}
+
+.perfil-card-heading {
+  padding-bottom: 24px;
+  border-bottom: 1px solid #dce4ef;
+}
+
+.card-kicker,
+.dato-label {
+  color: #5270a1;
+}
+
+.perfil-card h2 {
+  margin: 8px 0 0;
+  color: #203047;
+  font-size: 26px;
+}
+
+.datos-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px 32px;
+  padding-top: 28px;
+}
+
+.dato-label {
+  margin-bottom: 7px;
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+
+.dato strong {
+  display: block;
+  color: #263b58;
+  font-size: 15px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.dato {
+  transition: transform .18s ease;
+}
+
+.dato:hover {
+  transform: translateX(4px);
+}
+
+.status-message {
+  margin: 0;
+  color: #5270a1;
+  text-align: center;
+}
+
+.error-message {
+  color: #a43131;
+}
+
+.edit-notice-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(10, 20, 34, .68);
+  backdrop-filter: blur(4px);
+}
+
+.edit-notice-modal {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: min(440px, 100%);
+  padding: 30px 32px;
+  border: 1px solid rgba(255, 255, 255, .72);
+  border-top: 4px solid #3159c7;
+  border-radius: 8px;
+  background: rgba(250, 252, 255, .98);
+  box-shadow: 0 22px 65px rgba(10, 24, 42, .3);
+  text-align: center;
+}
+
+.edit-notice-image {
+  display: block;
+  width: min(230px, 80%);
+  aspect-ratio: 1;
+  margin: 4px auto 20px;
+  object-fit: contain;
+}
+
+.edit-notice-modal h2 {
+  margin: 8px 0;
+  color: #203047;
+  font-size: 23px;
+}
+
+.edit-notice-modal p {
+  max-width: 340px;
+  margin: 0 0 22px;
+  color: #53647d;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.edit-notice-close {
+  position: absolute;
+  top: 9px;
+  right: 10px;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  background: transparent;
+  color: #707d91;
+  font-size: 26px;
+  cursor: pointer;
+}
+
+.edit-notice-button {
+  min-height: 42px;
+  padding: 0 24px;
+  border: 0;
+  border-radius: 4px;
+  background: #3159c7;
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.edit-notice-button:hover {
+  background: #264aa9;
+}
+
+.video-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(10, 20, 34, 0.72);
+}
+
+.video-modal {
+  position: relative;
+  width: min(900px, 92vw);
+  background: #0f172a;
+  border-radius: 18px;
+  box-shadow: 0 26px 70px rgba(0, 0, 0, 0.35);
+  padding: 16px;
+}
+
+.video-close {
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
+  color: #0f172a;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+}
+
+.video-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #000;
+}
+
+.video-wrapper iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+@keyframes perfilEntrada {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes perfilTarjeta {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes perfilPulso {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(20px, 18px, 0) scale(1.08); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .perfil-page,
+  .perfil-page::before,
+  .perfil-card,
+  .dato {
+    animation: none;
+    transition: none;
+  }
+}
+
+@media (max-width: 620px) {
+  .perfil-page {
+    padding: 28px 14px 44px;
+  }
+
+  .perfil-card {
+    padding: 26px 20px;
+  }
+
+  .datos-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .edit-notice-overlay {
+    padding: 10px;
+  }
+
+  .edit-notice-modal {
+    padding: 26px 20px;
+  }
+}

@@ -1,108 +1,237 @@
-import {
-  Inject,
-  Injectable,
-  PLATFORM_ID
-} from '@angular/core';
-
-import {
-  isPlatformBrowser
-} from '@angular/common';
-
+import { computed, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+
+import {
+  Observable,
+  tap,
+  switchMap,
+  catchError,
+  throwError,
+  of,
+  finalize,
+  shareReplay
+} from 'rxjs';
+
 import { environment } from '../../environments/environment';
+import { limpiarCacheUsuariosPersistida } from './usuario-cache.storage';
+import { Usuario } from '../models/usuario.model';
 
 export interface LoginResponse {
-  acceso?: boolean;
-  token?: string;
-  usuario?: unknown;
+  acceso: boolean;
+
+  usuario: {
+    id: number;
+    email: string;
+    rol: string;
+    nombre?: string;
+    primerApellido?: string;
+  };
 }
+export interface UsuarioSesion {
+  id: number;
+  email: string;
+  rol: string;
+  nombre?: string;
+  primerApellido?: string;
+}
+
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
 
-  private authUrl = `${environment.apiUrl}/auth`;
+  private authUrl =
+    `${environment.apiUrl}${environment.auth.login}`;
+
+  private logoutUrl =
+    `${environment.apiUrl}${environment.auth.logout}`;
+
+  private perfilUrl =
+    `${environment.apiUrl}${environment.auth.perfil}`;
+
+  private identidadUrl =
+    `${environment.apiUrl}${environment.auth.identidad}`;
+
+  private csrfUrl =
+    `${environment.apiUrl}${environment.auth.csrf}`;
+
+  private readonly estadoUsuarioActual = signal<UsuarioSesion | null>(null);
+  readonly usuarioActual = this.estadoUsuarioActual.asReadonly();
+  readonly haySesion = computed(() => this.usuarioActual() !== null);
+  private readonly estadoPerfilActual = signal<Usuario | null>(null);
+  readonly perfilActual = this.estadoPerfilActual.asReadonly();
+  private sesionVerificada = false;
+  private solicitudPerfil?: Observable<Usuario>;
+  private solicitudIdentidad?: Observable<UsuarioSesion>;
+
 
   constructor(
-    @Inject(PLATFORM_ID)
-    private platformId: Object,
     private http: HttpClient
   ) {}
 
-  // Conexión real al backend para iniciar sesión
-  login(credenciales: { email: string; password: string }): Observable<LoginResponse> {
+  login(
+    credenciales: {
+      identificador: string;
+      password: string;
+    }
+  ): Observable<LoginResponse> {
     const datosAEnviar = {
-      usuario: credenciales.email,
+      usuario: credenciales.identificador,
       password: credenciales.password
     };
 
-    return this.http.post<LoginResponse>(`${this.authUrl}/admin`, datosAEnviar).pipe(
-      tap(response => {
-        if (
-          isPlatformBrowser(this.platformId) &&
-          response &&
-          (response.acceso === true || response.token)
-        ) {
-          if (response.token) {
-            localStorage.setItem('token', response.token);
-          }
-          localStorage.setItem('adminSesion', 'true');
-          localStorage.setItem('usuario', JSON.stringify(response.usuario || {}));
+    return this.http
+      .post<LoginResponse>(
+        this.authUrl,
+        datosAEnviar,
+        {
+          withCredentials: true
         }
+      )
+      .pipe(
+        tap(response => {
+          this.estadoPerfilActual.set(null);
+          this.sesionVerificada = true;
+          if (response?.acceso === true) {
+            limpiarCacheUsuariosPersistida();
+          }
+          this.estadoUsuarioActual.set(response?.acceso === true ? response.usuario : null);
+        })
+      );
+  }
+
+  obtenerCsrf(): Observable<void> {
+    return this.http.get<void>(
+      this.csrfUrl,
+      {
+        withCredentials: true
+      }
+    );
+  }
+
+  obtenerPerfil(): Observable<Usuario> {
+    const perfil = this.perfilActual();
+    if (perfil) {
+      return of(perfil);
+    }
+
+    if (this.solicitudPerfil) {
+      return this.solicitudPerfil;
+    }
+
+    const solicitud = this.http.get<Usuario>(
+      this.perfilUrl,
+      { withCredentials: true }
+    ).pipe(
+      tap(usuario => {
+        this.estadoPerfilActual.set(usuario);
+        if (usuario.id !== undefined && usuario.rol) {
+          this.estadoUsuarioActual.set({
+            id: usuario.id,
+            email: usuario.correos?.find(contacto => contacto.tipo === 'PRINCIPAL')?.valor ?? '',
+            rol: usuario.rol,
+            nombre: usuario.nombre,
+            primerApellido: usuario.primerApellido
+          });
+        } else {
+          this.estadoUsuarioActual.set(null);
+        }
+        this.sesionVerificada = true;
+      }),
+      catchError(error => {
+        this.estadoPerfilActual.set(null);
+        this.estadoUsuarioActual.set(null);
+        this.sesionVerificada = true;
+        return throwError(() => error);
+      }),
+      finalize(() => this.solicitudPerfil = undefined),
+      shareReplay({ bufferSize: 1, refCount: false })
+    );
+
+    this.solicitudPerfil = solicitud;
+    return solicitud;
+  }
+
+  actualizarPerfilSesion(usuario: Usuario): void {
+    const sesion = this.usuarioActual();
+    if (!sesion || usuario.id !== sesion.id) {
+      return;
+    }
+
+    const correoPrincipal = usuario.correos
+      ?.find(contacto => contacto.tipo === 'PRINCIPAL')?.valor ?? sesion.email;
+
+    this.estadoPerfilActual.set(null);
+    this.estadoUsuarioActual.set({
+      id: sesion.id,
+      email: correoPrincipal,
+      rol: usuario.rol ?? sesion.rol,
+      nombre: usuario.nombre,
+      primerApellido: usuario.primerApellido
+    });
+  }
+
+  verificarSesion(): Observable<UsuarioSesion> {
+    return this.obtenerIdentidad();
+  }
+
+  obtenerIdentidad(): Observable<UsuarioSesion> {
+    const identidad = this.usuarioActual();
+    if (identidad?.nombre) return of(identidad);
+    if (this.solicitudIdentidad) return this.solicitudIdentidad;
+
+    const solicitud = this.http.get<UsuarioSesion>(this.identidadUrl, { withCredentials: true }).pipe(
+      tap(usuario => {
+        this.estadoUsuarioActual.set(usuario);
+        this.sesionVerificada = true;
+      }),
+      catchError(error => {
+        this.estadoUsuarioActual.set(null);
+        this.estadoPerfilActual.set(null);
+        this.sesionVerificada = true;
+        return throwError(() => error);
+      }),
+      finalize(() => this.solicitudIdentidad = undefined),
+      shareReplay({ bufferSize: 1, refCount: false })
+    );
+    this.solicitudIdentidad = solicitud;
+    return solicitud;
+  }
+
+  obtenerSesion(): Observable<UsuarioSesion | null> {
+    const usuario = this.usuarioActual();
+    if (usuario) {
+      return of(usuario);
+    }
+    return this.sesionVerificada ? of(null) : this.verificarSesion();
+  }
+
+  cerrarSesion(): Observable<void> {
+    return this.obtenerCsrf().pipe(
+      switchMap(() =>
+        this.http.post<void>(
+          this.logoutUrl,
+          {},
+          {
+            withCredentials: true
+          }
+        )
+      ),
+
+      tap(() => {
+        limpiarCacheUsuariosPersistida();
+        this.estadoPerfilActual.set(null);
+        this.estadoUsuarioActual.set(null);
+        this.sesionVerificada = true;
       })
     );
   }
 
-  iniciarSesion(): void {
-    if (
-      isPlatformBrowser(
-        this.platformId
-      )
-    ) {
-      localStorage.setItem(
-        'adminSesion',
-        'true'
-      );
-    }
+  limpiarSesionLocal(): void {
+    limpiarCacheUsuariosPersistida();
+    this.estadoPerfilActual.set(null);
+    this.estadoUsuarioActual.set(null);
+    this.sesionVerificada = true;
   }
-
-  haySesion(): boolean {
-    if (
-      !isPlatformBrowser(
-        this.platformId
-      )
-    ) {
-      return false;
-    }
-
-    return (
-      localStorage.getItem(
-        'adminSesion'
-      ) === 'true' || !!localStorage.getItem('token')
-    );
-  }
-
-  getToken(): string | null {
-    if (!isPlatformBrowser(this.platformId)) {
-      return null;
-    }
-    return localStorage.getItem('token');
-  }
-
-  cerrarSesion(): void {
-    if (
-      isPlatformBrowser(
-        this.platformId
-      )
-    ) {
-      localStorage.removeItem(
-        'adminSesion'
-      );
-      localStorage.removeItem('token');
-      localStorage.removeItem('usuario');
-    }
-  }
-
 }

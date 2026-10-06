@@ -1,0 +1,177 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.contactos-listas,
+.contactos-listas * {
+  box-sizing: border-box;
+}
+
+.contactos-modal {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.contactos-perfil {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px 32px;
+  margin-top: 30px;
+  padding-top: 24px;
+  border-top: 1px solid #dce4ef;
+}
+
+.contactos-grupo {
+  min-width: 0;
+}
+
+.datos-personales-compartidos {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+.datos-personales-compartidos h3 {
+  margin: 0 0 10px;
+  color: #26364f;
+  font-size: 14px;
+}
+
+.datos-personales-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.datos-personales-grid > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 9px 10px;
+  border-bottom: 1px solid #dce4ef;
+}
+
+.datos-personales-grid span {
+  color: #707d91;
+  font-size: 11px;
+}
+
+.datos-personales-grid strong {
+  overflow-wrap: anywhere;
+  color: #26364f;
+  font-size: 13px;
+}
+
+.contactos-grupo h3 {
+  margin: 0 0 12px;
+  color: #203047;
+  font-size: 16px;
+}
+
+.contactos-perfil .grupo-direcciones {
+  grid-column: 1 / -1;
+}
+
+.contactos-perfil ul {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.contactos-perfil li {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.contactos-perfil .contacto-tipo,
+.contactos-perfil .codigo-postal {
+  color: #5270a1;
+  font-size: 12px;
+}
+
+.contactos-perfil li strong {
+  color: #263b58;
+  font-size: 14px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.contactos-modal .contactos-grupo {
+  padding-top: 10px;
+  border-top: 3px solid #3159c7;
+}
+
+.contactos-modal .grupo-correos {
+  border-top-color: #43866d;
+}
+
+.contactos-modal .grupo-direcciones {
+  border-top-color: #bb8540;
+}
+
+.contactos-modal .contactos-grupo h3 {
+  margin-bottom: 9px;
+  color: #26364f;
+  font-size: 14px;
+}
+
+.contacto-modal-entry {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 10px 0;
+  border-bottom: 1px solid #e1e6ef;
+  overflow-wrap: anywhere;
+}
+
+.contactos-modal .contacto-modal-entry strong {
+  color: #3159c7;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.contactos-modal .contacto-modal-entry span {
+  color: #26364f;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.contactos-modal .contacto-modal-entry small {
+  color: #707d91;
+  font-size: 12px;
+}
+
+.contactos-vacios {
+  margin: 0;
+  color: #707d91;
+  font-size: 14px;
+}
+
+.contactos-modal .contactos-vacios {
+  font-size: 13px;
+}
+
+@media (max-width: 1180px) {
+  .contactos-modal {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .datos-personales-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .contactos-perfil {
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+
+  .contactos-perfil .grupo-direcciones {
+    grid-column: auto;
+  }
+}

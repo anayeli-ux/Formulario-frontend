@@ -1,0 +1,67 @@
+<main class="perfil-page">
+  <app-page-header
+    etiqueta="Área personal"
+    titulo="Mis datos"
+    tituloId="perfil-title"
+    descripcion="Consulta la información registrada en el sistema."
+    variante="principal"
+    [nivelTitulo]="1"
+    [nombreUsuario]="nombreUsuario()"
+    [correoUsuario]="correoUsuario()"
+    (cerrarSesion)="cerrarSesion()"
+  ></app-page-header>
+
+  <section class="perfil-shell" aria-labelledby="perfil-title">
+    <section class="perfil-card" *ngIf="cargando()" aria-live="polite">
+      <p class="status-message">Cargando tus datos...</p>
+    </section>
+
+    <section class="perfil-card" *ngIf="!cargando() && errorMensaje()" aria-live="polite">
+      <p class="status-message error-message">{{ errorMensaje() }}</p>
+    </section>
+
+    <section class="perfil-card" *ngIf="!cargando() && usuario()" aria-label="Datos personales">
+      <div class="perfil-card-heading">
+        <span class="card-kicker">Información del usuario</span>
+        <h2>{{ usuario()!.nombre }} {{ usuario()!.primerApellido }}</h2>
+      </div>
+
+      <app-contactos-usuario [usuario]="usuario()!" presentacion="perfil"></app-contactos-usuario>
+    </section>
+  </section>
+</main>
+
+<div class="edit-notice-overlay" *ngIf="avisoEdicionVisible()" (click)="cerrarAvisoEdicion()">
+  <section class="edit-notice-modal" role="dialog" aria-modal="true" aria-labelledby="edit-notice-title" (click)="$event.stopPropagation()">
+    <button class="edit-notice-close" type="button" (click)="cerrarAvisoEdicion()" aria-label="Cerrar aviso">×</button>
+    <img class="edit-notice-image" src="/estamos-trabajando.png" alt="Ilustración de una opción en desarrollo">
+    <span class="card-kicker">Área personal</span>
+    <h2 id="edit-notice-title">Opción en construcción</h2>
+    <p>La edición de tus datos está en fase de desarrollo. Por ahora puedes consultar la información de tu perfil.</p>
+    <button class="edit-notice-button" type="button" (click)="cerrarAvisoEdicion()">Entendido</button>
+  </section>
+</div>
+
+<div class="video-modal-backdrop" *ngIf="modalVisible()" (click)="cerrarVideo()">
+  <div
+    class="video-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Video de cambio de rol"
+    (click)="$event.stopPropagation()"
+  >
+    <button class="video-close" type="button" (click)="cerrarVideo()" aria-label="Cerrar video">
+      ×
+    </button>
+
+    <div class="video-wrapper">
+      <iframe
+        [src]="youtubeEmbedUrl"
+        title="Video de cambio de rol"
+        frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowfullscreen
+      ></iframe>
+    </div>
+  </div>
+</div>
