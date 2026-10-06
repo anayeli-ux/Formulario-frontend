@@ -89,12 +89,22 @@ describe('UsuariosTablaComponent', () => {
 
   it('keeps identity and action columns fixed and offers only current optional columns', () => {
     expect(component.columnasVisibles).toEqual([
-      'id', 'nombre', 'rol', 'telefono', 'correo', 'informacion', 'acciones'
+      'id', 'nombre', 'telefono', 'codigoPostal', 'correo', 'informacion', 'acciones'
     ]);
     expect(component.columnasConfigurables.map(columna => columna.id)).toEqual([
       'telefono', 'codigoPostal', 'correo'
     ]);
-    expect(component.columnasVisibles).not.toContain('codigoPostal');
+  });
+
+  it('uses the same optional columns in administrator mode', () => {
+    component.entidad = 'administradores';
+
+    expect(component.columnasConfigurables.map(columna => columna.id)).toEqual([
+      'telefono', 'codigoPostal', 'correo'
+    ]);
+    expect(component.columnasVisibles).toEqual([
+      'id', 'nombre', 'telefono', 'codigoPostal', 'correo', 'informacion', 'acciones'
+    ]);
   });
 
   it('shows and hides the postal-code column from its MatCheckbox', () => {
@@ -102,16 +112,16 @@ describe('UsuariosTablaComponent', () => {
       .find(element => element.nativeElement.textContent.includes('Código postal'));
 
     expect(postalCheckbox).toBeDefined();
-    expect(component.columnasVisibles).not.toContain('codigoPostal');
+    expect(component.columnasVisibles).toContain('codigoPostal');
 
     const checkboxInput = postalCheckbox!.nativeElement.querySelector('input[type="checkbox"]') as HTMLInputElement;
     checkboxInput.click();
     fixture.detectChanges();
-    expect(component.columnasVisibles).toContain('codigoPostal');
+    expect(component.columnasVisibles).not.toContain('codigoPostal');
 
     checkboxInput.click();
     fixture.detectChanges();
-    expect(component.columnasVisibles).not.toContain('codigoPostal');
+    expect(component.columnasVisibles).toContain('codigoPostal');
   });
 
   it('does not mutate page results when column visibility changes', () => {

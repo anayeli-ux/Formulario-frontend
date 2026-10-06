@@ -9,7 +9,6 @@ import { MatInputModule } from '@angular/material/input';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatTableModule } from '@angular/material/table';
 import { UsuarioResumen } from '../../models/usuario.model';
-import { obtenerIdRol } from '../../utils/rol.util';
 import { AdminIconsService } from '../../services/admin-icons.service';
 
 type ColumnaOpcionalUsuarios = 'telefono' | 'codigoPostal' | 'correo';
@@ -50,8 +49,9 @@ export class UsuariosTablaComponent implements OnChanges {
   @Input() pageSize = 5;
   @Input() cargando = false;
   @Input() inactivos = false;
+  @Input() entidad: 'usuarios' | 'administradores' = 'usuarios';
   @Input() set columnasOpcionalesSeleccionadas(columnas: string[] | null | undefined) {
-    this.columnasActivas = new Set(columnas ?? ['telefono', 'correo']);
+    this.columnasActivas = new Set(columnas ?? ['telefono', 'codigoPostal', 'correo']);
   }
 
   @Output() busquedaChange = new EventEmitter<string>();
@@ -62,7 +62,7 @@ export class UsuariosTablaComponent implements OnChanges {
   @Output() eliminar = new EventEmitter<number>();
   @Output() reactivar = new EventEmitter<number>();
 
-  private columnasActivas = new Set<string>(['telefono', 'correo']);
+  private columnasActivas = new Set<string>(['telefono', 'codigoPostal', 'correo']);
 
   constructor(adminIcons: AdminIconsService) {
     adminIcons.registrar();
@@ -82,7 +82,6 @@ export class UsuariosTablaComponent implements OnChanges {
     return [
       'id',
       'nombre',
-      'rol',
       ...opcionalesVisibles,
       'informacion',
       'acciones'
@@ -90,9 +89,7 @@ export class UsuariosTablaComponent implements OnChanges {
   }
 
   get columnasConfigurables(): OpcionColumnaUsuarios[] {
-    return this.inactivos
-      ? COLUMNAS_OPCIONALES.filter(columna => columna.id !== 'correo')
-      : COLUMNAS_OPCIONALES;
+    return COLUMNAS_OPCIONALES;
   }
 
   columnaSeleccionada(columna: ColumnaOpcionalUsuarios): boolean {
@@ -145,10 +142,6 @@ export class UsuariosTablaComponent implements OnChanges {
 
   obtenerTelefonoPrincipal(usuario: UsuarioResumen): string {
     return usuario.telefono ?? '';
-  }
-
-  nombreRol(usuario: UsuarioResumen): string {
-    return obtenerIdRol(usuario.rol) === 2 ? 'Administrador' : 'Usuario';
   }
 
   obtenerCorreoPrincipal(usuario: UsuarioResumen): string {

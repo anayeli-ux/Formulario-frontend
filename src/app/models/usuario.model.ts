@@ -52,6 +52,8 @@ export interface AdministradorResumen {
   nombre: string;
   primerApellido: string;
   correo: string | null;
+  telefono?: string | null;
+  codigoPostal?: string | null;
 }
 
 export interface PaginaAdministradores {

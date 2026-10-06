@@ -11,7 +11,6 @@
   ></app-page-header>
 
   <div class="admin-content-layout">
-  <div class="admin-main-column">
     <nav class="admin-view-switch" aria-label="Vista de usuarios">
       <button
         mat-button
@@ -29,87 +28,36 @@
       >Eliminados</button>
     </nav>
 
-    <app-usuarios-tabla
-      *ngIf="vistaActual() === 'activos'"
-      [usuarios]="usuariosFiltrados()"
-      [busqueda]="busquedaUsuarios()"
-      [totalPages]="totalPaginasActivos()"
-      [pageIndex]="paginaIndexActivos()"
-      [pageSize]="pageSizeActivos()"
-      [cargando]="cargando()"
-      [columnasOpcionalesSeleccionadas]="columnasOpcionalesUsuarios()"
-      (busquedaChange)="busquedaUsuarios.set($event); buscarUsuarios($event, 'activos')"
-      (paginaChange)="cambiarPagina($event, 'activos')"
-      (columnasOpcionalesChange)="actualizarColumnasOpcionales($event)"
-      (registrar)="abrirCrearUsuario()"
-      (ver)="abrirInformacion($event)"
-      (editar)="editarUsuario($event)"
-      (eliminar)="eliminarUsuario($event)"
-    ></app-usuarios-tabla>
+    <mat-tab-group
+      class="admin-tabs"
+      aria-label="Administración de usuarios y administradores"
+      (selectedTabChange)="cambiarSeccionTabla($event.index)"
+    >
+      <mat-tab label="Usuarios"></mat-tab>
+      <mat-tab label="Administradores"></mat-tab>
+    </mat-tab-group>
 
-    <app-usuarios-tabla
-      *ngIf="vistaActual() === 'eliminados'"
-      [usuarios]="usuariosEliminadosFiltrados()"
-      [busqueda]="busquedaUsuariosEliminados()"
-      [totalPages]="totalPaginasEliminados()"
-      [pageIndex]="paginaIndexEliminados()"
-      [pageSize]="pageSizeEliminados()"
-      [cargando]="cargando()"
-      [inactivos]="true"
-      [columnasOpcionalesSeleccionadas]="columnasOpcionalesUsuarios()"
-      (busquedaChange)="busquedaUsuariosEliminados.set($event); buscarUsuarios($event, 'eliminados')"
-      (paginaChange)="cambiarPagina($event, 'eliminados')"
-      (columnasOpcionalesChange)="actualizarColumnasOpcionales($event)"
-      (ver)="abrirInformacion($event)"
-      (reactivar)="reactivarUsuario($event)"
-    ></app-usuarios-tabla>
-  </div>
-  <mat-card class="admin-roster" aria-labelledby="admin-roster-title">
-    <span class="admin-label">ACCESO ADMINISTRATIVO</span>
-    <h3 id="admin-roster-title">{{ vistaActual() === 'eliminados' ? 'Administradores eliminados' : 'Administradores' }}</h3>
-    <div class="admin-roster-table-wrapper">
-      <table class="admin-roster-table">
-        <thead>
-          <tr><th>ID</th><th>Nombre</th><th>Correo</th><th>Acciones</th></tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let administrador of administradores()">
-            <td>{{ administrador.id }}</td>
-            <td>{{ administrador.nombre }} {{ administrador.primerApellido }}</td>
-            <td>{{ administrador.correo || 'Sin correo principal' }}</td>
-            <td class="admin-roster-actions">
-              <ng-container *ngIf="vistaActual() === 'activos'; else reactivarAdmin">
-                <button mat-icon-button type="button" (click)="editarUsuario(administrador)" [disabled]="cargando() || cargandoAdministradores()" aria-label="Editar administrador" title="Editar">
-                  <mat-icon svgIcon="edit"></mat-icon>
-                </button>
-                <button mat-icon-button type="button" (click)="eliminarUsuario(administrador.id)" [disabled]="cargando() || cargandoAdministradores()" aria-label="Eliminar administrador" title="Eliminar">
-                  <mat-icon svgIcon="delete"></mat-icon>
-                </button>
-              </ng-container>
-              <ng-template #reactivarAdmin>
-                <button mat-icon-button type="button" (click)="reactivarUsuario(administrador.id)" [disabled]="cargando() || cargandoAdministradores()" aria-label="Reactivar administrador" title="Reactivar">
-                  <mat-icon svgIcon="restore"></mat-icon>
-                </button>
-              </ng-template>
-            </td>
-          </tr>
-          <tr *ngIf="!administradores().length">
-            <td colspan="4">{{ cargandoAdministradores() ? 'Cargando...' : 'No hay administradores en esta página.' }}</td>
-          </tr>
-        </tbody>
-      </table>
+    <div class="admin-tab-content">
+      <app-usuarios-tabla
+        [usuarios]="filasTabla()"
+        [entidad]="tipoTabla()"
+        [inactivos]="vistaActual() === 'eliminados'"
+        [busqueda]="busquedaTabla()"
+        [totalPages]="totalPaginasTabla()"
+        [pageIndex]="paginaIndexTabla()"
+        [pageSize]="tamanioPaginaTabla()"
+        [cargando]="cargandoTabla()"
+        [columnasOpcionalesSeleccionadas]="columnasOpcionalesUsuarios()"
+        (busquedaChange)="buscarEnTabla($event)"
+        (paginaChange)="cambiarPaginaTabla($event)"
+        (columnasOpcionalesChange)="actualizarColumnasOpcionales($event)"
+        (registrar)="abrirCrearUsuario()"
+        (ver)="abrirInformacion($event)"
+        (editar)="editarUsuario($event)"
+        (eliminar)="eliminarUsuario($event)"
+        (reactivar)="reactivarUsuario($event)"
+      ></app-usuarios-tabla>
     </div>
-    <mat-paginator
-      [length]="totalPaginasAdministradores() * 5"
-      [pageIndex]="paginaIndexAdministradores()"
-      [pageSize]="5"
-      [hidePageSize]="true"
-      [disabled]="cargandoAdministradores()"
-      showFirstLastButtons
-      (page)="cambiarPaginaAdministradores($event)"
-      aria-label="Paginación de administradores"
-    ></mat-paginator>
-  </mat-card>
   </div>
 </main>
 
@@ -165,39 +113,83 @@
 
 
     <!-- FORMULARIO -->
-    <form class="user-form" [formGroup]="usuarioForm" (ngSubmit)="editando() ? actualizarUsuario() : crearUsuario()">
-      <app-form-section
-        numero="01"
-        titulo="Datos personales"
-        descripcion="Información general del usuario."
-      >
-        <app-datos-personales
-          formGroupName="datosPersonales"
-          [passwordOpcional]="editando()"
-        ></app-datos-personales>
-      </app-form-section>
+    <form class="user-form" [formGroup]="usuarioForm" (ngSubmit)="adminStepper.selectedIndex === 2 && (editando() ? actualizarUsuario() : crearUsuario())">
+      <mat-stepper linear #adminStepper class="admin-user-stepper">
+        <ng-template matStepperIcon="number" let-index="index">{{ index + 1 }}</ng-template>
+        <ng-template matStepperIcon="done" let-index="index">{{ index + 1 }}</ng-template>
+        <ng-template matStepperIcon="edit" let-index="index">{{ index + 1 }}</ng-template>
+        <mat-step [stepControl]="usuarioForm.get('datosPersonales')!">
+          <ng-template matStepLabel>Datos personales</ng-template>
+          <app-form-section
+            numero="01"
+            titulo="Datos personales"
+            descripcion="Información general del usuario."
+          >
+            <app-datos-personales
+              formGroupName="datosPersonales"
+              [passwordOpcional]="editando()"
+            ></app-datos-personales>
+          </app-form-section>
+          <div class="admin-step-navigation admin-step-navigation-end">
+            <button mat-flat-button class="step-next" type="button" [disabled]="cargando()" (click)="avanzarPaso(adminStepper, 'datosPersonales')">Siguiente</button>
+          </div>
+        </mat-step>
 
-      <app-form-section
-        numero="02"
-        titulo="Datos de contacto"
-        descripcion="Información de contacto y ubicación."
-      >
-        <app-datos-contacto
-          formGroupName="datosContacto"
-          (codigoPostalChange)="actualizarUbicacion($event)"
-        ></app-datos-contacto>
-      </app-form-section>
+        <mat-step [stepControl]="usuarioForm.get('datosContacto')!">
+          <ng-template matStepLabel>Datos de contacto</ng-template>
+          <app-form-section
+            numero="02"
+            titulo="Datos de contacto"
+            descripcion="Información de contacto y ubicación."
+          >
+            <app-datos-contacto
+              formGroupName="datosContacto"
+              (codigoPostalChange)="actualizarUbicacion($event)"
+            ></app-datos-contacto>
+          </app-form-section>
+          <div class="admin-step-navigation">
+            <button mat-button class="step-back" type="button" [disabled]="cargando()" (click)="adminStepper.previous()">Anterior</button>
+            <button mat-flat-button class="step-next" type="button" [disabled]="cargando()" (click)="avanzarPaso(adminStepper, 'datosContacto')">Siguiente</button>
+          </div>
+        </mat-step>
 
-      <div class="actions full">
-        <button mat-flat-button class="save" type="submit" [disabled]="cargando()">
-          <mat-icon svgIcon="save"></mat-icon>
-          {{ cargando() ? 'Guardando usuario...' : (editando() ? 'Actualizar usuario' : 'Registrar usuario') }}
-        </button>
-        <button mat-button class="cancel" type="button" (click)="cerrarModalEditar()" [disabled]="cargando()">
-          <mat-icon svgIcon="close"></mat-icon>
-          Cancelar
-        </button>
-      </div>
+        <mat-step>
+          <ng-template matStepLabel>Confirmación</ng-template>
+          <section class="admin-user-review" aria-labelledby="admin-user-review-title">
+            <h3 id="admin-user-review-title">Revisa la información</h3>
+            <div class="admin-user-review-grid">
+              <div><span>Nombre</span><strong>{{ usuarioForm.get('datosPersonales.nombre')?.value || '—' }}</strong></div>
+              <div><span>Primer apellido</span><strong>{{ usuarioForm.get('datosPersonales.primer_apellido')?.value || '—' }}</strong></div>
+              <div><span>Fecha de nacimiento</span><strong>{{ usuarioForm.get('datosPersonales.fecha_nacimiento')?.value || '—' }}</strong></div>
+              <div><span>Correo principal</span><strong>{{ usuarioForm.get('datosPersonales.email')?.value || '—' }}</strong></div>
+              <div><span>Teléfono principal</span><strong>{{ usuarioForm.get('datosContacto.telefono')?.value || '—' }}</strong></div>
+              <div><span>Dirección principal</span><strong>{{ usuarioForm.get('datosContacto.direccion')?.value || '—' }}</strong></div>
+              <div><span>Código postal</span><strong>{{ usuarioForm.get('datosContacto.codigo_postal')?.value || '—' }}</strong></div>
+              <div><span>Estado / municipio</span><strong>{{ usuarioForm.get('datosContacto.estado')?.value || '—' }} / {{ usuarioForm.get('datosContacto.municipio')?.value || '—' }}</strong></div>
+            </div>
+
+            <fieldset class="admin-role-selection" *ngIf="puedeAsignarRol()">
+              <legend>Rol del usuario</legend>
+              <mat-radio-group aria-label="Rol del usuario" [value]="rolSeleccionado()" (change)="rolSeleccionado.set($event.value)">
+                <mat-radio-button value="USER">Usuario</mat-radio-button>
+                <mat-radio-button value="ADMIN">Administrador</mat-radio-button>
+              </mat-radio-group>
+            </fieldset>
+          </section>
+
+          <div class="admin-step-navigation">
+            <button mat-button class="step-back" type="button" [disabled]="cargando()" (click)="adminStepper.previous()">Anterior</button>
+            <button mat-flat-button class="save" type="submit" [disabled]="cargando()">
+              <mat-icon svgIcon="save"></mat-icon>
+              {{ cargando() ? 'Guardando usuario...' : (editando() ? 'Actualizar usuario' : 'Registrar usuario') }}
+            </button>
+            <button mat-button class="cancel" type="button" (click)="cerrarModalEditar()" [disabled]="cargando()">
+              <mat-icon svgIcon="close"></mat-icon>
+              Cancelar
+            </button>
+          </div>
+        </mat-step>
+      </mat-stepper>
     </form>
 
   </div>

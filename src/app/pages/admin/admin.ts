@@ -9,14 +9,16 @@ import {
 
 import { AbstractControl, FormArray, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { debounceTime, finalize, Subject } from 'rxjs';
+import { catchError, debounceTime, finalize, forkJoin, map, of, Subject } from 'rxjs';
 import { PageEvent } from '@angular/material/paginator';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatPaginatorIntl, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatTabsModule } from '@angular/material/tabs';
+import { MatRadioModule } from '@angular/material/radio';
+import { MatStepper, MatStepperModule } from '@angular/material/stepper';
 
 import { AdministradorResumen, PaginaAdministradores, PaginaUsuarios, Usuario, UsuarioContactos, UsuarioResumen } from '../../models/usuario.model';
 
@@ -40,6 +42,7 @@ import { PageHeaderComponent } from '../../components/page-header/page-header.co
 import { ConfirmacionAdminDialogComponent } from '../../components/confirmacion-admin-dialog/confirmacion-admin-dialog.component';
 import { AdminIconsService } from '../../services/admin-icons.service';
 import { esAdministrador } from '../../utils/rol.util';
+import { obtenerContactoPrincipal } from '../../utils/contactos.util';
 
 type TipoModal =
   | 'exito'
@@ -72,11 +75,13 @@ function crearPaginadorSoloPaginas(): MatPaginatorIntl {
     FormSectionComponent,
     PageHeaderComponent,
     MatButtonModule,
-    MatCardModule,
     MatDialogModule,
     MatIconModule,
     MatPaginatorModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    MatTabsModule,
+    MatRadioModule,
+    MatStepperModule
   ],
   providers: [{ provide: MatPaginatorIntl, useFactory: crearPaginadorSoloPaginas }],
 
@@ -110,6 +115,8 @@ export class Admin implements OnInit {
   private totalPaginasAdministradoresGuardado = signal(0);
   private endpointAdministradoresDisponible = signal<boolean | null>(null);
   paginaIndexAdministradores = signal(0);
+  busquedaAdministradores = signal('');
+  tipoTabla = signal<'usuarios' | 'administradores'>('usuarios');
   private administradoresEnPaginaActual = computed<AdministradorResumen[]>(() => {
     const usuariosPagina = this.vistaActual() === 'eliminados'
       ? this.usuariosEliminados()
@@ -120,7 +127,9 @@ export class Admin implements OnInit {
         id: usuario.id,
         nombre: usuario.nombre,
         primerApellido: usuario.primerApellido,
-        correo: usuario.correo
+        correo: usuario.correo,
+        telefono: usuario.telefono,
+        codigoPostal: usuario.codigoPostal
       }));
   });
   administradores = computed(() => {
@@ -129,13 +138,61 @@ export class Admin implements OnInit {
       porId.set(administrador.id, administrador);
     }
     for (const administrador of this.administradoresEnPaginaActual()) {
-      porId.set(administrador.id, administrador);
+      const existente = porId.get(administrador.id);
+      porId.set(administrador.id, {
+        ...existente,
+        ...administrador,
+        correo: administrador.correo ?? existente?.correo ?? null,
+        telefono: administrador.telefono ?? existente?.telefono ?? null,
+        codigoPostal: administrador.codigoPostal ?? existente?.codigoPostal ?? null
+      });
     }
     return [...porId.values()];
   });
-  totalPaginasAdministradores = computed(() => this.endpointAdministradoresDisponible() === false
-    ? Number(this.administradoresEnPaginaActual().length > 0)
-    : this.totalPaginasAdministradoresGuardado());
+  administradoresTabla = computed<UsuarioResumen[]>(() => {
+    const busqueda = this.busquedaAdministradores().trim().toLocaleLowerCase();
+    return this.administradores()
+      .filter(administrador => !busqueda || [
+        administrador.id,
+        administrador.nombre,
+        administrador.primerApellido,
+        administrador.correo ?? ''
+      ].some(valor => String(valor).toLocaleLowerCase().includes(busqueda)))
+      .map(administrador => ({
+        ...administrador,
+        rol: 'ADMIN',
+        telefono: administrador.telefono ?? null,
+        codigoPostal: administrador.codigoPostal ?? null
+      }));
+  });
+  totalPaginasAdministradoresVista = computed(() => this.busquedaAdministradores().trim()
+    ? Number(this.administradoresTabla().length > 0)
+    : this.totalPaginasAdministradores());
+  filasTabla = computed(() => {
+    if (this.tipoTabla() === 'administradores') return this.administradoresTabla();
+    return this.vistaActual() === 'eliminados'
+      ? this.usuariosEliminadosFiltrados()
+      : this.usuariosFiltrados();
+  });
+  busquedaTabla = computed(() => this.tipoTabla() === 'administradores'
+    ? this.busquedaAdministradores()
+    : this.vistaActual() === 'eliminados' ? this.busquedaUsuariosEliminados() : this.busquedaUsuarios());
+  totalPaginasTabla = computed(() => this.tipoTabla() === 'administradores'
+    ? this.totalPaginasAdministradoresVista()
+    : this.vistaActual() === 'eliminados' ? this.totalPaginasEliminados() : this.totalPaginasActivos());
+  paginaIndexTabla = computed(() => this.tipoTabla() === 'administradores'
+    ? this.paginaIndexAdministradores()
+    : this.vistaActual() === 'eliminados' ? this.paginaIndexEliminados() : this.paginaIndexActivos());
+  tamanioPaginaTabla = computed(() => this.tipoTabla() === 'administradores'
+    ? 5
+    : this.vistaActual() === 'eliminados' ? this.pageSizeEliminados() : this.pageSizeActivos());
+  cargandoTabla = computed(() => this.tipoTabla() === 'administradores'
+    ? this.cargandoAdministradores() || this.cargando()
+    : this.cargando());
+  totalPaginasAdministradores = computed(() => Math.max(
+    this.totalPaginasAdministradoresGuardado(),
+    Number(this.administradoresEnPaginaActual().length > 0)
+  ));
   private totalPaginasActivosGuardado = signal(0);
   private totalPaginasEliminadosGuardado = signal(0);
   totalPaginasActivos = this.totalPaginasActivosGuardado.asReadonly();
@@ -148,7 +205,8 @@ export class Admin implements OnInit {
 
   busquedaUsuariosEliminados = signal('');
 
-  columnasOpcionalesUsuarios = signal<string[]>(['telefono', 'correo']);
+  columnasOpcionalesUsuarios = signal<string[]>(['telefono', 'codigoPostal', 'correo']);
+  readonly columnasOpcionalesAdministradores = ['correo'];
 
   usuariosActivos = computed(() => this.paginaActiva()?.content ?? []);
   usuariosEliminados = computed(() => this.paginaEliminada()?.content ?? []);
@@ -163,6 +221,9 @@ export class Admin implements OnInit {
   editando = signal(false);
 
   modalEditarAbierto = signal(false);
+
+  rolSeleccionado = signal<'USER' | 'ADMIN'>('USER');
+  puedeAsignarRol = computed(() => esAdministrador(this.authService.usuarioActual()?.rol));
 
   usuarioEditandoId = signal<number | undefined>(undefined);
 
@@ -281,6 +342,39 @@ export class Admin implements OnInit {
     this.cargarAdministradores();
   }
 
+  buscarAdministradores(busqueda: string): void {
+    this.busquedaAdministradores.set(busqueda);
+    this.paginaIndexAdministradores.set(0);
+    this.paginaAdministradores.set(null);
+    this.cargarAdministradores();
+  }
+
+  cambiarSeccionTabla(indice: number): void {
+    this.tipoTabla.set(indice === 1 ? 'administradores' : 'usuarios');
+  }
+
+  buscarEnTabla(busqueda: string): void {
+    if (this.tipoTabla() === 'administradores') {
+      this.buscarAdministradores(busqueda);
+      return;
+    }
+
+    if (this.vistaActual() === 'eliminados') {
+      this.busquedaUsuariosEliminados.set(busqueda);
+    } else {
+      this.busquedaUsuarios.set(busqueda);
+    }
+    this.buscarUsuarios(busqueda, this.vistaActual());
+  }
+
+  cambiarPaginaTabla(event: PageEvent): void {
+    if (this.tipoTabla() === 'administradores') {
+      this.cambiarPaginaAdministradores(event);
+      return;
+    }
+    this.cambiarPagina(event, this.vistaActual());
+  }
+
   cargarAdministradores(): void {
     if (this.endpointAdministradoresDisponible() === false) return;
     const secuencia = ++this.secuenciaAdministradores;
@@ -299,6 +393,7 @@ export class Admin implements OnInit {
           this.endpointAdministradoresDisponible.set(true);
           this.paginaAdministradores.set(pagina);
           this.totalPaginasAdministradoresGuardado.set(pagina.totalPages);
+          this.completarContactosAdministradores(pagina, secuencia);
         },
         error: () => {
           if (secuencia !== this.secuenciaAdministradores) return;
@@ -306,6 +401,35 @@ export class Admin implements OnInit {
           this.paginaAdministradores.set(null);
           this.totalPaginasAdministradoresGuardado.set(0);
         }
+      });
+  }
+
+  private completarContactosAdministradores(pagina: PaginaAdministradores, secuencia: number): void {
+    const pendientes = pagina.content.filter(administrador =>
+      administrador.telefono == null || administrador.codigoPostal == null
+    );
+    if (!pendientes.length) return;
+
+    forkJoin(pendientes.map(administrador => this.usuarioService
+      .obtenerContactosUsuario(administrador.id)
+      .pipe(
+        map(contactos => ({
+          ...administrador,
+          telefono: administrador.telefono
+            ?? obtenerContactoPrincipal(contactos.telefonos)?.valor
+            ?? null,
+          codigoPostal: administrador.codigoPostal
+            ?? obtenerContactoPrincipal(contactos.direcciones)?.codigoPostal
+            ?? null
+        })),
+        catchError(() => of(administrador))
+      )))
+      .subscribe(actualizados => {
+        if (secuencia !== this.secuenciaAdministradores) return;
+        const porId = new Map(actualizados.map(administrador => [administrador.id, administrador]));
+        this.paginaAdministradores.update(actual => actual
+          ? { ...actual, content: actual.content.map(administrador => porId.get(administrador.id) ?? administrador) }
+          : actual);
       });
   }
 
@@ -491,8 +615,19 @@ export class Admin implements OnInit {
   abrirCrearUsuario(): void {
     this.editando.set(false);
     this.usuarioEditandoId.set(undefined);
+    this.rolSeleccionado.set('USER');
     this.usuarioForm = this.usuarioFormService.crearFormulario();
     this.modalEditarAbierto.set(true);
+  }
+
+  avanzarPaso(stepper: MatStepper, nombreGrupo: 'datosPersonales' | 'datosContacto'): void {
+    const grupo = this.usuarioForm.get(nombreGrupo);
+    if (!grupo || grupo.invalid || grupo.pending) {
+      grupo?.markAllAsTouched();
+      return;
+    }
+
+    stepper.next();
   }
 
   private controlesContacto(tipo: 'telefono' | 'correo'): Array<{ control: AbstractControl; valor: string }> {
@@ -585,7 +720,10 @@ export class Admin implements OnInit {
       return;
     }
 
-    const usuario = this.usuarioFormService.crearRequest(this.usuarioForm);
+    const usuario = {
+      ...this.usuarioFormService.crearRequest(this.usuarioForm),
+      ...(this.puedeAsignarRol() ? { rol: this.rolSeleccionado() } : {})
+    };
 
     this.cargando.set(true);
 
@@ -639,6 +777,7 @@ export class Admin implements OnInit {
     this.editando.set(true);
     this.modalEditarAbierto.set(true);
     this.usuarioEditandoId.set(usuario.id);
+    this.rolSeleccionado.set(esAdministrador(usuario.rol) ? 'ADMIN' : 'USER');
     this.usuarioForm = this.usuarioFormService.crearFormulario(true);
     this.usuarioFormService.cargarUsuario(this.usuarioForm, usuario);
 
@@ -716,7 +855,10 @@ export class Admin implements OnInit {
       return;
     }
 
-    const usuario = this.usuarioFormService.crearRequest(this.usuarioForm, false);
+    const usuario = {
+      ...this.usuarioFormService.crearRequest(this.usuarioForm, false),
+      ...(this.puedeAsignarRol() ? { rol: this.rolSeleccionado() } : {})
+    };
 
 
     this.cargando.set(true);
@@ -729,12 +871,18 @@ export class Admin implements OnInit {
       .pipe(finalize(() => this.cargando.set(false)))
       .subscribe({
 
-        next: () => {
+        next: usuarioActualizado => {
+          const idUsuarioEditado = this.usuarioEditandoId();
+          const esEdicionDeSesionActual = idUsuarioEditado === this.authService.usuarioActual()?.id;
 
           this.modalEditarAbierto.set(false);
 
           this.limpiarFormulario();
-          this.recargarVistaActual();
+          if (esEdicionDeSesionActual && !esAdministrador(usuarioActualizado.rol)) {
+            this.router.navigate(['/usuario']);
+          } else {
+            this.recargarVistaActual();
+          }
 
           this.mostrarModal(
             'exito',

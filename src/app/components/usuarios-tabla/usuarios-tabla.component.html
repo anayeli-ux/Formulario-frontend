@@ -1,11 +1,13 @@
 <mat-card class="admin-card">
   <div class="admin-card-header">
     <div>
-      <span class="admin-label">{{ inactivos ? 'USUARIOS ELIMINADOS' : 'USUARIOS ACTIVOS' }}</span>
-      <h2>{{ inactivos ? 'Registros inactivos' : 'Registros actuales' }}</h2>
+      <span class="admin-label">
+        {{ entidad === 'administradores' ? (inactivos ? 'ADMINISTRADORES ELIMINADOS' : 'ACCESO ADMINISTRATIVO') : (inactivos ? 'USUARIOS ELIMINADOS' : 'USUARIOS ACTIVOS') }}
+      </span>
+      <h2>{{ entidad === 'administradores' ? (inactivos ? 'Administradores eliminados' : 'Administradores') : (inactivos ? 'Registros inactivos' : 'Registros actuales') }}</h2>
     </div>
     <div class="active-users-actions">
-      <button *ngIf="!inactivos" mat-flat-button type="button" class="admin-primary" (click)="registrar.emit()" [disabled]="cargando">
+      <button *ngIf="!inactivos && entidad === 'usuarios'" mat-flat-button type="button" class="admin-primary" (click)="registrar.emit()" [disabled]="cargando">
         <mat-icon svgIcon="person-add"></mat-icon>
         Registrar usuario
       </button>
@@ -24,14 +26,14 @@
   </div>
 
   <mat-form-field appearance="outline" class="search-field">
-    <mat-label>Buscar usuarios {{ inactivos ? 'eliminados' : 'activos' }}</mat-label>
+    <mat-label>Buscar {{ entidad === 'administradores' ? 'administradores' : 'usuarios' }}{{ inactivos ? ' eliminados' : '' }}</mat-label>
     <input matInput
-      [id]="inactivos ? 'buscarUsuariosEliminados' : 'buscarUsuarios'"
+      [id]="entidad === 'administradores' ? 'buscarAdministradores' : (inactivos ? 'buscarUsuariosEliminados' : 'buscarUsuarios')"
       type="search"
       [value]="busqueda"
       (input)="actualizarBusqueda($event)"
-      [name]="inactivos ? 'buscarUsuariosEliminados' : 'buscarUsuarios'"
-      placeholder="Nombre, apellido, teléfono, dirección o código postal"
+      [name]="entidad === 'administradores' ? 'buscarAdministradores' : (inactivos ? 'buscarUsuariosEliminados' : 'buscarUsuarios')"
+      [placeholder]="entidad === 'administradores' ? 'Nombre, apellido o correo electrónico' : 'Nombre, apellido, teléfono, dirección o código postal'"
       [matAutocomplete]="usuariosAutocomplete"
     >
     <mat-autocomplete #usuariosAutocomplete="matAutocomplete" (optionSelected)="seleccionarSugerencia($event)">
@@ -52,11 +54,6 @@
       <ng-container matColumnDef="nombre">
         <th mat-header-cell *matHeaderCellDef>Nombre</th>
         <td mat-cell *matCellDef="let usuario">{{ usuario.nombre }} {{ usuario.primerApellido }}</td>
-      </ng-container>
-
-      <ng-container matColumnDef="rol">
-        <th mat-header-cell *matHeaderCellDef>Rol</th>
-        <td mat-cell *matCellDef="let usuario">{{ nombreRol(usuario) }}</td>
       </ng-container>
 
       <ng-container matColumnDef="telefono">
@@ -110,7 +107,7 @@
       <tr mat-row *matRowDef="let usuario; columns: columnasVisibles"></tr>
       <tr class="empty-row" *matNoDataRow>
         <td [attr.colspan]="columnasVisibles.length">
-          {{ busqueda ? 'No hay coincidencias.' : (inactivos ? 'No hay usuarios eliminados.' : 'No hay usuarios activos.') }}
+          {{ busqueda ? 'No hay coincidencias.' : (entidad === 'administradores' ? (inactivos ? 'No hay administradores eliminados.' : 'No hay administradores.') : (inactivos ? 'No hay usuarios eliminados.' : 'No hay usuarios activos.')) }}
         </td>
       </tr>
     </table>
@@ -123,6 +120,6 @@
     [hidePageSize]="true"
     showFirstLastButtons
     (page)="cambiarPagina($event)"
-    aria-label="Paginación de usuarios"
+    [attr.aria-label]="entidad === 'administradores' ? 'Paginación de administradores' : 'Paginación de usuarios'"
   ></mat-paginator>
 </mat-card>

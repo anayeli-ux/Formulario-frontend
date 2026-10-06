@@ -28,6 +28,7 @@ $app-theme: mat.define-theme((
   @include mat.select-theme($app-theme);
   @include mat.snack-bar-theme($app-theme);
   @include mat.stepper-theme($app-theme);
+  @include mat.tabs-theme($app-theme);
   @include mat.table-theme($app-theme);
 
   --mat-sys-primary: #3159c7;

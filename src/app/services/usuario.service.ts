@@ -23,6 +23,8 @@ interface UsuarioRequestBase {
 
   primerApellido: string;
 
+  rol?: 'USER' | 'ADMIN';
+
   fechaNacimiento: string;
 
   telefonos: Array<{
@@ -156,7 +158,7 @@ export class UsuarioService {
       throw new RespuestaUsuariosIncompatibleError();
     }
     const pagina = respuesta as Partial<PaginaAdministradores>;
-    const campos = new Set(['id', 'nombre', 'primerApellido', 'correo']);
+    const campos = new Set(['id', 'nombre', 'primerApellido', 'correo', 'telefono', 'codigoPostal']);
     const contenidoValido = Array.isArray(pagina.content)
       && pagina.content.every(administrador =>
         administrador !== null
@@ -164,6 +166,8 @@ export class UsuarioService {
         && typeof administrador.id === 'number'
         && typeof administrador.nombre === 'string'
         && typeof administrador.primerApellido === 'string'
+        && (administrador.telefono === undefined || administrador.telefono === null || typeof administrador.telefono === 'string')
+        && (administrador.codigoPostal === undefined || administrador.codigoPostal === null || typeof administrador.codigoPostal === 'string')
         && Object.keys(administrador).every(campo => campos.has(campo))
       );
     if (!contenidoValido || !Number.isInteger(pagina.totalPages) || (pagina.totalPages ?? -1) < 0) {
@@ -230,11 +234,11 @@ export class UsuarioService {
   actualizarUsuario(
     id: number,
     usuario: UsuarioActualizarRequest
-  ): Observable<void> {
+  ): Observable<Usuario> {
 
     return this.authService.obtenerCsrf().pipe(
       switchMap(() =>
-        this.http.put<void>(
+        this.http.put<Usuario>(
           `${this.apiUrl}/${id}`,
           usuario,
           {
@@ -242,15 +246,7 @@ export class UsuarioService {
           }
         )
       )
-    ).pipe(tap(() => this.authService.actualizarPerfilSesion({
-      id,
-      nombre: usuario.nombre,
-      primerApellido: usuario.primerApellido,
-      fechaNacimiento: usuario.fechaNacimiento,
-      telefonos: usuario.telefonos,
-      correos: usuario.correos,
-      direcciones: usuario.direcciones
-    })));
+    ).pipe(tap(usuarioActualizado => this.authService.actualizarPerfilSesion(usuarioActualizado)));
 
   }
 

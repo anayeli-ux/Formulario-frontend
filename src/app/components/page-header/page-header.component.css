@@ -64,19 +64,20 @@
 
 .page-header-logout {
   min-height: 40px;
-  border: 1px solid rgba(255, 255, 255, .7);
-  background: rgba(255, 255, 255, .1);
-  color: #fff;
+  border: 1px solid var(--palette-coral, #F27781);
+  background: rgba(191, 78, 161, .18);
+  color: var(--palette-on-dark, #FFF5F8);
 }
 
 .page-header-logout:hover {
-  background: #fff;
-  color: #203047;
+  border-color: var(--palette-rose, #D95F80);
+  background: var(--palette-coral, #F27781);
+  color: #271027;
 }
 
 .page-header--principal .page-header-label {
   margin-bottom: 8px;
-  color: #cfe0ff;
+  color: var(--palette-coral, #F27781);
   letter-spacing: 1.4px;
   text-transform: uppercase;
 }

@@ -8,6 +8,7 @@ import { OverlayContainer } from '@angular/cdk/overlay';
 import { MatPaginatorIntl } from '@angular/material/paginator';
 import { Admin } from './admin';
 import { UsuariosTablaComponent } from '../../components/usuarios-tabla/usuarios-tabla.component';
+import { AuthService } from '../../services/auth.service';
 import { environment } from '../../../environments/environment';
 import { Usuario, UsuarioResumen } from '../../models/usuario.model';
 
@@ -74,6 +75,21 @@ describe('Admin', () => {
     expect(component).toBeTruthy();
   });
 
+  it('shows users and administrators in Material tabs', () => {
+    fixture.detectChanges();
+    responderLista(`${environment.apiUrl}/usuarios`);
+    fixture.detectChanges();
+
+    const tabs = fixture.nativeElement.querySelectorAll('.mat-mdc-tab') as NodeListOf<Element>;
+    const tabLabels = Array.from(tabs).map(tab => tab.textContent?.trim());
+    expect(tabLabels).toEqual(['Usuarios', 'Administradores']);
+    expect(fixture.nativeElement.querySelectorAll('app-usuarios-tabla').length).toBe(1);
+
+    component.cambiarSeccionTabla(1);
+    fixture.detectChanges();
+    expect(component.tipoTabla()).toBe('administradores');
+  });
+
   it('reloads only the selected list when switching views', () => {
     fixture.detectChanges();
     responderLista(`${environment.apiUrl}/usuarios`);
@@ -97,11 +113,17 @@ describe('Admin', () => {
     expect(component.usuariosFiltrados().map(usuario => usuario.id)).toEqual([1]);
   });
 
-  it('places an administrator from the current page in the separate side table', () => {
+  it('places an administrator from the current page in the administrators tab', () => {
     fixture.detectChanges();
     responderLista(`${environment.apiUrl}/usuarios`, [
       resumen(1, { rol: 1, nombre: 'Usuario' }),
-      resumen(7, { rol: 2, nombre: 'Admin', correo: 'adm@gmail.com' })
+      resumen(7, {
+        rol: 2,
+        nombre: 'Admin',
+        correo: 'adm@gmail.com',
+        telefono: '7711234567',
+        codigoPostal: '42000'
+      })
     ]);
 
     expect(component.usuariosFiltrados().map(usuario => usuario.id)).toEqual([1]);
@@ -109,9 +131,42 @@ describe('Admin', () => {
       id: 7,
       nombre: 'Admin',
       primerApellido: 'Perez',
-      correo: 'adm@gmail.com'
+      correo: 'adm@gmail.com',
+      telefono: '7711234567',
+      codigoPostal: '42000'
     }]);
+    expect(component.administradoresTabla()[0]).toEqual(jasmine.objectContaining({
+      telefono: '7711234567',
+      codigoPostal: '42000'
+    }));
     expect(component.totalPaginasAdministradores()).toBe(1);
+  });
+
+  it('loads missing administrator phone and postal code from contact details', () => {
+    fixture.detectChanges();
+    httpTesting.expectOne(request => request.url === `${environment.apiUrl}/usuarios`)
+      .flush(pagina([]));
+    httpTesting.expectOne(request => request.url === `${environment.apiUrl}/usuarios/administradores`)
+      .flush(pagina([{
+        id: 17,
+        nombre: 'Ana',
+        primerApellido: 'Perez',
+        correo: 'ana@example.com'
+      }]));
+    httpTesting.expectOne(`${environment.apiUrl}/usuarios/17/contactos`).flush({
+      id: 17,
+      nombre: 'Ana',
+      primerApellido: 'Perez',
+      telefonos: [{ tipo: 'PRINCIPAL', valor: '7711234567' }],
+      correos: [],
+      direcciones: [{ tipo: 'PRINCIPAL', valor: 'Calle 1', codigoPostal: '42000' }]
+    });
+    fixture.detectChanges();
+
+    expect(component.administradoresTabla()[0]).toEqual(jasmine.objectContaining({
+      telefono: '7711234567',
+      codigoPostal: '42000'
+    }));
   });
 
   it('keeps the total page count while loading another page', () => {
@@ -205,6 +260,40 @@ describe('Admin', () => {
     expect(component.modalMensajeVisible()).toBeTrue();
     expect(component.modalTitulo()).toBe('Datos de contacto duplicados');
     expect(component.modalMensaje()).toContain('Correo duplicado');
+  });
+
+  it('sends the selected administrator role when an admin creates a user', () => {
+    TestBed.inject(AuthService).login({ identificador: 'admin@example.com', password: 'secret' }).subscribe();
+    httpTesting.expectOne(`${environment.apiUrl}/auth/login`).flush({
+      acceso: true,
+      usuario: { id: 99, email: 'admin@example.com', rol: 'ADMIN' }
+    });
+
+    fixture.detectChanges();
+    responderLista(`${environment.apiUrl}/usuarios`);
+    component.abrirCrearUsuario();
+    component.usuarioForm.patchValue({
+      datosPersonales: {
+        nombre: 'Luis',
+        primer_apellido: 'Lopez',
+        fecha_nacimiento: '1990-01-01',
+        email: 'luis@example.com',
+        password: 'ValidPass!1'
+      },
+      datosContacto: {
+        telefono: '4445556666',
+        codigo_postal: '12345',
+        direccion: 'Calle 1'
+      }
+    });
+    component.rolSeleccionado.set('ADMIN');
+
+    component.crearUsuario();
+    responderCsrf();
+    const post = httpTesting.expectOne(request => request.method === 'POST' && request.url === `${environment.apiUrl}/usuarios`);
+    expect(post.request.body.rol).toBe('ADMIN');
+    post.flush({ id: 25 });
+    responderLista(`${environment.apiUrl}/usuarios`);
   });
 
   it('uses the backend conflict response when a new user phone already exists', () => {

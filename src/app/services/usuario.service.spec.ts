@@ -81,6 +81,34 @@ describe('UsuarioService', () => {
     request.flush({ content: [], totalPages: 3 });
   });
 
+  it('preserves administrator phone and postal code in the page summary', () => {
+    let respuesta: unknown;
+    service.listarAdministradores().subscribe(value => respuesta = value);
+    httpTesting.expectOne(item => item.url === `${environment.apiUrl}/usuarios/administradores`).flush({
+      content: [{
+        id: 7,
+        nombre: 'Ana',
+        primerApellido: 'Perez',
+        correo: 'ana@example.com',
+        telefono: '7711234567',
+        codigoPostal: '42000'
+      }],
+      totalPages: 1
+    });
+
+    expect(respuesta).toEqual({
+      content: [{
+        id: 7,
+        nombre: 'Ana',
+        primerApellido: 'Perez',
+        correo: 'ana@example.com',
+        telefono: '7711234567',
+        codigoPostal: '42000'
+      }],
+      totalPages: 1
+    });
+  });
+
   it('rejects the old full-array response instead of presenting it as an empty page', () => {
     let error: unknown;
     service.listarUsuarios().subscribe({ error: received => error = received });
@@ -123,6 +151,7 @@ describe('UsuarioService', () => {
     const request: UsuarioActualizarRequest = {
       nombre: 'Ana',
       primerApellido: 'Perez',
+      rol: 'ADMIN',
       fechaNacimiento: '1990-01-01',
       telefonos: [
         { id: 31, tipo: 'PRINCIPAL', valor: '7711234567' },
@@ -143,7 +172,20 @@ describe('UsuarioService', () => {
     const put = httpTesting.expectOne(`${environment.apiUrl}/usuarios/1`);
     expect(put.request.method).toBe('PUT');
     expect(put.request.body).toEqual(request);
-    put.flush(null, { status: 204, statusText: 'No Content' });
+    put.flush({
+      id: 1,
+      nombre: request.nombre,
+      primerApellido: request.primerApellido,
+      fechaNacimiento: request.fechaNacimiento,
+      rol: request.rol,
+      telefonos: request.telefonos,
+      correos: request.correos,
+      direcciones: request.direcciones
+    });
+    expect(authServiceMock.actualizarPerfilSesion).toHaveBeenCalledWith(jasmine.objectContaining({
+      id: 1,
+      rol: 'ADMIN'
+    }));
   });
 
   it('loads deleted summaries using their own page and search parameters', () => {

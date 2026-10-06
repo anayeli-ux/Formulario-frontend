@@ -1,4 +1,8 @@
 :root {
+    --palette-coral: #F27781;
+    --palette-rose: #D95F80;
+    --palette-magenta: #BF4EA1;
+    --palette-on-dark: #FFF5F8;
     --color-primary: #4163ad;
     --color-primary-hover: #35589f;
     --color-primary-active: #2f4f92;
@@ -13,6 +17,58 @@
     --color-text-on-primary: #ffffff;
     --color-error: #d64545;
 
+}
+
+.admin-page .admin-view-switch {
+    border-bottom-color: rgba(242, 119, 129, .55);
+}
+
+.admin-page .admin-view-switch button {
+    color: var(--palette-on-dark);
+    transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease;
+}
+
+.admin-page .admin-view-switch button:hover {
+    color: var(--palette-coral);
+    background: rgba(191, 78, 161, .16);
+}
+
+.admin-page .admin-view-switch button.selected {
+    border-bottom-color: var(--palette-coral);
+    color: var(--palette-coral);
+    background: rgba(217, 95, 128, .14);
+}
+
+.admin-page .admin-tabs .mat-mdc-tab {
+    margin-right: 4px;
+    border-radius: 7px 7px 0 0;
+    background: var(--palette-coral);
+}
+
+.admin-page .admin-tabs .mat-mdc-tab:nth-child(2) {
+    background: var(--palette-rose);
+}
+
+.admin-page .admin-tabs .mat-mdc-tab .mdc-tab__text-label {
+    color: #241020;
+}
+
+.admin-page .admin-tabs .mat-mdc-tab.mdc-tab--active {
+    background: var(--palette-magenta);
+}
+
+.admin-page .admin-tabs .mat-mdc-tab.mdc-tab--active .mdc-tab__text-label {
+    color: #ffffff;
+}
+
+.admin-page .admin-tabs .mdc-tab-indicator__content--underline {
+    border-color: var(--palette-coral);
+    border-top-width: 3px;
+}
+
+.admin-page .admin-tabs .mat-mdc-tab-ripple,
+.admin-page .admin-tabs .mat-mdc-tab .mat-ripple-element {
+    --mat-ripple-color: rgba(242, 119, 129, .18);
 }
 
 body {
