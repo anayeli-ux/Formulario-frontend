@@ -3,21 +3,12 @@
     etiqueta="SISTEMA DE ADMINISTRACIÓN"
     titulo="Gestión de usuarios"
     descripcion="Administra los registros activos y eliminados."
-    variante="admin"
+    variante="principal"
     [nivelTitulo]="1"
-    [mostrarAcciones]="true"
-  >
-    <div pageHeaderActions class="admin-header-actions">
-      <div class="admin-identity" *ngIf="nombreAdministrador() || correoAdministrador()">
-        <strong>{{ nombreAdministrador() }}</strong>
-        <span>{{ correoAdministrador() }}</span>
-      </div>
-      <button mat-button type="button" class="logout-button" (click)="cerrarSesion()" [disabled]="cargando()">
-        <mat-icon svgIcon="logout"></mat-icon>
-        Cerrar sesión
-      </button>
-    </div>
-  </app-page-header>
+    [nombreUsuario]="nombreAdministrador()"
+    [correoUsuario]="correoAdministrador()"
+    (cerrarSesion)="cerrarSesion()"
+  ></app-page-header>
 
   <div class="admin-content-layout">
   <div class="admin-main-column">
@@ -28,21 +19,21 @@
         [class.selected]="vistaActual() === 'activos'"
         [attr.aria-pressed]="vistaActual() === 'activos'"
         (click)="cambiarVista('activos')"
-      >Activos <span>{{ totalUsuariosActivos() }}</span></button>
+      >Activos</button>
       <button
         mat-button
         type="button"
         [class.selected]="vistaActual() === 'eliminados'"
         [attr.aria-pressed]="vistaActual() === 'eliminados'"
         (click)="cambiarVista('eliminados')"
-      >Eliminados <span>{{ totalUsuariosEliminados() }}</span></button>
+      >Eliminados</button>
     </nav>
 
     <app-usuarios-tabla
       *ngIf="vistaActual() === 'activos'"
       [usuarios]="usuariosFiltrados()"
       [busqueda]="busquedaUsuarios()"
-      [total]="totalUsuariosActivos()"
+      [totalPages]="totalPaginasActivos()"
       [pageIndex]="paginaIndexActivos()"
       [pageSize]="pageSizeActivos()"
       [cargando]="cargando()"
@@ -60,7 +51,7 @@
       *ngIf="vistaActual() === 'eliminados'"
       [usuarios]="usuariosEliminadosFiltrados()"
       [busqueda]="busquedaUsuariosEliminados()"
-      [total]="totalUsuariosEliminados()"
+      [totalPages]="totalPaginasEliminados()"
       [pageIndex]="paginaIndexEliminados()"
       [pageSize]="pageSizeEliminados()"
       [cargando]="cargando()"
@@ -76,7 +67,6 @@
   <mat-card class="admin-roster" aria-labelledby="admin-roster-title">
     <span class="admin-label">ACCESO ADMINISTRATIVO</span>
     <h3 id="admin-roster-title">{{ vistaActual() === 'eliminados' ? 'Administradores eliminados' : 'Administradores' }}</h3>
-    <p class="admin-count">{{ totalAdministradores() }} {{ vistaActual() === 'eliminados' ? 'cuentas eliminadas' : 'cuentas activas' }}</p>
     <div class="admin-roster-table-wrapper">
       <table class="admin-roster-table">
         <thead>
@@ -110,10 +100,10 @@
       </table>
     </div>
     <mat-paginator
-      [length]="totalAdministradores()"
+      [length]="totalPaginasAdministradores() * 5"
       [pageIndex]="paginaIndexAdministradores()"
       [pageSize]="5"
-      [pageSizeOptions]="[5]"
+      [hidePageSize]="true"
       [disabled]="cargandoAdministradores()"
       showFirstLastButtons
       (page)="cambiarPaginaAdministradores($event)"

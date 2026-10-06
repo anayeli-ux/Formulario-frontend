@@ -1,27 +1,17 @@
 <main class="perfil-page">
+  <app-page-header
+    etiqueta="Área personal"
+    titulo="Mis datos"
+    tituloId="perfil-title"
+    descripcion="Consulta la información registrada en el sistema."
+    variante="principal"
+    [nivelTitulo]="1"
+    [nombreUsuario]="nombreUsuario()"
+    [correoUsuario]="correoUsuario()"
+    (cerrarSesion)="cerrarSesion()"
+  ></app-page-header>
+
   <section class="perfil-shell" aria-labelledby="perfil-title">
-    <header class="perfil-header">
-      <div>
-        <span class="perfil-kicker">Área personal</span>
-        <h1 id="perfil-title">Mis datos</h1>
-        <p>Consulta la información registrada en el sistema.</p>
-      </div>
-
-      <div class="perfil-actions">
-        <button class="role-button" type="button" (click)="cambiarDeRol()">
-        ADMINISTRADOR
-        </button>
-
-        <button class="edit-profile-button" type="button" (click)="mostrarAvisoEdicion()" [disabled]="cargando()">
-          Editar mis datos
-        </button>
-
-        <button class="logout-button" type="button" (click)="cerrarSesion()">
-          Cerrar sesión
-        </button>
-      </div>
-    </header>
-
     <section class="perfil-card" *ngIf="cargando()" aria-live="polite">
       <p class="status-message">Cargando tus datos...</p>
     </section>

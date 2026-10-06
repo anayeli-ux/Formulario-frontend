@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { adminGuard } from './guards/admin.guard';
 import { authGuard } from './guards/auth.guard';
 import { guestGuard } from './guards/guest.guard';
+import { homeRedirectGuard } from './guards/home-redirect.guard';
 
 export const routes: Routes = [
   {
@@ -31,6 +32,11 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
 
-  { path: '', redirectTo: 'login', pathMatch: 'full' },
+  {
+    path: '',
+    loadComponent: () => import('./pages/home-redirect/home-redirect.component').then(module => module.HomeRedirectComponent),
+    canActivate: [homeRedirectGuard],
+    pathMatch: 'full'
+  },
   { path: '**', redirectTo: 'login' }
 ];

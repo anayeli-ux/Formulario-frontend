@@ -5,7 +5,6 @@
       <h2>{{ inactivos ? 'Registros inactivos' : 'Registros actuales' }}</h2>
     </div>
     <div class="active-users-actions">
-      <span class="admin-count">{{ total }} {{ inactivos ? 'eliminados' : 'activos' }}</span>
       <button *ngIf="!inactivos" mat-flat-button type="button" class="admin-primary" (click)="registrar.emit()" [disabled]="cargando">
         <mat-icon svgIcon="person-add"></mat-icon>
         Registrar usuario
@@ -118,10 +117,10 @@
   </div>
 
   <mat-paginator
-    [length]="total"
+    [length]="paginatorLength"
     [pageIndex]="pageIndex"
     [pageSize]="pageSize"
-    [pageSizeOptions]="[5]"
+    [hidePageSize]="true"
     showFirstLastButtons
     (page)="cambiarPagina($event)"
     aria-label="Paginación de usuarios"

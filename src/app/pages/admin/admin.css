@@ -296,6 +296,8 @@
 
 .admin-roster-table {
   width: 100%;
+  min-width: 370px;
+  table-layout: fixed;
   border-collapse: collapse;
   font-size: 12px;
 }
@@ -308,6 +310,29 @@
   overflow-wrap: anywhere;
 }
 
+.admin-roster-table th:first-child,
+.admin-roster-table td:first-child {
+  width: 42px;
+  text-align: center;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-roster-table th:nth-child(2),
+.admin-roster-table td:nth-child(2) {
+  width: 100px;
+}
+
+.admin-roster-table th:nth-child(3),
+.admin-roster-table td:nth-child(3) {
+  width: 134px;
+}
+
+.admin-roster-table th:last-child,
+.admin-roster-table td:last-child {
+  width: 94px;
+}
+
 .admin-roster-table th {
   color: #60739b;
   font-size: 10px;
@@ -316,21 +341,38 @@
 
 .admin-roster-table td.admin-roster-actions {
   display: flex;
-  gap: 2px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
   white-space: nowrap;
 }
 
 .admin-roster-table .mat-mdc-icon-button {
+  flex: 0 0 34px;
   width: 34px;
   height: 34px;
-  padding: 5px;
+  padding: 8px;
+  border-radius: 6px;
+  background: #e8edff;
+  color: #3159c7;
+}
+
+.admin-roster-table .mat-mdc-icon-button:nth-of-type(2) {
+  background: #fff0ef;
+  color: #a33d3d;
+}
+
+.admin-roster-table .mat-mdc-icon-button:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
 }
 
 .admin-roster mat-icon {
-  width: 16px;
-  height: 16px;
-  margin-right: 3px;
-  font-size: 16px;
+  display: block;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  font-size: 18px;
 }
 
 

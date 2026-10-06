@@ -15,7 +15,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
-import { MatPaginatorModule } from '@angular/material/paginator';
+import { MatPaginatorIntl, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { AdministradorResumen, PaginaAdministradores, PaginaUsuarios, Usuario, UsuarioContactos, UsuarioResumen } from '../../models/usuario.model';
@@ -47,6 +47,16 @@ type TipoModal =
   | 'error'
   | 'confirmacion';
 
+function crearPaginadorSoloPaginas(): MatPaginatorIntl {
+  const intl = new MatPaginatorIntl();
+  intl.itemsPerPageLabel = '';
+  intl.getRangeLabel = (page, pageSize, length) => {
+    const totalPages = Math.ceil(length / pageSize);
+    return `Página ${totalPages ? page + 1 : 0} de ${totalPages}`;
+  };
+  return intl;
+}
+
 @Component({
   selector: 'app-admin',
   standalone: true,
@@ -68,6 +78,7 @@ type TipoModal =
     MatPaginatorModule,
     MatSnackBarModule
   ],
+  providers: [{ provide: MatPaginatorIntl, useFactory: crearPaginadorSoloPaginas }],
 
   templateUrl: './admin.html',
   styleUrl: './admin.css'
@@ -96,7 +107,7 @@ export class Admin implements OnInit {
   pageSizeActivos = signal(5);
   pageSizeEliminados = signal(5);
   private paginaAdministradores = signal<PaginaAdministradores | null>(null);
-  private totalAdministradoresGuardado = signal(0);
+  private totalPaginasAdministradoresGuardado = signal(0);
   private endpointAdministradoresDisponible = signal<boolean | null>(null);
   paginaIndexAdministradores = signal(0);
   private administradoresEnPaginaActual = computed<AdministradorResumen[]>(() => {
@@ -122,11 +133,13 @@ export class Admin implements OnInit {
     }
     return [...porId.values()];
   });
-  totalAdministradores = computed(() => this.endpointAdministradoresDisponible() === false
-    ? this.administradoresEnPaginaActual().length
-    : Math.max(this.totalAdministradoresGuardado(), this.administradores().length));
-  private totalActivosGuardado = signal(0);
-  private totalEliminadosGuardado = signal(0);
+  totalPaginasAdministradores = computed(() => this.endpointAdministradoresDisponible() === false
+    ? Number(this.administradoresEnPaginaActual().length > 0)
+    : this.totalPaginasAdministradoresGuardado());
+  private totalPaginasActivosGuardado = signal(0);
+  private totalPaginasEliminadosGuardado = signal(0);
+  totalPaginasActivos = this.totalPaginasActivosGuardado.asReadonly();
+  totalPaginasEliminados = this.totalPaginasEliminadosGuardado.asReadonly();
   cargandoAdministradores = signal(false);
 
   usuarioInformacion = signal<UsuarioContactos | null>(null);
@@ -141,8 +154,6 @@ export class Admin implements OnInit {
   usuariosEliminados = computed(() => this.paginaEliminada()?.content ?? []);
   usuariosFiltrados = computed(() => this.usuariosActivos().filter(usuario => !esAdministrador(usuario.rol)));
   usuariosEliminadosFiltrados = computed(() => this.usuariosEliminados().filter(usuario => !esAdministrador(usuario.rol)));
-  totalUsuariosActivos = this.totalActivosGuardado.asReadonly();
-  totalUsuariosEliminados = this.totalEliminadosGuardado.asReadonly();
 
 
   /* =========================
@@ -224,9 +235,9 @@ export class Admin implements OnInit {
     this.paginaActiva.set(null);
     this.paginaEliminada.set(null);
     this.paginaAdministradores.set(null);
-    this.totalActivosGuardado.set(0);
-    this.totalEliminadosGuardado.set(0);
-    this.totalAdministradoresGuardado.set(0);
+    this.totalPaginasActivosGuardado.set(0);
+    this.totalPaginasEliminadosGuardado.set(0);
+    this.totalPaginasAdministradoresGuardado.set(0);
     this.paginaIndexAdministradores.set(0);
     this.cargarAdministradores();
     if (vista === 'activos') {
@@ -287,13 +298,13 @@ export class Admin implements OnInit {
           if (secuencia !== this.secuenciaAdministradores) return;
           this.endpointAdministradoresDisponible.set(true);
           this.paginaAdministradores.set(pagina);
-          this.totalAdministradoresGuardado.set(pagina.totalElements);
+          this.totalPaginasAdministradoresGuardado.set(pagina.totalPages);
         },
         error: () => {
           if (secuencia !== this.secuenciaAdministradores) return;
           this.endpointAdministradoresDisponible.set(false);
           this.paginaAdministradores.set(null);
-          this.totalAdministradoresGuardado.set(0);
+          this.totalPaginasAdministradoresGuardado.set(0);
         }
       });
   }
@@ -415,12 +426,12 @@ export class Admin implements OnInit {
         next: pagina => {
           if (secuencia !== this.secuenciaActivos) return;
           this.paginaActiva.set(pagina);
-          this.totalActivosGuardado.set(pagina.totalElements);
+          this.totalPaginasActivosGuardado.set(pagina.totalPages);
         },
         error: error => {
           if (secuencia !== this.secuenciaActivos) return;
           this.paginaActiva.set(null);
-          this.totalActivosGuardado.set(0);
+          this.totalPaginasActivosGuardado.set(0);
           if (error instanceof RespuestaUsuariosIncompatibleError) {
             this.mostrarModal('error', 'Backend desactualizado', error.message);
             return;
@@ -450,12 +461,12 @@ export class Admin implements OnInit {
         next: pagina => {
           if (secuencia !== this.secuenciaEliminados) return;
           this.paginaEliminada.set(pagina);
-          this.totalEliminadosGuardado.set(pagina.totalElements);
+          this.totalPaginasEliminadosGuardado.set(pagina.totalPages);
         },
         error: error => {
           if (secuencia !== this.secuenciaEliminados) return;
           this.paginaEliminada.set(null);
-          this.totalEliminadosGuardado.set(0);
+          this.totalPaginasEliminadosGuardado.set(0);
           if (error instanceof RespuestaUsuariosIncompatibleError) {
             this.mostrarModal('error', 'Backend desactualizado', error.message);
             return;

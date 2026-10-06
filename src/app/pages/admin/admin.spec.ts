@@ -5,6 +5,7 @@ import { FormArray, FormControl, FormGroup, Validators } from '@angular/forms';
 import { RouterTestingModule } from '@angular/router/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { OverlayContainer } from '@angular/cdk/overlay';
+import { MatPaginatorIntl } from '@angular/material/paginator';
 import { Admin } from './admin';
 import { UsuariosTablaComponent } from '../../components/usuarios-tabla/usuarios-tabla.component';
 import { environment } from '../../../environments/environment';
@@ -26,11 +27,9 @@ describe('Admin', () => {
     codigoPostal: null,
     ...cambios
   });
-  const pagina = <T>(content: T[], totalElements = content.length) => ({
+  const pagina = <T>(content: T[], totalPages = content.length ? 1 : 0) => ({
     content,
-    totalElements,
-    number: 0,
-    size: 10
+    totalPages
   });
 
   function responderAdministradores(eliminados = false, content: UsuarioResumen[] = []): void {
@@ -112,34 +111,34 @@ describe('Admin', () => {
       primerApellido: 'Perez',
       correo: 'adm@gmail.com'
     }]);
-    expect(component.totalAdministradores()).toBe(1);
+    expect(component.totalPaginasAdministradores()).toBe(1);
   });
 
-  it('keeps the total count while loading the next five-user page', () => {
+  it('keeps the total page count while loading another page', () => {
     fixture.detectChanges();
     const firstPageRequest = httpTesting.expectOne(request =>
       request.url === `${environment.apiUrl}/usuarios`
       && request.params.get('page') === '0'
     );
     expect(firstPageRequest.request.params.get('size')).toBe('5');
-    firstPageRequest.flush(pagina([1, 2, 3, 4, 5].map(id => resumen(id)), 12));
+    firstPageRequest.flush(pagina([1, 2, 3, 4, 5].map(id => resumen(id)), 3));
     responderAdministradores();
 
-    expect(component.totalUsuariosActivos()).toBe(12);
-    component.cambiarPagina({ pageIndex: 1, pageSize: 5, length: 12 }, 'activos');
+    expect(component.totalPaginasActivos()).toBe(3);
+    component.cambiarPagina({ pageIndex: 1, pageSize: 5, length: 15 }, 'activos');
 
     expect(component.paginaIndexActivos()).toBe(1);
-    expect(component.totalUsuariosActivos()).toBe(12);
+    expect(component.totalPaginasActivos()).toBe(3);
     const secondPageRequest = httpTesting.expectOne(request =>
       request.url === `${environment.apiUrl}/usuarios`
       && request.params.get('page') === '1'
     );
     expect(secondPageRequest.request.params.get('size')).toBe('5');
-    secondPageRequest.flush(pagina([6, 7, 8, 9, 10].map(id => resumen(id)), 12));
+    secondPageRequest.flush(pagina([6, 7, 8, 9, 10].map(id => resumen(id)), 3));
 
     expect(component.paginaIndexActivos()).toBe(1);
     expect(component.usuariosFiltrados().map(usuario => usuario.id)).toEqual([6, 7, 8, 9, 10]);
-    expect(component.totalUsuariosActivos()).toBe(12);
+    expect(component.totalPaginasActivos()).toBe(3);
   });
 
   it('ignores an older page response that arrives after a newer request', () => {
@@ -148,7 +147,7 @@ describe('Admin', () => {
       request.url === `${environment.apiUrl}/usuarios`
       && request.params.get('page') === '0'
     );
-    initial.flush(pagina([1, 2, 3, 4, 5].map(id => resumen(id)), 20));
+    initial.flush(pagina([1, 2, 3, 4, 5].map(id => resumen(id)), 4));
     responderAdministradores();
 
     component.cambiarPagina({ pageIndex: 1, pageSize: 5, length: 20 }, 'activos');
@@ -162,12 +161,20 @@ describe('Admin', () => {
       && request.params.get('page') === '2'
     );
 
-    pageTwo.flush(pagina([11, 12, 13, 14, 15].map(id => resumen(id)), 20));
-    pageOne.flush(pagina([6, 7, 8, 9, 10].map(id => resumen(id)), 20));
+    pageTwo.flush(pagina([11, 12, 13, 14, 15].map(id => resumen(id)), 4));
+    pageOne.flush(pagina([6, 7, 8, 9, 10].map(id => resumen(id)), 4));
 
     expect(component.paginaIndexActivos()).toBe(2);
     expect(component.usuariosFiltrados().map(usuario => usuario.id)).toEqual([11, 12, 13, 14, 15]);
-    expect(component.totalUsuariosActivos()).toBe(20);
+    expect(component.totalPaginasActivos()).toBe(4);
+  });
+
+  it('shows page count instead of record ranges in the paginator label', () => {
+    const paginatorIntl = fixture.debugElement.injector.get(MatPaginatorIntl);
+
+    expect(paginatorIntl.getRangeLabel(0, 5, 15)).toBe('Página 1 de 3');
+    expect(paginatorIntl.getRangeLabel(2, 5, 15)).toBe('Página 3 de 3');
+    expect(paginatorIntl.getRangeLabel(0, 5, 0)).toBe('Página 0 de 0');
   });
 
   it('uses the backend conflict response when a new user email already exists', () => {

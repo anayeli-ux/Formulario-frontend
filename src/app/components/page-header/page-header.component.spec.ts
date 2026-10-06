@@ -26,4 +26,19 @@ describe('PageHeaderComponent', () => {
 
     expect(fixture.nativeElement.querySelector('h1').textContent).toContain('Iniciar sesión');
   });
+
+  it('uses the shared principal header with identity and logout action', () => {
+    fixture.componentInstance.variante = 'principal';
+    fixture.componentInstance.nivelTitulo = 1;
+    fixture.componentInstance.nombreUsuario = 'Ana Perez';
+    fixture.componentInstance.correoUsuario = 'ana@example.com';
+    fixture.detectChanges();
+
+    const header = fixture.nativeElement.querySelector('.page-header');
+    expect(header.classList.contains('page-header--principal')).toBeTrue();
+    expect(header.querySelector('h1')).toBeTruthy();
+    expect(header.querySelector('.page-header-identity').textContent).toContain('Ana Perez');
+    expect(header.querySelector('.page-header-identity').textContent).toContain('ana@example.com');
+    expect(header.querySelector('.page-header-logout').textContent).toContain('Cerrar sesión');
+  });
 });

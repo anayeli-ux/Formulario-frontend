@@ -45,7 +45,7 @@ const COLUMNAS_OPCIONALES: OpcionColumnaUsuarios[] = [
 export class UsuariosTablaComponent implements OnChanges {
   @Input() usuarios: UsuarioResumen[] = [];
   @Input() busqueda = '';
-  @Input() total = 0;
+  @Input() totalPages = 0;
   @Input() pageIndex = 0;
   @Input() pageSize = 5;
   @Input() cargando = false;
@@ -113,6 +113,10 @@ export class UsuariosTablaComponent implements OnChanges {
 
   get usuariosPaginados(): UsuarioResumen[] {
     return this.usuarios;
+  }
+
+  get paginatorLength(): number {
+    return this.totalPages * this.pageSize;
   }
 
   get sugerencias(): UsuarioResumen[] {

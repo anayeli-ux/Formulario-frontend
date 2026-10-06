@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, computed, OnInit, signal } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 import { Usuario } from '../../models/usuario.model';
@@ -7,11 +7,12 @@ import { AuthService } from '../../services/auth.service';
 import { UsuarioService } from '../../services/usuario.service';
 import { finalize } from 'rxjs';
 import { ContactosUsuarioComponent } from '../../components/contactos-usuario/contactos-usuario.component';
+import { PageHeaderComponent } from '../../components/page-header/page-header.component';
 
 @Component({
   selector: 'app-usuario-perfil',
   standalone: true,
-  imports: [CommonModule, ContactosUsuarioComponent],
+  imports: [CommonModule, ContactosUsuarioComponent, PageHeaderComponent],
   templateUrl: './usuario-perfil.component.html',
   styleUrl: './usuario-perfil.component.css'
 })
@@ -20,6 +21,13 @@ export class UsuarioPerfilComponent implements OnInit {
     'https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&rel=0';
 
   usuario = signal<Usuario | undefined>(undefined);
+  nombreUsuario = computed(() => {
+    const usuario = this.usuario();
+    return usuario ? `${usuario.nombre} ${usuario.primerApellido}`.trim() : '';
+  });
+  correoUsuario = computed(() =>
+    this.usuario()?.correos?.find(contacto => contacto.tipo === 'PRINCIPAL')?.valor ?? ''
+  );
   cargando = signal(true);
   errorMensaje = signal('');
   avisoEdicionVisible = signal(false);

@@ -44,9 +44,7 @@ export interface UsuarioContactos {
 
 export interface PaginaUsuarios {
   content: UsuarioResumen[];
-  totalElements: number;
-  number: number;
-  size: number;
+  totalPages: number;
 }
 
 export interface AdministradorResumen {
@@ -58,7 +56,5 @@ export interface AdministradorResumen {
 
 export interface PaginaAdministradores {
   content: AdministradorResumen[];
-  totalElements: number;
-  number: number;
-  size: number;
+  totalPages: number;
 }

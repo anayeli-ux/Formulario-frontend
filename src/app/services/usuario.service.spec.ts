@@ -36,14 +36,14 @@ describe('UsuarioService', () => {
     expect(request.request.params.get('page')).toBe('2');
     expect(request.request.params.get('size')).toBe('5');
     expect(request.request.params.get('search')).toBe('42000');
-    request.flush({ content: [], totalElements: 0, number: 2, size: 5 });
+    request.flush({ content: [], totalPages: 3 });
   });
 
   it('defaults active user pages to five rows', () => {
     service.listarUsuarios().subscribe();
     const request = httpTesting.expectOne(item => item.url === `${environment.apiUrl}/usuarios`);
     expect(request.request.params.get('size')).toBe('5');
-    request.flush({ content: [], totalElements: 0, number: 0, size: 5 });
+    request.flush({ content: [], totalPages: 0 });
   });
 
   it('accepts numeric role IDs in a paginated summary response', () => {
@@ -59,12 +59,17 @@ describe('UsuarioService', () => {
         correo: null,
         codigoPostal: null
       }],
+      totalPages: 1,
       totalElements: 1,
       number: 0,
-      size: 5
+      size: 5,
+      pageable: { pageNumber: 0 }
     });
 
-    expect((respuesta as { content: Array<{ rol: string | number }> }).content[0].rol).toBe(1);
+    expect(respuesta).toEqual({
+      content: [jasmine.objectContaining({ rol: 1 })],
+      totalPages: 1
+    });
   });
 
   it('requests only a five-user page of active or deleted administrators', () => {
@@ -73,7 +78,7 @@ describe('UsuarioService', () => {
     expect(request.request.params.get('page')).toBe('2');
     expect(request.request.params.get('size')).toBe('5');
     expect(request.request.params.get('eliminados')).toBe('true');
-    request.flush({ content: [], totalElements: 0, number: 2, size: 5 });
+    request.flush({ content: [], totalPages: 3 });
   });
 
   it('rejects the old full-array response instead of presenting it as an empty page', () => {
@@ -147,7 +152,7 @@ describe('UsuarioService', () => {
     expect(request.request.params.get('page')).toBe('1');
     expect(request.request.params.get('size')).toBe('25');
     expect(request.request.params.get('search')).toBe('Lopez');
-    request.flush({ content: [], totalElements: 0, number: 1, size: 25 });
+    request.flush({ content: [], totalPages: 2 });
   });
 
   it('sends delete and reactivation requests without retaining full-list data', () => {

@@ -56,7 +56,7 @@ export interface UsuarioActualizarRequest extends UsuarioRequestBase {
 
 export class RespuestaUsuariosIncompatibleError extends Error {
   constructor() {
-    super('La API está devolviendo la lista antigua. Reinicia el backend para aplicar la respuesta paginada y compacta.');
+    super('La API debe devolver una respuesta con content y totalPages.');
     this.name = 'RespuestaUsuariosIncompatibleError';
   }
 }
@@ -144,11 +144,11 @@ export class UsuarioService {
         && Object.keys(usuario).every(campo => camposResumen.has(campo))
       );
 
-    if (!contenidoValido || typeof pagina.totalElements !== 'number') {
+    if (!contenidoValido || !Number.isInteger(pagina.totalPages) || (pagina.totalPages ?? -1) < 0) {
       throw new RespuestaUsuariosIncompatibleError();
     }
 
-    return pagina as PaginaUsuarios;
+    return { content: pagina.content!, totalPages: pagina.totalPages! };
   }
 
   private validarPaginaAdministradores(respuesta: unknown): PaginaAdministradores {
@@ -166,10 +166,10 @@ export class UsuarioService {
         && typeof administrador.primerApellido === 'string'
         && Object.keys(administrador).every(campo => campos.has(campo))
       );
-    if (!contenidoValido || typeof pagina.totalElements !== 'number') {
+    if (!contenidoValido || !Number.isInteger(pagina.totalPages) || (pagina.totalPages ?? -1) < 0) {
       throw new RespuestaUsuariosIncompatibleError();
     }
-    return pagina as PaginaAdministradores;
+    return { content: pagina.content!, totalPages: pagina.totalPages! };
   }
 
 
