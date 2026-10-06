@@ -1,26 +1,28 @@
 <main class="perfil-page">
   <section class="perfil-shell" aria-labelledby="perfil-title">
-    <header class="perfil-header">
-      <div>
-        <span class="perfil-kicker">Área personal</span>
-        <h1 id="perfil-title">Mis datos</h1>
-        <p>Consulta la información registrada en el sistema.</p>
-      </div>
-
-      <div class="perfil-actions">
-        <button class="role-button" type="button" (click)="cambiarDeRol()">
-        ADMINISTRADOR
+    <app-page-header
+      etiqueta="Área personal"
+      titulo="Mis datos"
+      descripcion="Consulta la información registrada en el sistema."
+      variante="perfil"
+      [nivelTitulo]="1"
+      idTitulo="perfil-title"
+      [mostrarAcciones]="true"
+    >
+      <div pageHeaderActions class="perfil-actions">
+        <button mat-flat-button class="role-button" type="button" (click)="cambiarDeRol()">
+          ADMINISTRADOR
         </button>
 
-        <button class="edit-profile-button" type="button" (click)="mostrarAvisoEdicion()" [disabled]="cargando()">
+        <button mat-flat-button class="edit-profile-button" type="button" (click)="mostrarAvisoEdicion()" [disabled]="cargando()">
           Editar mis datos
         </button>
 
-        <button class="logout-button" type="button" (click)="cerrarSesion()">
+        <button mat-button class="logout-button" type="button" (click)="cerrarSesion()">
           Cerrar sesión
         </button>
       </div>
-    </header>
+    </app-page-header>
 
     <section class="perfil-card" *ngIf="cargando()" aria-live="polite">
       <p class="status-message">Cargando tus datos...</p>

@@ -1,0 +1,18 @@
+<header
+  class="page-header"
+  [class.page-header--admin]="variante === 'admin'"
+  [class.page-header--login]="variante === 'login'"
+  [class.page-header--registro]="variante === 'registro'"
+>
+  <div class="page-header-content">
+    <span class="page-header-label" *ngIf="etiqueta">{{ etiqueta }}</span>
+    <ng-container [ngSwitch]="nivelTitulo">
+      <h1 *ngSwitchCase="1" [id]="idTitulo || null">{{ titulo }}</h1>
+      <h2 *ngSwitchDefault [id]="idTitulo || null">{{ titulo }}</h2>
+    </ng-container>
+    <p *ngIf="descripcion">{{ descripcion }}</p>
+  </div>
+  <ng-container *ngIf="mostrarAcciones">
+    <ng-content select="[pageHeaderActions]"></ng-content>
+  </ng-container>
+</header>

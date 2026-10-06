@@ -7,11 +7,13 @@ import { AuthService } from '../../services/auth.service';
 import { UsuarioService } from '../../services/usuario.service';
 import { finalize } from 'rxjs';
 import { ContactosUsuarioComponent } from '../../components/contactos-usuario/contactos-usuario.component';
+import { PageHeaderComponent } from '../../components/page-header/page-header.component';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'app-usuario-perfil',
   standalone: true,
-  imports: [CommonModule, ContactosUsuarioComponent],
+  imports: [CommonModule, ContactosUsuarioComponent, PageHeaderComponent, MatButtonModule],
   templateUrl: './usuario-perfil.component.html',
   styleUrl: './usuario-perfil.component.css'
 })

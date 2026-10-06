@@ -34,38 +34,12 @@
   margin: 0 auto;
 }
 
-.perfil-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 24px;
-  margin-bottom: 28px;
-  color: #fff;
-}
-
-.perfil-kicker,
 .card-kicker,
 .dato-label {
   display: block;
   font-weight: 700;
   letter-spacing: 1.4px;
   text-transform: uppercase;
-}
-
-.perfil-kicker {
-  margin-bottom: 8px;
-  color: #cfe0ff;
-}
-
-.perfil-header h1 {
-  margin: 0;
-  font-size: clamp(30px, 5vw, 48px);
-  line-height: 1.05;
-}
-
-.perfil-header p {
-  margin: 12px 0 0;
-  color: #e2ebf8;
 }
 
 .perfil-actions {
@@ -81,18 +55,18 @@
   flex: 0 0 auto;
   min-height: 42px;
   padding: 0 18px;
-  border: 1px solid rgba(255, 255, 255, .7);
   border-radius: 4px;
-  background: rgba(255, 255, 255, .1);
-  color: #fff;
-  font: inherit;
   cursor: pointer;
 }
 
+.role-button {
+  --mdc-filled-button-container-color: #f4d58b;
+  --mdc-filled-button-label-text-color: #203047;
+}
+
 .edit-profile-button {
-  border-color: #fff;
-  background: #fff;
-  color: #203047;
+  --mdc-filled-button-container-color: #fff;
+  --mdc-filled-button-label-text-color: #203047;
 }
 
 .edit-profile-button:hover:not(:disabled) {
@@ -104,20 +78,17 @@
   opacity: .65;
 }
 
-.role-button {
-  border-color: #f4d58b;
-  background: #f4d58b;
-  color: #203047;
+.role-button:hover {
+  --mdc-filled-button-container-color: #ffe7ae;
 }
 
-.role-button:hover {
-  border-color: #ffe7ae;
-  background: #ffe7ae;
+.logout-button {
+  --mdc-text-button-label-text-color: #fff;
 }
 
 .logout-button:hover {
+  --mdc-text-button-label-text-color: #203047;
   background: #fff;
-  color: #203047;
 }
 
 .perfil-card {
@@ -342,7 +313,7 @@
     padding: 28px 14px 44px;
   }
 
-  .perfil-header {
+  .perfil-actions {
     flex-direction: column;
   }
 
