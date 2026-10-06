@@ -27,6 +27,42 @@
   min-width: 0;
 }
 
+.datos-personales-compartidos {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+.datos-personales-compartidos h3 {
+  margin: 0 0 10px;
+  color: #26364f;
+  font-size: 14px;
+}
+
+.datos-personales-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.datos-personales-grid > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 9px 10px;
+  border-bottom: 1px solid #dce4ef;
+}
+
+.datos-personales-grid span {
+  color: #707d91;
+  font-size: 11px;
+}
+
+.datos-personales-grid strong {
+  overflow-wrap: anywhere;
+  color: #26364f;
+  font-size: 13px;
+}
+
 .contactos-grupo h3 {
   margin: 0 0 12px;
   color: #203047;
@@ -126,6 +162,10 @@
 }
 
 @media (max-width: 520px) {
+  .datos-personales-grid {
+    grid-template-columns: 1fr;
+  }
+
   .contactos-perfil {
     grid-template-columns: 1fr;
     gap: 22px;

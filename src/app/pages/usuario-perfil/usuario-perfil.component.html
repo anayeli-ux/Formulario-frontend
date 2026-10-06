@@ -26,21 +26,6 @@
         <h2>{{ usuario()!.nombre }} {{ usuario()!.primerApellido }}</h2>
       </div>
 
-      <div class="datos-grid">
-        <div class="dato">
-          <span class="dato-label">Fecha de nacimiento</span>
-          <strong>{{ usuario()!.fechaNacimiento }}</strong>
-        </div>
-        <div class="dato">
-          <span class="dato-label">Estado</span>
-          <strong>{{ usuario()!.estado }}</strong>
-        </div>
-        <div class="dato">
-          <span class="dato-label">Municipio</span>
-          <strong>{{ usuario()!.municipio }}</strong>
-        </div>
-      </div>
-
       <app-contactos-usuario [usuario]="usuario()!" presentacion="perfil"></app-contactos-usuario>
     </section>
   </section>

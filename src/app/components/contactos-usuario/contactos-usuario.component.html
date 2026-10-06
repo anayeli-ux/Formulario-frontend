@@ -3,6 +3,15 @@
   [class.contactos-modal]="presentacion === 'modal'"
   [class.contactos-perfil]="presentacion === 'perfil'"
 >
+  <section class="datos-personales-compartidos" *ngIf="datosPersonales as datos">
+    <h3>Datos personales</h3>
+    <div class="datos-personales-grid">
+      <div><span>Fecha de nacimiento</span><strong>{{ datos.fechaNacimiento }}</strong></div>
+      <div *ngIf="datos.estado"><span>Estado</span><strong>{{ datos.estado }}</strong></div>
+      <div *ngIf="datos.municipio"><span>Municipio</span><strong>{{ datos.municipio }}</strong></div>
+    </div>
+  </section>
+
   <section class="contactos-grupo grupo-telefonos" aria-label="Teléfonos">
     <h3>Teléfonos</h3>
     <ng-container *ngIf="usuario.telefonos.length; else sinTelefonos">

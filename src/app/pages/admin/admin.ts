@@ -9,7 +9,7 @@ import {
 
 import { AbstractControl, FormArray, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { catchError, debounceTime, finalize, forkJoin, map, of, Subject } from 'rxjs';
+import { debounceTime, finalize, Subject } from 'rxjs';
 import { PageEvent } from '@angular/material/paginator';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -20,7 +20,7 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatStepper, MatStepperModule } from '@angular/material/stepper';
 
-import { AdministradorResumen, PaginaAdministradores, PaginaUsuarios, Usuario, UsuarioContactos, UsuarioResumen } from '../../models/usuario.model';
+import { AdministradorResumen, PaginaUsuarios, Usuario, UsuarioResumen } from '../../models/usuario.model';
 
 import { RespuestaUsuariosIncompatibleError, UsuarioService } from '../../services/usuario.service';
 
@@ -42,7 +42,6 @@ import { PageHeaderComponent } from '../../components/page-header/page-header.co
 import { ConfirmacionAdminDialogComponent } from '../../components/confirmacion-admin-dialog/confirmacion-admin-dialog.component';
 import { AdminIconsService } from '../../services/admin-icons.service';
 import { esAdministrador } from '../../utils/rol.util';
-import { obtenerContactoPrincipal } from '../../utils/contactos.util';
 
 type TipoModal =
   | 'exito'
@@ -111,44 +110,21 @@ export class Admin implements OnInit {
   paginaIndexEliminados = signal(0);
   pageSizeActivos = signal(5);
   pageSizeEliminados = signal(5);
-  private paginaAdministradores = signal<PaginaAdministradores | null>(null);
+  private paginaAdministradores = signal<PaginaUsuarios | null>(null);
   private totalPaginasAdministradoresGuardado = signal(0);
-  private endpointAdministradoresDisponible = signal<boolean | null>(null);
   paginaIndexAdministradores = signal(0);
   busquedaAdministradores = signal('');
   tipoTabla = signal<'usuarios' | 'administradores'>('usuarios');
-  private administradoresEnPaginaActual = computed<AdministradorResumen[]>(() => {
-    const usuariosPagina = this.vistaActual() === 'eliminados'
-      ? this.usuariosEliminados()
-      : this.usuariosActivos();
-    return usuariosPagina
-      .filter(usuario => esAdministrador(usuario.rol))
-      .map(usuario => ({
-        id: usuario.id,
-        nombre: usuario.nombre,
-        primerApellido: usuario.primerApellido,
-        correo: usuario.correo,
-        telefono: usuario.telefono,
-        codigoPostal: usuario.codigoPostal
-      }));
-  });
-  administradores = computed(() => {
-    const porId = new Map<number, AdministradorResumen>();
-    for (const administrador of this.paginaAdministradores()?.content ?? []) {
-      porId.set(administrador.id, administrador);
-    }
-    for (const administrador of this.administradoresEnPaginaActual()) {
-      const existente = porId.get(administrador.id);
-      porId.set(administrador.id, {
-        ...existente,
-        ...administrador,
-        correo: administrador.correo ?? existente?.correo ?? null,
-        telefono: administrador.telefono ?? existente?.telefono ?? null,
-        codigoPostal: administrador.codigoPostal ?? existente?.codigoPostal ?? null
-      });
-    }
-    return [...porId.values()];
-  });
+  administradores = computed<AdministradorResumen[]>(() => (this.paginaAdministradores()?.content ?? [])
+    .filter(usuario => esAdministrador(usuario.rol))
+    .map(usuario => ({
+      id: usuario.id,
+      nombre: usuario.nombre,
+      primerApellido: usuario.primerApellido,
+      correo: usuario.correo,
+      telefono: usuario.telefono,
+      codigoPostal: usuario.codigoPostal
+    })));
   administradoresTabla = computed<UsuarioResumen[]>(() => {
     const busqueda = this.busquedaAdministradores().trim().toLocaleLowerCase();
     return this.administradores()
@@ -189,17 +165,14 @@ export class Admin implements OnInit {
   cargandoTabla = computed(() => this.tipoTabla() === 'administradores'
     ? this.cargandoAdministradores() || this.cargando()
     : this.cargando());
-  totalPaginasAdministradores = computed(() => Math.max(
-    this.totalPaginasAdministradoresGuardado(),
-    Number(this.administradoresEnPaginaActual().length > 0)
-  ));
+  totalPaginasAdministradores = this.totalPaginasAdministradoresGuardado.asReadonly();
   private totalPaginasActivosGuardado = signal(0);
   private totalPaginasEliminadosGuardado = signal(0);
   totalPaginasActivos = this.totalPaginasActivosGuardado.asReadonly();
   totalPaginasEliminados = this.totalPaginasEliminadosGuardado.asReadonly();
   cargandoAdministradores = signal(false);
 
-  usuarioInformacion = signal<UsuarioContactos | null>(null);
+  usuarioInformacion = signal<Usuario | null>(null);
 
   busquedaUsuarios = signal('');
 
@@ -284,7 +257,6 @@ export class Admin implements OnInit {
       this.cargarUsuariosEliminados();
     });
     this.cargarUsuarios();
-    this.cargarAdministradores();
   }
 
   cambiarVista(vista: 'activos' | 'eliminados'): void {
@@ -300,7 +272,10 @@ export class Admin implements OnInit {
     this.totalPaginasEliminadosGuardado.set(0);
     this.totalPaginasAdministradoresGuardado.set(0);
     this.paginaIndexAdministradores.set(0);
-    this.cargarAdministradores();
+    if (this.tipoTabla() === 'administradores') {
+      this.cargarAdministradores();
+      return;
+    }
     if (vista === 'activos') {
       this.paginaIndexActivos.set(0);
       this.cargarUsuarios();
@@ -351,6 +326,7 @@ export class Admin implements OnInit {
 
   cambiarSeccionTabla(indice: number): void {
     this.tipoTabla.set(indice === 1 ? 'administradores' : 'usuarios');
+    if (indice === 1) this.cargarAdministradores();
   }
 
   buscarEnTabla(busqueda: string): void {
@@ -376,12 +352,14 @@ export class Admin implements OnInit {
   }
 
   cargarAdministradores(): void {
-    if (this.endpointAdministradoresDisponible() === false) return;
     const secuencia = ++this.secuenciaAdministradores;
     this.cargandoAdministradores.set(true);
-    this.usuarioService.listarAdministradores(
+    this.usuarioService.listarUsuarios(
       this.paginaIndexAdministradores(),
-      this.vistaActual() === 'eliminados'
+      5,
+      this.busquedaAdministradores(),
+      'ADMIN',
+      this.vistaActual() === 'eliminados',
     ).pipe(finalize(() => {
       if (secuencia === this.secuenciaAdministradores) {
         this.cargandoAdministradores.set(false);
@@ -390,46 +368,14 @@ export class Admin implements OnInit {
       .subscribe({
         next: pagina => {
           if (secuencia !== this.secuenciaAdministradores) return;
-          this.endpointAdministradoresDisponible.set(true);
           this.paginaAdministradores.set(pagina);
           this.totalPaginasAdministradoresGuardado.set(pagina.totalPages);
-          this.completarContactosAdministradores(pagina, secuencia);
         },
         error: () => {
           if (secuencia !== this.secuenciaAdministradores) return;
-          this.endpointAdministradoresDisponible.set(false);
           this.paginaAdministradores.set(null);
           this.totalPaginasAdministradoresGuardado.set(0);
         }
-      });
-  }
-
-  private completarContactosAdministradores(pagina: PaginaAdministradores, secuencia: number): void {
-    const pendientes = pagina.content.filter(administrador =>
-      administrador.telefono == null || administrador.codigoPostal == null
-    );
-    if (!pendientes.length) return;
-
-    forkJoin(pendientes.map(administrador => this.usuarioService
-      .obtenerContactosUsuario(administrador.id)
-      .pipe(
-        map(contactos => ({
-          ...administrador,
-          telefono: administrador.telefono
-            ?? obtenerContactoPrincipal(contactos.telefonos)?.valor
-            ?? null,
-          codigoPostal: administrador.codigoPostal
-            ?? obtenerContactoPrincipal(contactos.direcciones)?.codigoPostal
-            ?? null
-        })),
-        catchError(() => of(administrador))
-      )))
-      .subscribe(actualizados => {
-        if (secuencia !== this.secuenciaAdministradores) return;
-        const porId = new Map(actualizados.map(administrador => [administrador.id, administrador]));
-        this.paginaAdministradores.update(actual => actual
-          ? { ...actual, content: actual.content.map(administrador => porId.get(administrador.id) ?? administrador) }
-          : actual);
       });
   }
 
@@ -580,7 +526,13 @@ export class Admin implements OnInit {
   cargarUsuariosEliminados(): void {
     const secuencia = ++this.secuenciaEliminados;
     this.usuarioService
-      .listarUsuariosEliminados(this.paginaIndexEliminados(), this.pageSizeEliminados(), this.busquedaUsuariosEliminados())
+      .listarUsuarios(
+        this.paginaIndexEliminados(),
+        this.pageSizeEliminados(),
+        this.busquedaUsuariosEliminados(),
+        'USER',
+        true
+      )
       .subscribe({
         next: pagina => {
           if (secuencia !== this.secuenciaEliminados) return;
@@ -1126,7 +1078,7 @@ export class Admin implements OnInit {
 
   abrirInformacion(resumen: UsuarioResumen): void {
     this.detalleCargando.set(true);
-    this.usuarioService.obtenerContactosUsuario(resumen.id)
+    this.usuarioService.obtenerUsuario(resumen.id)
       .pipe(finalize(() => this.detalleCargando.set(false)))
       .subscribe({
         next: usuario => this.usuarioInformacion.set(usuario),
@@ -1143,9 +1095,13 @@ export class Admin implements OnInit {
     this.paginaEliminada.set(null);
     this.paginaAdministradores.set(null);
     this.paginaIndexAdministradores.set(0);
-    this.cargarAdministradores();
-    if (this.vistaActual() === 'activos') this.cargarUsuarios();
-    else this.cargarUsuariosEliminados();
+    if (this.tipoTabla() === 'administradores') {
+      this.cargarAdministradores();
+    } else if (this.vistaActual() === 'activos') {
+      this.cargarUsuarios();
+    } else {
+      this.cargarUsuariosEliminados();
+    }
   }
 
 

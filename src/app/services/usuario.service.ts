@@ -8,7 +8,7 @@ import {
   tap
 } from 'rxjs';
 
-import { PaginaAdministradores, PaginaUsuarios, Usuario, UsuarioContactos } from '../models/usuario.model';
+import { PaginaUsuarios, Usuario } from '../models/usuario.model';
 import { environment } from '../../environments/environment';
 
 import { AuthService } from './auth.service';
@@ -86,44 +86,24 @@ export class UsuarioService {
   // OBTENER USUARIOS ACTIVOS
   // =========================
 
-  listarUsuarios(page = 0, size = 5, search = ''): Observable<PaginaUsuarios> {
+  listarUsuarios(
+    page = 0,
+    size = 5,
+    search = '',
+    rol: 'USER' | 'ADMIN' = 'USER',
+    eliminados = false
+  ): Observable<PaginaUsuarios> {
     return this.http.get<unknown>(
       this.apiUrl,
       {
         withCredentials: true,
-        params: { page, size, search }
+        params: { page, size, search, rol, eliminados }
       }
     ).pipe(map(respuesta => this.validarPaginaUsuarios(respuesta)));
-  }
-
-
-  // =========================
-  // OBTENER USUARIOS ELIMINADOS
-  // =========================
-
-  listarUsuariosEliminados(page = 0, size = 5, search = ''): Observable<PaginaUsuarios> {
-    return this.http.get<unknown>(
-      `${this.apiUrl}/eliminados`,
-      {
-        withCredentials: true,
-        params: { page, size, search }
-      }
-    ).pipe(map(respuesta => this.validarPaginaUsuarios(respuesta)));
-  }
-
-  listarAdministradores(page = 0, eliminados = false): Observable<PaginaAdministradores> {
-    return this.http.get<unknown>(`${this.apiUrl}/administradores`, {
-      withCredentials: true,
-      params: { page, size: 5, eliminados }
-    }).pipe(map(respuesta => this.validarPaginaAdministradores(respuesta)));
   }
 
   obtenerUsuario(id: number): Observable<Usuario> {
     return this.http.get<Usuario>(`${this.apiUrl}/${id}`, { withCredentials: true });
-  }
-
-  obtenerContactosUsuario(id: number): Observable<UsuarioContactos> {
-    return this.http.get<UsuarioContactos>(`${this.apiUrl}/${id}/contactos`, { withCredentials: true });
   }
 
   private validarPaginaUsuarios(respuesta: unknown): PaginaUsuarios {
@@ -152,30 +132,6 @@ export class UsuarioService {
 
     return { content: pagina.content!, totalPages: pagina.totalPages! };
   }
-
-  private validarPaginaAdministradores(respuesta: unknown): PaginaAdministradores {
-    if (!respuesta || typeof respuesta !== 'object') {
-      throw new RespuestaUsuariosIncompatibleError();
-    }
-    const pagina = respuesta as Partial<PaginaAdministradores>;
-    const campos = new Set(['id', 'nombre', 'primerApellido', 'correo', 'telefono', 'codigoPostal']);
-    const contenidoValido = Array.isArray(pagina.content)
-      && pagina.content.every(administrador =>
-        administrador !== null
-        && typeof administrador === 'object'
-        && typeof administrador.id === 'number'
-        && typeof administrador.nombre === 'string'
-        && typeof administrador.primerApellido === 'string'
-        && (administrador.telefono === undefined || administrador.telefono === null || typeof administrador.telefono === 'string')
-        && (administrador.codigoPostal === undefined || administrador.codigoPostal === null || typeof administrador.codigoPostal === 'string')
-        && Object.keys(administrador).every(campo => campos.has(campo))
-      );
-    if (!contenidoValido || !Number.isInteger(pagina.totalPages) || (pagina.totalPages ?? -1) < 0) {
-      throw new RespuestaUsuariosIncompatibleError();
-    }
-    return { content: pagina.content!, totalPages: pagina.totalPages! };
-  }
-
 
   // =========================
   // OBTENER MI PERFIL

@@ -35,7 +35,8 @@ describe('Admin', () => {
 
   function responderAdministradores(eliminados = false, content: UsuarioResumen[] = []): void {
     const request = httpTesting.expectOne(item =>
-      item.url === `${environment.apiUrl}/usuarios/administradores`
+      item.url === `${environment.apiUrl}/usuarios`
+      && item.params.get('rol') === 'ADMIN'
       && item.params.get('eliminados') === String(eliminados)
     );
     expect(request.request.params.get('size')).toBe('5');
@@ -43,9 +44,12 @@ describe('Admin', () => {
   }
 
   function responderLista(url: string, content: UsuarioResumen[] = []): void {
-    httpTesting.expectOne(request => request.method === 'GET' && request.url === url)
+    const eliminados = url.endsWith('/eliminados');
+    httpTesting.expectOne(request => request.method === 'GET'
+      && request.url === `${environment.apiUrl}/usuarios`
+      && request.params.get('rol') === 'USER'
+      && request.params.get('eliminados') === String(eliminados))
       .flush(pagina(content));
-    responderAdministradores(url.endsWith('/eliminados'));
   }
 
   function responderCsrf(): void {
@@ -86,6 +90,7 @@ describe('Admin', () => {
     expect(fixture.nativeElement.querySelectorAll('app-usuarios-tabla').length).toBe(1);
 
     component.cambiarSeccionTabla(1);
+    responderAdministradores();
     fixture.detectChanges();
     expect(component.tipoTabla()).toBe('administradores');
   });
@@ -113,20 +118,18 @@ describe('Admin', () => {
     expect(component.usuariosFiltrados().map(usuario => usuario.id)).toEqual([1]);
   });
 
-  it('places an administrator from the current page in the administrators tab', () => {
+  it('loads administrators with contact summary fields through the unified endpoint', () => {
     fixture.detectChanges();
-    responderLista(`${environment.apiUrl}/usuarios`, [
-      resumen(1, { rol: 1, nombre: 'Usuario' }),
-      resumen(7, {
-        rol: 2,
-        nombre: 'Admin',
-        correo: 'adm@gmail.com',
-        telefono: '7711234567',
-        codigoPostal: '42000'
-      })
-    ]);
+    responderLista(`${environment.apiUrl}/usuarios`, [resumen(1)]);
+    component.cambiarSeccionTabla(1);
+    responderAdministradores(false, [resumen(7, {
+      rol: 'ADMIN',
+      nombre: 'Admin',
+      correo: 'adm@gmail.com',
+      telefono: '7711234567',
+      codigoPostal: '42000'
+    })]);
 
-    expect(component.usuariosFiltrados().map(usuario => usuario.id)).toEqual([1]);
     expect(component.administradores()).toEqual([{
       id: 7,
       nombre: 'Admin',
@@ -142,30 +145,46 @@ describe('Admin', () => {
     expect(component.totalPaginasAdministradores()).toBe(1);
   });
 
-  it('loads missing administrator phone and postal code from contact details', () => {
+  it('does not request contacts separately to complete administrator summaries', () => {
     fixture.detectChanges();
     httpTesting.expectOne(request => request.url === `${environment.apiUrl}/usuarios`)
       .flush(pagina([]));
-    httpTesting.expectOne(request => request.url === `${environment.apiUrl}/usuarios/administradores`)
-      .flush(pagina([{
-        id: 17,
-        nombre: 'Ana',
-        primerApellido: 'Perez',
-        correo: 'ana@example.com'
-      }]));
-    httpTesting.expectOne(`${environment.apiUrl}/usuarios/17/contactos`).flush({
-      id: 17,
-      nombre: 'Ana',
-      primerApellido: 'Perez',
-      telefonos: [{ tipo: 'PRINCIPAL', valor: '7711234567' }],
-      correos: [],
-      direcciones: [{ tipo: 'PRINCIPAL', valor: 'Calle 1', codigoPostal: '42000' }]
-    });
+    component.cambiarSeccionTabla(1);
+    responderAdministradores(false, [resumen(17, {
+      rol: 'ADMIN',
+      correo: 'ana@example.com',
+      telefono: '7711234567',
+      codigoPostal: '42000'
+    })]);
     fixture.detectChanges();
 
     expect(component.administradoresTabla()[0]).toEqual(jasmine.objectContaining({
       telefono: '7711234567',
       codigoPostal: '42000'
+    }));
+    httpTesting.expectNone(`${environment.apiUrl}/usuarios/17/contactos`);
+  });
+
+  it('loads the selected user full profile for the shared details modal', () => {
+    fixture.detectChanges();
+    responderLista(`${environment.apiUrl}/usuarios`, [resumen(17)]);
+
+    component.abrirInformacion(resumen(17));
+    httpTesting.expectOne(`${environment.apiUrl}/usuarios/17`).flush({
+      id: 17,
+      nombre: 'Ana',
+      primerApellido: 'Perez',
+      fechaNacimiento: '1990-01-01',
+      rol: 'USER',
+      telefonos: [{ tipo: 'PRINCIPAL', valor: '7711234567' }],
+      correos: [{ tipo: 'PRINCIPAL', valor: 'ana@example.com' }],
+      direcciones: [{ tipo: 'PRINCIPAL', valor: 'Calle 1', codigoPostal: '42000' }]
+    });
+
+    expect(component.usuarioInformacion()).toEqual(jasmine.objectContaining({
+      id: 17,
+      nombre: 'Ana',
+      correos: jasmine.arrayContaining([jasmine.objectContaining({ valor: 'ana@example.com' })])
     }));
   });
 
@@ -177,7 +196,6 @@ describe('Admin', () => {
     );
     expect(firstPageRequest.request.params.get('size')).toBe('5');
     firstPageRequest.flush(pagina([1, 2, 3, 4, 5].map(id => resumen(id)), 3));
-    responderAdministradores();
 
     expect(component.totalPaginasActivos()).toBe(3);
     component.cambiarPagina({ pageIndex: 1, pageSize: 5, length: 15 }, 'activos');
@@ -203,7 +221,6 @@ describe('Admin', () => {
       && request.params.get('page') === '0'
     );
     initial.flush(pagina([1, 2, 3, 4, 5].map(id => resumen(id)), 4));
-    responderAdministradores();
 
     component.cambiarPagina({ pageIndex: 1, pageSize: 5, length: 20 }, 'activos');
     const pageOne = httpTesting.expectOne(request =>

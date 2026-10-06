@@ -36,6 +36,8 @@ describe('UsuarioService', () => {
     expect(request.request.params.get('page')).toBe('2');
     expect(request.request.params.get('size')).toBe('5');
     expect(request.request.params.get('search')).toBe('42000');
+    expect(request.request.params.get('rol')).toBe('USER');
+    expect(request.request.params.get('eliminados')).toBe('false');
     request.flush({ content: [], totalPages: 3 });
   });
 
@@ -73,22 +75,24 @@ describe('UsuarioService', () => {
   });
 
   it('requests only a five-user page of active or deleted administrators', () => {
-    service.listarAdministradores(2, true).subscribe();
-    const request = httpTesting.expectOne(item => item.url === `${environment.apiUrl}/usuarios/administradores`);
+    service.listarUsuarios(2, 5, '', 'ADMIN', true).subscribe();
+    const request = httpTesting.expectOne(item => item.url === `${environment.apiUrl}/usuarios`);
     expect(request.request.params.get('page')).toBe('2');
     expect(request.request.params.get('size')).toBe('5');
+    expect(request.request.params.get('rol')).toBe('ADMIN');
     expect(request.request.params.get('eliminados')).toBe('true');
     request.flush({ content: [], totalPages: 3 });
   });
 
   it('preserves administrator phone and postal code in the page summary', () => {
     let respuesta: unknown;
-    service.listarAdministradores().subscribe(value => respuesta = value);
-    httpTesting.expectOne(item => item.url === `${environment.apiUrl}/usuarios/administradores`).flush({
+    service.listarUsuarios(0, 5, '', 'ADMIN').subscribe(value => respuesta = value);
+    httpTesting.expectOne(item => item.url === `${environment.apiUrl}/usuarios`).flush({
       content: [{
         id: 7,
         nombre: 'Ana',
         primerApellido: 'Perez',
+        rol: 'ADMIN',
         correo: 'ana@example.com',
         telefono: '7711234567',
         codigoPostal: '42000'
@@ -101,6 +105,7 @@ describe('UsuarioService', () => {
         id: 7,
         nombre: 'Ana',
         primerApellido: 'Perez',
+        rol: 'ADMIN',
         correo: 'ana@example.com',
         telefono: '7711234567',
         codigoPostal: '42000'
@@ -140,11 +145,20 @@ describe('UsuarioService', () => {
     });
   });
 
-  it('requests only displayed contact fields for the information modal', () => {
-    service.obtenerContactosUsuario(17).subscribe();
-    const request = httpTesting.expectOne(`${environment.apiUrl}/usuarios/17/contactos`);
+  it('requests the complete user detail for the information modal', () => {
+    service.obtenerUsuario(17).subscribe();
+    const request = httpTesting.expectOne(`${environment.apiUrl}/usuarios/17`);
     expect(request.request.method).toBe('GET');
-    request.flush({ id: 17, nombre: 'Ana', primerApellido: 'Perez', telefonos: [], correos: [], direcciones: [] });
+    request.flush({
+      id: 17,
+      nombre: 'Ana',
+      primerApellido: 'Perez',
+      fechaNacimiento: '1990-01-01',
+      rol: 'USER',
+      telefonos: [],
+      correos: [],
+      direcciones: []
+    });
   });
 
   it('sends persistent contact IDs unchanged in the update PUT body', () => {
@@ -189,11 +203,13 @@ describe('UsuarioService', () => {
   });
 
   it('loads deleted summaries using their own page and search parameters', () => {
-    service.listarUsuariosEliminados(1, 25, 'Lopez').subscribe();
-    const request = httpTesting.expectOne(item => item.url === `${environment.apiUrl}/usuarios/eliminados`);
+    service.listarUsuarios(1, 25, 'Lopez', 'USER', true).subscribe();
+    const request = httpTesting.expectOne(item => item.url === `${environment.apiUrl}/usuarios`);
     expect(request.request.params.get('page')).toBe('1');
     expect(request.request.params.get('size')).toBe('25');
     expect(request.request.params.get('search')).toBe('Lopez');
+    expect(request.request.params.get('rol')).toBe('USER');
+    expect(request.request.params.get('eliminados')).toBe('true');
     request.flush({ content: [], totalPages: 2 });
   });
 

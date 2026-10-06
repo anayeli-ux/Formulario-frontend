@@ -33,15 +33,6 @@ export interface UsuarioResumen {
   codigoPostal: string | null;
 }
 
-export interface UsuarioContactos {
-  id: number;
-  nombre: string;
-  primerApellido: string;
-  telefonos: ContactoItem[];
-  correos: ContactoItem[];
-  direcciones: DireccionItem[];
-}
-
 export interface PaginaUsuarios {
   content: UsuarioResumen[];
   totalPages: number;
@@ -54,9 +45,4 @@ export interface AdministradorResumen {
   correo: string | null;
   telefono?: string | null;
   codigoPostal?: string | null;
-}
-
-export interface PaginaAdministradores {
-  content: AdministradorResumen[];
-  totalPages: number;
 }
