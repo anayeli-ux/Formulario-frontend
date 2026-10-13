@@ -7,36 +7,43 @@ import { homeRedirectGuard } from './guards/home-redirect.guard';
 export const routes: Routes = [
   {
     path: 'login',
-    loadComponent: () => import('./pages/login/login.component').then(module => module.LoginComponent),
+    loadComponent: () =>
+      import('./pages/login/login.component').then(module => module.LoginComponent),
     canActivate: [guestGuard]
   },
   {
     path: 'registro',
-    loadComponent: () => import('./pages/registro/registro.component').then(module => module.RegistroComponent),
+    loadComponent: () =>
+      import('./pages/registro/registro.component').then(module => module.RegistroComponent),
     canActivate: [guestGuard]
   },
-
   {
     path: 'exito',
-    loadComponent: () => import('./pages/exito/exito').then(module => module.Exito),
+    loadComponent: () =>
+      import('./pages/exito/exito').then(module => module.Exito),
     canActivate: [guestGuard]
   },
   {
     path: 'admin',
-    loadComponent: () => import('./pages/admin/admin').then(module => module.Admin),
+    loadComponent: () =>
+      import('./pages/admin/admin').then(module => module.Admin),
     canActivate: [adminGuard]
   },
   {
     path: 'usuario',
-    loadComponent: () => import('./pages/usuario-perfil/usuario-perfil.component').then(module => module.UsuarioPerfilComponent),
+    loadComponent: () =>
+      import('./pages/usuario-perfil/usuario-perfil.component').then(module => module.UsuarioPerfilComponent),
     canActivate: [authGuard]
   },
-
   {
     path: '',
-    loadComponent: () => import('./pages/home-redirect/home-redirect.component').then(module => module.HomeRedirectComponent),
+    loadComponent: () =>
+      import('./pages/home-redirect/home-redirect.component').then(module => module.HomeRedirectComponent),
     canActivate: [homeRedirectGuard],
     pathMatch: 'full'
   },
-  { path: '**', redirectTo: 'login' }
+  {
+    path: '**',
+    redirectTo: ''
+  }
 ];

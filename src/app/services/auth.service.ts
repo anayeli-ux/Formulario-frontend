@@ -1,4 +1,4 @@
-import { computed, Injectable, signal } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
 import {
@@ -58,9 +58,7 @@ export class AuthService {
 
   private readonly estadoUsuarioActual = signal<UsuarioSesion | null>(null);
   readonly usuarioActual = this.estadoUsuarioActual.asReadonly();
-  readonly haySesion = computed(() => this.usuarioActual() !== null);
   private readonly estadoPerfilActual = signal<Usuario | null>(null);
-  readonly perfilActual = this.estadoPerfilActual.asReadonly();
   private sesionVerificada = false;
   private solicitudPerfil?: Observable<Usuario>;
   private solicitudIdentidad?: Observable<UsuarioSesion>;
@@ -111,7 +109,7 @@ export class AuthService {
   }
 
   obtenerPerfil(): Observable<Usuario> {
-    const perfil = this.perfilActual();
+    const perfil = this.estadoPerfilActual();
     if (perfil) {
       return of(perfil);
     }
@@ -172,11 +170,7 @@ export class AuthService {
     });
   }
 
-  verificarSesion(): Observable<UsuarioSesion> {
-    return this.obtenerIdentidad();
-  }
-
-  obtenerIdentidad(): Observable<UsuarioSesion> {
+  private consultarIdentidad(): Observable<UsuarioSesion> {
     const identidad = this.usuarioActual();
     if (identidad?.nombre) return of(identidad);
     if (this.solicitudIdentidad) return this.solicitudIdentidad;
@@ -204,7 +198,7 @@ export class AuthService {
     if (usuario) {
       return of(usuario);
     }
-    return this.sesionVerificada ? of(null) : this.verificarSesion();
+    return this.sesionVerificada ? of(null) : this.consultarIdentidad();
   }
 
   cerrarSesion(): Observable<void> {
@@ -218,13 +212,7 @@ export class AuthService {
           }
         )
       ),
-
-      tap(() => {
-        limpiarCacheUsuariosPersistida();
-        this.estadoPerfilActual.set(null);
-        this.estadoUsuarioActual.set(null);
-        this.sesionVerificada = true;
-      })
+      tap(() => this.limpiarSesionLocal())
     );
   }
 

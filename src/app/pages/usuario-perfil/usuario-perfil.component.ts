@@ -1,6 +1,5 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, OnInit, signal } from '@angular/core';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 import { Usuario } from '../../models/usuario.model';
 import { AuthService } from '../../services/auth.service';
@@ -17,9 +16,6 @@ import { PageHeaderComponent } from '../../components/page-header/page-header.co
   styleUrl: './usuario-perfil.component.css'
 })
 export class UsuarioPerfilComponent implements OnInit {
-  private readonly enlaceCambioDeRol =
-    'https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&rel=0';
-
   usuario = signal<Usuario | undefined>(undefined);
   nombreUsuario = computed(() => {
     const usuario = this.usuario();
@@ -30,15 +26,11 @@ export class UsuarioPerfilComponent implements OnInit {
   );
   cargando = signal(true);
   errorMensaje = signal('');
-  avisoEdicionVisible = signal(false);
-  modalVisible = signal(false);
-  youtubeEmbedUrl: SafeResourceUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.enlaceCambioDeRol);
 
   constructor(
     private usuarioService: UsuarioService,
     private authService: AuthService,
-    private router: Router,
-    private sanitizer: DomSanitizer
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -52,14 +44,6 @@ export class UsuarioPerfilComponent implements OnInit {
       next: usuario => this.usuario.set(usuario),
       error: () => this.errorMensaje.set('No fue posible cargar tus datos.')
     });
-  }
-
-  mostrarAvisoEdicion(): void {
-    this.avisoEdicionVisible.set(true);
-  }
-
-  cerrarAvisoEdicion(): void {
-    this.avisoEdicionVisible.set(false);
   }
 
   cerrarSesion(): void {
@@ -80,11 +64,4 @@ export class UsuarioPerfilComponent implements OnInit {
     });
   }
 
-  cambiarDeRol(): void {
-    this.modalVisible.set(true);
-  }
-
-  cerrarVideo(): void {
-    this.modalVisible.set(false);
-  }
 }

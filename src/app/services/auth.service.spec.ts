@@ -4,6 +4,7 @@ import { PLATFORM_ID } from '@angular/core';
 
 import { AuthService } from './auth.service';
 import { Usuario } from '../models/usuario.model';
+import { environment } from '../../environments/environment';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -21,8 +22,8 @@ describe('AuthService', () => {
 
   afterEach(() => httpTesting.verify());
 
-  it('should report no active session when no user is cached in memory', () => {
-    expect(service.haySesion()).toBeFalse();
+  it('should have no current user before the session is loaded', () => {
+    expect(service.usuarioActual()).toBeNull();
   });
 
   it('should publish the authenticated user as a signal after login', () => {
@@ -34,7 +35,6 @@ describe('AuthService', () => {
       usuario: { id: 1, email: 'admin@test.com', rol: 'ADMIN' }
     });
 
-    expect(service.haySesion()).toBeTrue();
     expect(service.usuarioActual()?.email).toBe('admin@test.com');
   });
 
@@ -49,10 +49,12 @@ describe('AuthService', () => {
       expect(usuario?.rol).toBe('ADMIN');
     });
 
-    httpTesting.expectNone('http://localhost:8081/api/usuarios/me/resumen');
+    httpTesting.expectNone(`${environment.apiUrl}${environment.auth.identidad}`);
   });
 
   it('should verify the session with compact identity data and load full profile only on request', () => {
+    expect(environment.auth.identidad).toBe('/usuarios/me/resumen');
+
     const perfil: Usuario = {
       id: 1,
       nombre: 'Ana',
@@ -65,7 +67,7 @@ describe('AuthService', () => {
     };
 
     service.obtenerSesion().subscribe(usuario => expect(usuario?.rol).toBe('ADMIN'));
-    httpTesting.expectOne('http://localhost:8081/api/usuarios/me/resumen').flush({
+    httpTesting.expectOne(`${environment.apiUrl}${environment.auth.identidad}`).flush({
       id: 1,
       nombre: 'Ana',
       primerApellido: 'Perez',
@@ -74,7 +76,7 @@ describe('AuthService', () => {
     });
 
     service.obtenerPerfil().subscribe(usuario => expect(usuario).toEqual(perfil));
-    httpTesting.expectOne('http://localhost:8081/api/usuarios/me').flush(perfil);
+    httpTesting.expectOne(`${environment.apiUrl}${environment.auth.perfil}`).flush(perfil);
   });
 
   it('should update the minimal session identity and discard the full profile after editing', () => {
@@ -95,7 +97,7 @@ describe('AuthService', () => {
     };
 
     service.obtenerSesion().subscribe();
-    httpTesting.expectOne('http://localhost:8081/api/usuarios/me/resumen').flush({
+    httpTesting.expectOne(`${environment.apiUrl}${environment.auth.identidad}`).flush({
       id: 1,
       nombre: 'Ana',
       primerApellido: 'Perez',
@@ -103,21 +105,26 @@ describe('AuthService', () => {
       rol: 'ADMIN'
     });
 
+    service.obtenerPerfil().subscribe(usuario => expect(usuario).toEqual(perfil));
+    httpTesting.expectOne(`${environment.apiUrl}${environment.auth.perfil}`).flush(perfil);
+
     service.actualizarPerfilSesion(actualizado);
 
-    expect(service.perfilActual()).toBeNull();
     expect(service.usuarioActual()?.email).toBe('ana.maria@test.com');
     expect(service.usuarioActual()?.nombre).toBe('Ana Maria');
+
+    service.obtenerPerfil().subscribe(usuario => expect(usuario).toEqual(actualizado));
+    httpTesting.expectOne(`${environment.apiUrl}${environment.auth.perfil}`).flush(actualizado);
   });
 
   it('should not verify the same rejected session again during a redirect', () => {
     service.obtenerSesion().subscribe({ error: () => undefined });
-    httpTesting.expectOne('http://localhost:8081/api/usuarios/me/resumen').flush(
+    httpTesting.expectOne(`${environment.apiUrl}${environment.auth.identidad}`).flush(
       {},
       { status: 403, statusText: 'Forbidden' }
     );
 
     service.obtenerSesion().subscribe(usuario => expect(usuario).toBeNull());
-    httpTesting.expectNone('http://localhost:8081/api/usuarios/me/resumen');
+    httpTesting.expectNone(`${environment.apiUrl}${environment.auth.identidad}`);
   });
 });

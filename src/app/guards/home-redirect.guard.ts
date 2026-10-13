@@ -1,17 +1,10 @@
-import { inject } from '@angular/core';
-import { CanActivateFn, Router } from '@angular/router';
-import { catchError, map, of } from 'rxjs';
-import { AuthService } from '../services/auth.service';
 import { esAdministrador } from '../utils/rol.util';
+import { crearGuardSesion } from './guard-sesion';
 
-export const homeRedirectGuard: CanActivateFn = () => {
-  const authService = inject(AuthService);
-  const router = inject(Router);
+export const homeRedirectGuard = crearGuardSesion((usuario, router) => {
+  if (!usuario) {
+    return router.parseUrl('/login');
+  }
 
-  return authService.obtenerSesion().pipe(
-    map(usuario => router.parseUrl(
-      !usuario ? '/login' : esAdministrador(usuario.rol) ? '/admin' : '/usuario'
-    )),
-    catchError(() => of(router.parseUrl('/login')))
-  );
-};
+  return router.parseUrl(esAdministrador(usuario.rol) ? '/admin' : '/usuario');
+});

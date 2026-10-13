@@ -134,6 +134,5 @@ describe('UsuariosTablaComponent', () => {
 
     expect(component.usuarios).toBe(usuarios);
     expect(JSON.stringify(component.usuarios)).toBe(snapshot);
-    expect(component.usuariosPaginados).toEqual(usuarios);
   });
 });

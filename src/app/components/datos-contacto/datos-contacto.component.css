@@ -2,18 +2,6 @@
   color: #b2183b;
 }
 
-.field-error {
-  display: block;
-  color: #b2183b;
-  font-size: 11px;
-}
-
-.field-hint {
-  display: block;
-  color: #707d91;
-  font-size: 11px;
-}
-
 .material-field {
   display: block;
   width: 100%;
@@ -26,10 +14,6 @@
 
 .campo + .campo {
   margin-block-start: 10px;
-}
-
-.material-field .required-mark {
-  color: #b2183b;
 }
 
 .material-field mat-error {
@@ -122,15 +106,4 @@
 
 .contacto-codigo-postal {
   min-width: 0;
-}
-
-.contacto-field {
-  display: grid;
-  gap: 3px;
-  min-width: 0;
-}
-
-.contacto-label {
-  color: #4b5563;
-  font-size: 11px;
 }

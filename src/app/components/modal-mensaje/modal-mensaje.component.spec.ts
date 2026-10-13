@@ -20,4 +20,21 @@ describe('ModalMensajeComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('emits close when the modal is dismissed', () => {
+    spyOn(component.cerrar, 'emit');
+
+    component.cerrarModal();
+
+    expect(component.cerrar.emit).toHaveBeenCalled();
+  });
+
+  it('keeps a locked success modal open', () => {
+    spyOn(component.cerrar, 'emit');
+    component.bloquearCierre = true;
+
+    component.cerrarModal();
+
+    expect(component.cerrar.emit).not.toHaveBeenCalled();
+  });
 });

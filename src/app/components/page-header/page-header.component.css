@@ -36,14 +36,6 @@
   min-width: 0;
 }
 
-.page-header-actions {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  flex: 0 0 auto;
-  gap: 20px;
-}
-
 .page-header-identity {
   display: grid;
   gap: 3px;
@@ -141,11 +133,6 @@
 
 @media (max-width: 520px) {
   .page-header--principal {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .page-header-actions {
     align-items: stretch;
     flex-direction: column;
   }

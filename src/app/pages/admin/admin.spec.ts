@@ -254,6 +254,7 @@ describe('Admin', () => {
     responderLista(`${environment.apiUrl}/usuarios`);
 
     component.abrirCrearUsuario();
+    fixture.detectChanges();
     component.usuarioForm.patchValue({
       datosPersonales: {
         nombre: 'Luis',
@@ -371,7 +372,12 @@ describe('Admin', () => {
       valor: new FormControl('luis@example.com', [Validators.required, Validators.email, Validators.maxLength(150)])
     }));
 
+    fixture.detectChanges();
     component.crearUsuario();
+    expect(component.usuarioForm.get('datosPersonales.email')?.getError('duplicadoContacto'))
+      .toContain('Se repite en este formulario.');
+    expect(component.usuarioForm.get('datosContacto.telefono')?.getError('duplicadoContacto'))
+      .toContain('Se repite en este formulario.');
     fixture.detectChanges();
 
     expect(component.usuarioForm.get('datosPersonales.email')?.getError('duplicadoContacto'))
@@ -422,9 +428,10 @@ describe('Admin', () => {
     fixture.detectChanges();
 
     const tabla = fixture.debugElement.query(By.directive(UsuariosTablaComponent)).componentInstance as UsuariosTablaComponent;
+    component.actualizarColumnasOpcionales(['telefono', 'correo']);
+    fixture.detectChanges();
     expect(tabla.columnasVisibles).not.toContain('codigoPostal');
 
-    expect(tabla.columnasVisibles).not.toContain('codigoPostal');
     expect(component.usuariosFiltrados()).toEqual([usuario]);
     expect(tabla.usuarios).toEqual([usuario]);
   });

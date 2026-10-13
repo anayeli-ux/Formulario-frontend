@@ -31,6 +31,7 @@ import { DatosPersonalesComponent } from '../../components/datos-personales/dato
 import { DatosContactoComponent } from '../../components/datos-contacto/datos-contacto.component';
 import { UsuariosTablaComponent } from '../../components/usuarios-tabla/usuarios-tabla.component';
 import { ContactosUsuarioComponent } from '../../components/contactos-usuario/contactos-usuario.component';
+import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
 import {
   ModalMensajeComponent
 } from '../../components/modal-mensaje/modal-mensaje.component';
@@ -46,8 +47,7 @@ import { esAdministrador } from '../../utils/rol.util';
 type TipoModal =
   | 'exito'
   | 'advertencia'
-  | 'error'
-  | 'confirmacion';
+  | 'error';
 
 function crearPaginadorSoloPaginas(): MatPaginatorIntl {
   const intl = new MatPaginatorIntl();
@@ -70,6 +70,7 @@ function crearPaginadorSoloPaginas(): MatPaginatorIntl {
     DatosContactoComponent,
     UsuariosTablaComponent,
     ContactosUsuarioComponent,
+    LoadingOverlayComponent,
     ModalMensajeComponent,
     FormSectionComponent,
     PageHeaderComponent,
@@ -179,7 +180,6 @@ export class Admin implements OnInit {
   busquedaUsuariosEliminados = signal('');
 
   columnasOpcionalesUsuarios = signal<string[]>(['telefono', 'codigoPostal', 'correo']);
-  readonly columnasOpcionalesAdministradores = ['correo'];
 
   usuariosActivos = computed(() => this.paginaActiva()?.content ?? []);
   usuariosEliminados = computed(() => this.paginaEliminada()?.content ?? []);
@@ -216,7 +216,6 @@ export class Admin implements OnInit {
   modalMensaje = signal('');
 
   cargando = signal(false);
-  detalleCargando = signal(false);
   private readonly cambiosBusquedaActivos = new Subject<string>();
   private readonly cambiosBusquedaEliminados = new Subject<string>();
   private secuenciaActivos = 0;
@@ -716,9 +715,7 @@ export class Admin implements OnInit {
      ========================= */
 
   editarUsuario(resumen: Pick<UsuarioResumen | AdministradorResumen, 'id'>): void {
-    this.detalleCargando.set(true);
     this.usuarioService.obtenerUsuario(resumen.id)
-      .pipe(finalize(() => this.detalleCargando.set(false)))
       .subscribe({
         next: usuario => this.prepararEdicion(usuario),
         error: error => this.mostrarErrorHttp(error, 'No fue posible cargar los datos completos del usuario.')
@@ -769,13 +766,6 @@ export class Admin implements OnInit {
 
     this.limpiarFormulario();
     this.usuarioInformacion.set(null);
-
-  }
-
-
-  cancelarEdicion(): void {
-
-    this.cerrarModalEditar();
 
   }
 
@@ -1077,9 +1067,7 @@ export class Admin implements OnInit {
   }
 
   abrirInformacion(resumen: UsuarioResumen): void {
-    this.detalleCargando.set(true);
     this.usuarioService.obtenerUsuario(resumen.id)
-      .pipe(finalize(() => this.detalleCargando.set(false)))
       .subscribe({
         next: usuario => this.usuarioInformacion.set(usuario),
         error: error => this.mostrarErrorHttp(error, 'No fue posible cargar la información del usuario.')

@@ -58,9 +58,6 @@
 
 :host(.registro-section-final) .form-section {
   border-bottom: none;
-}
-
-:host(.registro-section-final) .form-section {
   animation-delay: .1s;
 }
 

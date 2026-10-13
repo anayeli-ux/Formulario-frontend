@@ -92,11 +92,7 @@ export class LoginComponent implements OnInit {
           return;
         }
 
-        const destino = response.usuario.rol === 'ADMIN'
-          ? '/admin'
-          : '/usuario';
-
-        this.router.navigate([destino]);
+        this.router.navigate(['/']);
       },
       error: () => {
         this.setLoginError('Datos incorrectos. Verifica tu correo y contraseña.', 'general');

@@ -108,10 +108,6 @@ export class UsuariosTablaComponent implements OnChanges {
     this.columnasOpcionalesChange.emit([...this.columnasActivas]);
   }
 
-  get usuariosPaginados(): UsuarioResumen[] {
-    return this.usuarios;
-  }
-
   get paginatorLength(): number {
     return this.totalPages * this.pageSize;
   }

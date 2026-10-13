@@ -38,23 +38,26 @@ describe('PostaliaService', () => {
     httpTestingController.expectNone(`${environment.apiUrl}/postalia/42000`);
   });
 
-    it('requests fresh location data after the previous request completes', () => {
-      const respuesta: PostaliaResponse = {
-        codigo_postal: '42000',
-        estado: 'Hidalgo',
-        municipio: 'Pachuca',
-        zona: 'Urbana',
-        colonias: []
-      };
+  it('requests fresh location data after the previous request completes', () => {
+    const respuesta: PostaliaResponse = {
+      codigo_postal: '42000',
+      estado: 'Hidalgo',
+      municipio: 'Pachuca',
+      zona: 'Urbana',
+      colonias: []
+    };
+    let municipio = '';
 
-      service.buscarCodigoPostal('42000').subscribe();
-      httpTestingController
-        .expectOne(`${environment.apiUrl}/postalia/42000`)
-        .flush(respuesta);
+    service.buscarCodigoPostal('42000').subscribe(valor => municipio = valor.municipio);
+    httpTestingController
+      .expectOne(`${environment.apiUrl}/postalia/42000`)
+      .flush(respuesta);
 
-      service.buscarCodigoPostal('42000').subscribe();
-      httpTestingController
-        .expectOne(`${environment.apiUrl}/postalia/42000`)
-        .flush({ ...respuesta, municipio: 'Mineral de la Reforma' });
-    });
+    service.buscarCodigoPostal('42000').subscribe(valor => municipio = valor.municipio);
+    httpTestingController
+      .expectOne(`${environment.apiUrl}/postalia/42000`)
+      .flush({ ...respuesta, municipio: 'Mineral de la Reforma' });
+
+    expect(municipio).toBe('Mineral de la Reforma');
+  });
 });

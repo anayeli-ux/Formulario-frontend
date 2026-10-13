@@ -53,11 +53,6 @@
   max-width: 440px;
 }
 
-.login-brand,
-.login-accent {
-  display: none;
-}
-
 .login-container {
   position: relative;
   width: 100%;

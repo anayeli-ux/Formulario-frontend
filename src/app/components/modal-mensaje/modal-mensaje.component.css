@@ -2,7 +2,6 @@
   --vino: #3159c7;
   --vino-oscuro: #264aa9;
   --dorado: #60739b;
-  --dorado-claro: #9aa9c4;
   --blanco: #ffffff;
   --texto-secundario: #707d91;
 }
@@ -251,15 +250,6 @@
 }
 
 
-/* CONFIRMACIÓN */
-
-.mensaje-modal.confirmacion .mensaje-icon {
-  background: #e8edff;
-  border-color: var(--dorado-claro);
-  color: var(--vino);
-}
-
-
 /* =========================
    TEXTO
    ========================= */
@@ -341,69 +331,6 @@
 }
 
 
-/* CANCELAR */
-
-.mensaje-cancelar {
-  min-width: 125px;
-
-  padding: 12px 20px;
-
-  border: 1px solid #cec5bb;
-  border-radius: 7px;
-
-  background: white;
-
-  color: var(--texto-secundario);
-
-  font-size: 14px;
-  font-weight: 700;
-
-  cursor: pointer;
-
-  transition:
-    background 0.2s,
-    border-color 0.2s;
-}
-
-
-.mensaje-cancelar:hover {
-  background: #f4f0ec;
-  border-color: var(--dorado);
-}
-
-
-/* CONFIRMAR */
-
-.mensaje-confirmar {
-  min-width: 125px;
-
-  padding: 12px 20px;
-
-  border: none;
-  border-radius: 7px;
-
-  background: var(--vino);
-
-  color: white;
-
-  font-size: 14px;
-  font-weight: 700;
-
-  cursor: pointer;
-
-  transition:
-    background 0.2s,
-    transform 0.2s;
-}
-
-
-.mensaje-confirmar:hover {
-  background: var(--vino-oscuro);
-
-  transform: translateY(-1px);
-}
-
-
 /* =========================
    RESPONSIVE
    ========================= */
@@ -451,15 +378,7 @@
   }
 
 
-  .mensaje-actions,
-  .confirmacion-actions {
-    flex-direction: column;
-  }
-
-
-  .mensaje-aceptar,
-  .mensaje-cancelar,
-  .mensaje-confirmar {
+  .mensaje-aceptar {
     width: 100%;
     min-width: 0;
   }

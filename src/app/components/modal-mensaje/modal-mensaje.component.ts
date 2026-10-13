@@ -10,8 +10,7 @@ import { CommonModule } from '@angular/common';
 export type TipoModal =
   | 'exito'
   | 'error'
-  | 'advertencia'
-  | 'confirmacion';
+  | 'advertencia';
 
 @Component({
   selector: 'app-modal-mensaje',
@@ -41,8 +40,6 @@ export class ModalMensajeComponent {
 
   // Eventos que recibirá el componente padre.
   @Output() cerrar = new EventEmitter<void>();
-  @Output() confirmar = new EventEmitter<void>();
-  @Output() cancelar = new EventEmitter<void>();
 
 
   cerrarModal(): void {
@@ -55,16 +52,6 @@ export class ModalMensajeComponent {
   }
 
 
-  confirmarAccion(): void {
-    this.confirmar.emit();
-  }
-
-
-  cancelarAccion(): void {
-    this.cancelar.emit();
-  }
-
-
   obtenerIcono(): string {
 
     switch (this.tipo) {
@@ -72,15 +59,9 @@ export class ModalMensajeComponent {
       case 'exito':
         return '✓';
 
-      case 'confirmacion':
-        return '?';
-
       case 'advertencia':
       case 'error':
         return '!';
-
-      default:
-        return '';
     }
   }
 

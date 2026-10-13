@@ -130,21 +130,6 @@ describe('UsuarioService', () => {
     expect(error).toEqual(jasmine.any(RespuestaUsuariosIncompatibleError));
   });
 
-  it('requests full details only for an explicitly selected user', () => {
-    service.obtenerUsuario(17).subscribe();
-    const request = httpTesting.expectOne(`${environment.apiUrl}/usuarios/17`);
-    expect(request.request.method).toBe('GET');
-    request.flush({
-      id: 17,
-      nombre: 'Ana',
-      primerApellido: 'Perez',
-      fechaNacimiento: '1990-01-01',
-      telefonos: [],
-      correos: [],
-      direcciones: []
-    });
-  });
-
   it('requests the complete user detail for the information modal', () => {
     service.obtenerUsuario(17).subscribe();
     const request = httpTesting.expectOne(`${environment.apiUrl}/usuarios/17`);
@@ -215,9 +200,14 @@ describe('UsuarioService', () => {
 
   it('sends delete and reactivation requests without retaining full-list data', () => {
     service.eliminarUsuario(1).subscribe();
-    httpTesting.expectOne(`${environment.apiUrl}/usuarios/1`).flush(null);
+    const eliminar = httpTesting.expectOne(`${environment.apiUrl}/usuarios/1`);
+    expect(eliminar.request.method).toBe('DELETE');
+    eliminar.flush(null);
+
     service.reactivarUsuario(1).subscribe();
-    httpTesting.expectOne(`${environment.apiUrl}/usuarios/1/reactivar`).flush({
+    const reactivar = httpTesting.expectOne(`${environment.apiUrl}/usuarios/1/reactivar`);
+    expect(reactivar.request.method).toBe('PUT');
+    reactivar.flush({
       id: 1,
       nombre: 'Ana',
       primerApellido: 'Perez',

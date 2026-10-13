@@ -77,42 +77,17 @@
     <!-- Modal normal -->
     <div
       class="mensaje-actions"
-      *ngIf="tipo !== 'confirmacion'"
+      *ngIf="!bloquearCierre"
     >
       <button
         type="button"
         class="mensaje-aceptar"
-        *ngIf="!bloquearCierre"
         (click)="cerrarModal()"
       >
         Aceptar
       </button>
     </div>
 
-
-    <!-- Modal de confirmación -->
-    <div
-      class="mensaje-actions confirmacion-actions"
-      *ngIf="tipo === 'confirmacion'"
-    >
-
-      <button
-        type="button"
-        class="mensaje-cancelar"
-        (click)="cancelarAccion()"
-      >
-        Cancelar
-      </button>
-
-      <button
-        type="button"
-        class="mensaje-confirmar"
-        (click)="confirmarAccion()"
-      >
-        Confirmar
-      </button>
-
-    </div>
 
   </div>
 
