@@ -111,6 +111,33 @@
   outline: none;
 }
 
+.password-field {
+  position: relative;
+}
+
+.password-field input {
+  padding-right: 82px;
+}
+
+.password-visibility {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 42px;
+  padding: 0 12px;
+  border: 0;
+  background: transparent;
+  color: var(--azul);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.password-visibility:focus-visible {
+  outline: 2px solid var(--azul);
+  outline-offset: -3px;
+}
+
 .login-container input.input-error {
   border: 1px solid #d93025;
   box-shadow: inset 0 -2px 0 #d93025;

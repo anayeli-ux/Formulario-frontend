@@ -43,13 +43,25 @@
             Contraseña
           </label>
 
-          <input
-            type="password"
-            id="password"
-            formControlName="password"
-            [class.input-error]="(loginForm.get('password')?.touched && loginForm.get('password')?.invalid) || loginError()?.campo === 'password'"
-            placeholder="Tu contraseña"
-          >
+          <div class="password-field">
+            <input
+              [type]="mostrarPassword ? 'text' : 'password'"
+              id="password"
+              formControlName="password"
+              [class.input-error]="(loginForm.get('password')?.touched && loginForm.get('password')?.invalid) || loginError()?.campo === 'password'"
+              placeholder="Tu contraseña"
+            >
+            <button
+              class="password-visibility"
+              type="button"
+              aria-controls="password"
+              [attr.aria-pressed]="mostrarPassword"
+              [attr.aria-label]="mostrarPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+              (click)="mostrarPassword = !mostrarPassword"
+            >
+              {{ mostrarPassword ? 'Ocultar' : 'Mostrar' }}
+            </button>
+          </div>
 
           <div
             class="mensaje-error"

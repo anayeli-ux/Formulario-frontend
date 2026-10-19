@@ -52,6 +52,26 @@ describe('LoginComponent', () => {
     });
   });
 
+  it('shows and hides the password without submitting the form', () => {
+    const input = fixture.nativeElement.querySelector('#password') as HTMLInputElement;
+    const button = fixture.nativeElement.querySelector('.password-visibility') as HTMLButtonElement;
+
+    expect(input.type).toBe('password');
+    expect(button.getAttribute('aria-label')).toBe('Mostrar contraseña');
+
+    button.click();
+    fixture.detectChanges();
+
+    expect(input.type).toBe('text');
+    expect(button.getAttribute('aria-label')).toBe('Ocultar contraseña');
+    expect(authService.login).not.toHaveBeenCalled();
+
+    button.click();
+    fixture.detectChanges();
+
+    expect(input.type).toBe('password');
+  });
+
   it('sends admin and user logins through the role-aware root route', () => {
     const navegar = spyOn(router, 'navigate').and.returnValue(Promise.resolve(true));
     component.loginForm.setValue({ identificador: 'admin@example.com', password: 'clave' });
