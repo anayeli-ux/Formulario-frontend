@@ -4,7 +4,7 @@ import { authGuard } from './guards/auth.guard';
 import { guestGuard } from './guards/guest.guard';
 import { homeRedirectGuard } from './guards/home-redirect.guard';
 
-export const routes: Routes = [
+export const routes: Routes = [ /* la tabla de rutas  */
   {
     path: 'login',
     loadComponent: () =>
