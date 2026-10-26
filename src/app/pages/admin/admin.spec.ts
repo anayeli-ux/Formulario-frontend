@@ -12,6 +12,19 @@ import { AuthService } from '../../services/auth.service';
 import { environment } from '../../../environments/environment';
 import { Usuario, UsuarioResumen } from '../../models/usuario.model';
 
+const respuestaApi = <T>(data: T, message = 'Operación realizada correctamente') => ({
+  success: true,
+  message,
+  data,
+  errors: null
+});
+const errorApi = (message: string) => ({
+  success: false,
+  message,
+  data: null,
+  errors: null
+});
+
 describe('Admin', () => {
   let component: Admin;
   let fixture: ComponentFixture<Admin>;
@@ -40,7 +53,7 @@ describe('Admin', () => {
       && item.params.get('eliminados') === String(eliminados)
     );
     expect(request.request.params.get('size')).toBe('5');
-    request.flush(pagina(content));
+    request.flush(respuestaApi(pagina(content)));
   }
 
   function responderLista(url: string, content: UsuarioResumen[] = []): void {
@@ -49,11 +62,11 @@ describe('Admin', () => {
       && request.url === `${environment.apiUrl}/usuarios`
       && request.params.get('rol') === 'USER'
       && request.params.get('eliminados') === String(eliminados))
-      .flush(pagina(content));
+      .flush(respuestaApi(pagina(content)));
   }
 
   function responderCsrf(): void {
-    httpTesting.expectOne(`${environment.apiUrl}/auth/csrf`).flush(null);
+    httpTesting.expectOne(`${environment.apiUrl}/auth/csrf`).flush(respuestaApi(null));
   }
 
   beforeEach(async () => {
@@ -148,7 +161,7 @@ describe('Admin', () => {
   it('does not request contacts separately to complete administrator summaries', () => {
     fixture.detectChanges();
     httpTesting.expectOne(request => request.url === `${environment.apiUrl}/usuarios`)
-      .flush(pagina([]));
+      .flush(respuestaApi(pagina([])));
     component.cambiarSeccionTabla(1);
     responderAdministradores(false, [resumen(17, {
       rol: 'ADMIN',
@@ -170,7 +183,7 @@ describe('Admin', () => {
     responderLista(`${environment.apiUrl}/usuarios`, [resumen(17)]);
 
     component.abrirInformacion(resumen(17));
-    httpTesting.expectOne(`${environment.apiUrl}/usuarios/17`).flush({
+    httpTesting.expectOne(`${environment.apiUrl}/usuarios/17`).flush(respuestaApi({
       id: 17,
       nombre: 'Ana',
       primerApellido: 'Perez',
@@ -179,7 +192,7 @@ describe('Admin', () => {
       telefonos: [{ tipo: 'PRINCIPAL', valor: '7711234567' }],
       correos: [{ tipo: 'PRINCIPAL', valor: 'ana@example.com' }],
       direcciones: [{ tipo: 'PRINCIPAL', valor: 'Calle 1', codigoPostal: '42000' }]
-    });
+    }));
 
     expect(component.usuarioInformacion()).toEqual(jasmine.objectContaining({
       id: 17,
@@ -195,7 +208,7 @@ describe('Admin', () => {
       && request.params.get('page') === '0'
     );
     expect(firstPageRequest.request.params.get('size')).toBe('5');
-    firstPageRequest.flush(pagina([1, 2, 3, 4, 5].map(id => resumen(id)), 3));
+    firstPageRequest.flush(respuestaApi(pagina([1, 2, 3, 4, 5].map(id => resumen(id)), 3)));
 
     expect(component.totalPaginasActivos()).toBe(3);
     component.cambiarPagina({ pageIndex: 1, pageSize: 5, length: 15 }, 'activos');
@@ -207,7 +220,7 @@ describe('Admin', () => {
       && request.params.get('page') === '1'
     );
     expect(secondPageRequest.request.params.get('size')).toBe('5');
-    secondPageRequest.flush(pagina([6, 7, 8, 9, 10].map(id => resumen(id)), 3));
+    secondPageRequest.flush(respuestaApi(pagina([6, 7, 8, 9, 10].map(id => resumen(id)), 3)));
 
     expect(component.paginaIndexActivos()).toBe(1);
     expect(component.usuariosFiltrados().map(usuario => usuario.id)).toEqual([6, 7, 8, 9, 10]);
@@ -220,7 +233,7 @@ describe('Admin', () => {
       request.url === `${environment.apiUrl}/usuarios`
       && request.params.get('page') === '0'
     );
-    initial.flush(pagina([1, 2, 3, 4, 5].map(id => resumen(id)), 4));
+    initial.flush(respuestaApi(pagina([1, 2, 3, 4, 5].map(id => resumen(id)), 4)));
 
     component.cambiarPagina({ pageIndex: 1, pageSize: 5, length: 20 }, 'activos');
     const pageOne = httpTesting.expectOne(request =>
@@ -233,8 +246,8 @@ describe('Admin', () => {
       && request.params.get('page') === '2'
     );
 
-    pageTwo.flush(pagina([11, 12, 13, 14, 15].map(id => resumen(id)), 4));
-    pageOne.flush(pagina([6, 7, 8, 9, 10].map(id => resumen(id)), 4));
+    pageTwo.flush(respuestaApi(pagina([11, 12, 13, 14, 15].map(id => resumen(id)), 4)));
+    pageOne.flush(respuestaApi(pagina([6, 7, 8, 9, 10].map(id => resumen(id)), 4)));
 
     expect(component.paginaIndexActivos()).toBe(2);
     expect(component.usuariosFiltrados().map(usuario => usuario.id)).toEqual([11, 12, 13, 14, 15]);
@@ -273,7 +286,7 @@ describe('Admin', () => {
     component.crearUsuario();
     responderCsrf();
     const post = httpTesting.expectOne(request => request.method === 'POST' && request.url === `${environment.apiUrl}/usuarios`);
-    post.flush({ message: 'Correo duplicado' }, { status: 409, statusText: 'Conflict' });
+    post.flush(errorApi('Correo duplicado'), { status: 409, statusText: 'Conflict' });
 
     expect(component.modalMensajeVisible()).toBeTrue();
     expect(component.modalTitulo()).toBe('Datos de contacto duplicados');
@@ -283,8 +296,13 @@ describe('Admin', () => {
   it('sends the selected administrator role when an admin creates a user', () => {
     TestBed.inject(AuthService).login({ identificador: 'admin@example.com', password: 'secret' }).subscribe();
     httpTesting.expectOne(`${environment.apiUrl}/auth/login`).flush({
-      acceso: true,
-      usuario: { id: 99, email: 'admin@example.com', rol: 'ADMIN' }
+      success: true,
+      message: 'Inicio de sesión correcto',
+      data: {
+        acceso: true,
+        usuario: { id: 99, email: 'admin@example.com', rol: 'ADMIN' }
+      },
+      errors: null
     });
 
     fixture.detectChanges();
@@ -310,7 +328,8 @@ describe('Admin', () => {
     responderCsrf();
     const post = httpTesting.expectOne(request => request.method === 'POST' && request.url === `${environment.apiUrl}/usuarios`);
     expect(post.request.body.rol).toBe('ADMIN');
-    post.flush({ id: 25 });
+    post.flush(respuestaApi({ id: 25 }, 'Usuario creado desde el servidor'));
+    expect(component.modalMensaje()).toBe('Usuario creado desde el servidor');
     responderLista(`${environment.apiUrl}/usuarios`);
   });
 
@@ -337,7 +356,7 @@ describe('Admin', () => {
     component.crearUsuario();
     responderCsrf();
     const post = httpTesting.expectOne(request => request.method === 'POST' && request.url === `${environment.apiUrl}/usuarios`);
-    post.flush({ message: 'Teléfono duplicado' }, { status: 409, statusText: 'Conflict' });
+    post.flush(errorApi('Teléfono duplicado'), { status: 409, statusText: 'Conflict' });
 
     expect(component.modalMensajeVisible()).toBeTrue();
     expect(component.modalTitulo()).toBe('Datos de contacto duplicados');
@@ -408,7 +427,7 @@ describe('Admin', () => {
     responderLista(`${environment.apiUrl}/usuarios`, [resumen(1), resumen(2, { nombre: 'Luis' })]);
 
     component.editarUsuario(resumen(1));
-    httpTesting.expectOne(`${environment.apiUrl}/usuarios/1`).flush(usuario);
+    httpTesting.expectOne(`${environment.apiUrl}/usuarios/1`).flush(respuestaApi(usuario));
     component.usuarioForm.get('datosContacto.telefono')?.setValue('4445556666');
     component.actualizarUsuario();
     responderCsrf();

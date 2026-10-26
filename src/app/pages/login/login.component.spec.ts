@@ -35,8 +35,13 @@ describe('LoginComponent', () => {
 
   it('should set a red invalid credentials message when login fails', () => {
     authService.login.and.returnValue(of({
-      acceso: false,
-      usuario: { id: 1, email: 'test@test.com', rol: 'USER' }
+      success: false,
+      message: 'Datos incorrectos. Verifica tu correo y contraseña.',
+      data: {
+        acceso: false,
+        usuario: { id: 1, email: 'test@test.com', rol: 'USER' }
+      },
+      errors: null
     }));
 
     component.loginForm.setValue({
@@ -76,15 +81,25 @@ describe('LoginComponent', () => {
     const navegar = spyOn(router, 'navigate').and.returnValue(Promise.resolve(true));
     component.loginForm.setValue({ identificador: 'admin@example.com', password: 'clave' });
     authService.login.and.returnValue(of({
-      acceso: true,
-      usuario: { id: 1, email: 'admin@example.com', rol: '2' }
+      success: true,
+      message: 'Inicio correcto',
+      data: {
+        acceso: true,
+        usuario: { id: 1, email: 'admin@example.com', rol: '2' }
+      },
+      errors: null
     }));
 
     component.onLogin();
 
     authService.login.and.returnValue(of({
-      acceso: true,
-      usuario: { id: 2, email: 'user@example.com', rol: 'USER' }
+      success: true,
+      message: 'Inicio correcto',
+      data: {
+        acceso: true,
+        usuario: { id: 2, email: 'user@example.com', rol: 'USER' }
+      },
+      errors: null
     }));
     component.onLogin();
 

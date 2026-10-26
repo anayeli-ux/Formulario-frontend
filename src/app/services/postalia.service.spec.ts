@@ -4,6 +4,13 @@ import { PostaliaService } from './postalia.service';
 import { PostaliaResponse } from '../models/postalia.model';
 import { environment } from '../../environments/environment';
 
+const respuestaApi = <T>(data: T) => ({
+  success: true,
+  message: 'Operación realizada correctamente',
+  data,
+  errors: null
+});
+
 describe('PostaliaService', () => {
   let service: PostaliaService;
   let httpTestingController: HttpTestingController;
@@ -32,7 +39,7 @@ describe('PostaliaService', () => {
     service.buscarCodigoPostal('42000').subscribe(valor => resultados.push(valor));
 
     const solicitud = httpTestingController.expectOne(`${environment.apiUrl}/postalia/42000`);
-    solicitud.flush(respuesta);
+    solicitud.flush(respuestaApi(respuesta));
 
     expect(resultados).toEqual([respuesta, respuesta]);
     httpTestingController.expectNone(`${environment.apiUrl}/postalia/42000`);
@@ -51,12 +58,12 @@ describe('PostaliaService', () => {
     service.buscarCodigoPostal('42000').subscribe(valor => municipio = valor.municipio);
     httpTestingController
       .expectOne(`${environment.apiUrl}/postalia/42000`)
-      .flush(respuesta);
+      .flush(respuestaApi(respuesta));
 
     service.buscarCodigoPostal('42000').subscribe(valor => municipio = valor.municipio);
     httpTestingController
       .expectOne(`${environment.apiUrl}/postalia/42000`)
-      .flush({ ...respuesta, municipio: 'Mineral de la Reforma' });
+      .flush(respuestaApi({ ...respuesta, municipio: 'Mineral de la Reforma' }));
 
     expect(municipio).toBe('Mineral de la Reforma');
   });

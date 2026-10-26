@@ -370,7 +370,7 @@ export class RegistroComponent implements OnInit, OnDestroy {
         // REGISTRO EXITOSO
         // =========================
 
-        next: () => {
+        next: respuesta => {
 
           this.registroForm.reset();
 
@@ -378,7 +378,7 @@ export class RegistroComponent implements OnInit, OnDestroy {
           this.mostrarModal(
             'exito',
             '¡Lo lograste!',
-            'Tu registro se completó correctamente. Serás redirigido al inicio de sesión.'
+            `${respuesta.message || 'Tu registro se completó correctamente.'} Serás redirigido al inicio de sesión.`
           );
 
 

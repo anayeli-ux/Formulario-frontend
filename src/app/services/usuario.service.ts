@@ -9,6 +9,7 @@ import {
 } from 'rxjs';
 
 import { PaginaUsuarios, Usuario } from '../models/usuario.model';
+import { ApiResponse } from '../models/api-response.model';
 import { environment } from '../../environments/environment';
 
 import { AuthService } from './auth.service';
@@ -93,17 +94,18 @@ export class UsuarioService {
     rol: 'USER' | 'ADMIN' = 'USER',
     eliminados = false
   ): Observable<PaginaUsuarios> {
-    return this.http.get<unknown>(
+    return this.http.get<ApiResponse<PaginaUsuarios>>(
       this.apiUrl,
       {
         withCredentials: true,
         params: { page, size, search, rol, eliminados }
       }
-    ).pipe(map(respuesta => this.validarPaginaUsuarios(respuesta)));
+    ).pipe(map(respuesta => this.validarPaginaUsuarios(respuesta.data)));
   }
 
   obtenerUsuario(id: number): Observable<Usuario> {
-    return this.http.get<Usuario>(`${this.apiUrl}/${id}`, { withCredentials: true });
+    return this.http.get<ApiResponse<Usuario>>(`${this.apiUrl}/${id}`, { withCredentials: true })
+      .pipe(map(respuesta => respuesta.data));
   }
 
   private validarPaginaUsuarios(respuesta: unknown): PaginaUsuarios {
@@ -161,11 +163,11 @@ export class UsuarioService {
    */
   crearUsuario(
     usuario: UsuarioRequest
-  ): Observable<Usuario> {
+  ): Observable<ApiResponse<Usuario>> {
 
     return this.authService.obtenerCsrf().pipe(
       switchMap(() =>
-        this.http.post<Usuario>(
+        this.http.post<ApiResponse<Usuario>>(
           this.apiUrl,
           usuario,
           {
@@ -190,11 +192,11 @@ export class UsuarioService {
   actualizarUsuario(
     id: number,
     usuario: UsuarioActualizarRequest
-  ): Observable<Usuario> {
+  ): Observable<ApiResponse<Usuario>> {
 
     return this.authService.obtenerCsrf().pipe(
       switchMap(() =>
-        this.http.put<Usuario>(
+        this.http.put<ApiResponse<Usuario>>(
           `${this.apiUrl}/${id}`,
           usuario,
           {
@@ -202,7 +204,7 @@ export class UsuarioService {
           }
         )
       )
-    ).pipe(tap(usuarioActualizado => this.authService.actualizarPerfilSesion(usuarioActualizado)));
+    ).pipe(tap(respuesta => this.authService.actualizarPerfilSesion(respuesta.data)));
 
   }
 
@@ -218,11 +220,11 @@ export class UsuarioService {
    */
   eliminarUsuario(
     id: number
-  ): Observable<void> {
+  ): Observable<ApiResponse<null>> {
 
     return this.authService.obtenerCsrf().pipe(
       switchMap(() =>
-        this.http.delete<void>(
+        this.http.delete<ApiResponse<null>>(
           `${this.apiUrl}/${id}`,
           {
             withCredentials: true
@@ -246,11 +248,11 @@ export class UsuarioService {
    */
   reactivarUsuario(
     id: number
-  ): Observable<Usuario> {
+  ): Observable<ApiResponse<Usuario>> {
 
     return this.authService.obtenerCsrf().pipe(
       switchMap(() =>
-        this.http.put<Usuario>(
+        this.http.put<ApiResponse<Usuario>>(
           `${this.apiUrl}/${id}/reactivar`,
           {},
           {

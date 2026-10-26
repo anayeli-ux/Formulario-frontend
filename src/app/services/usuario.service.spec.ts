@@ -5,6 +5,13 @@ import { environment } from '../../environments/environment';
 import { AuthService } from './auth.service';
 import { RespuestaUsuariosIncompatibleError, UsuarioActualizarRequest, UsuarioService } from './usuario.service';
 
+const respuestaApi = <T>(data: T, message = 'Operación realizada correctamente') => ({
+  success: true,
+  message,
+  data,
+  errors: null
+});
+
 describe('UsuarioService', () => {
   let service: UsuarioService;
   let httpTesting: HttpTestingController;
@@ -38,20 +45,20 @@ describe('UsuarioService', () => {
     expect(request.request.params.get('search')).toBe('42000');
     expect(request.request.params.get('rol')).toBe('USER');
     expect(request.request.params.get('eliminados')).toBe('false');
-    request.flush({ content: [], totalPages: 3 });
+    request.flush(respuestaApi({ content: [], totalPages: 3 }));
   });
 
   it('defaults active user pages to five rows', () => {
     service.listarUsuarios().subscribe();
     const request = httpTesting.expectOne(item => item.url === `${environment.apiUrl}/usuarios`);
     expect(request.request.params.get('size')).toBe('5');
-    request.flush({ content: [], totalPages: 0 });
+    request.flush(respuestaApi({ content: [], totalPages: 0 }));
   });
 
   it('accepts numeric role IDs in a paginated summary response', () => {
     let respuesta: unknown;
     service.listarUsuarios().subscribe(value => respuesta = value);
-    httpTesting.expectOne(item => item.url === `${environment.apiUrl}/usuarios`).flush({
+    httpTesting.expectOne(item => item.url === `${environment.apiUrl}/usuarios`).flush(respuestaApi({
       content: [{
         id: 1,
         nombre: 'Ana',
@@ -66,7 +73,7 @@ describe('UsuarioService', () => {
       number: 0,
       size: 5,
       pageable: { pageNumber: 0 }
-    });
+    }));
 
     expect(respuesta).toEqual({
       content: [jasmine.objectContaining({ rol: 1 })],
@@ -81,13 +88,13 @@ describe('UsuarioService', () => {
     expect(request.request.params.get('size')).toBe('5');
     expect(request.request.params.get('rol')).toBe('ADMIN');
     expect(request.request.params.get('eliminados')).toBe('true');
-    request.flush({ content: [], totalPages: 3 });
+    request.flush(respuestaApi({ content: [], totalPages: 3 }));
   });
 
   it('preserves administrator phone and postal code in the page summary', () => {
     let respuesta: unknown;
     service.listarUsuarios(0, 5, '', 'ADMIN').subscribe(value => respuesta = value);
-    httpTesting.expectOne(item => item.url === `${environment.apiUrl}/usuarios`).flush({
+    httpTesting.expectOne(item => item.url === `${environment.apiUrl}/usuarios`).flush(respuestaApi({
       content: [{
         id: 7,
         nombre: 'Ana',
@@ -98,7 +105,7 @@ describe('UsuarioService', () => {
         codigoPostal: '42000'
       }],
       totalPages: 1
-    });
+    }));
 
     expect(respuesta).toEqual({
       content: [{
@@ -117,7 +124,7 @@ describe('UsuarioService', () => {
   it('rejects the old full-array response instead of presenting it as an empty page', () => {
     let error: unknown;
     service.listarUsuarios().subscribe({ error: received => error = received });
-    httpTesting.expectOne(item => item.url === `${environment.apiUrl}/usuarios`).flush([{
+    httpTesting.expectOne(item => item.url === `${environment.apiUrl}/usuarios`).flush(respuestaApi([{
       id: 1,
       nombre: 'Ana',
       primerApellido: 'Perez',
@@ -125,7 +132,7 @@ describe('UsuarioService', () => {
       telefonos: [],
       correos: [],
       direcciones: []
-    }]);
+    }]));
 
     expect(error).toEqual(jasmine.any(RespuestaUsuariosIncompatibleError));
   });
@@ -134,7 +141,7 @@ describe('UsuarioService', () => {
     service.obtenerUsuario(17).subscribe();
     const request = httpTesting.expectOne(`${environment.apiUrl}/usuarios/17`);
     expect(request.request.method).toBe('GET');
-    request.flush({
+    request.flush(respuestaApi({
       id: 17,
       nombre: 'Ana',
       primerApellido: 'Perez',
@@ -143,7 +150,7 @@ describe('UsuarioService', () => {
       telefonos: [],
       correos: [],
       direcciones: []
-    });
+    }));
   });
 
   it('sends persistent contact IDs unchanged in the update PUT body', () => {
@@ -171,7 +178,7 @@ describe('UsuarioService', () => {
     const put = httpTesting.expectOne(`${environment.apiUrl}/usuarios/1`);
     expect(put.request.method).toBe('PUT');
     expect(put.request.body).toEqual(request);
-    put.flush({
+    put.flush(respuestaApi({
       id: 1,
       nombre: request.nombre,
       primerApellido: request.primerApellido,
@@ -180,7 +187,7 @@ describe('UsuarioService', () => {
       telefonos: request.telefonos,
       correos: request.correos,
       direcciones: request.direcciones
-    });
+    }));
     expect(authServiceMock.actualizarPerfilSesion).toHaveBeenCalledWith(jasmine.objectContaining({
       id: 1,
       rol: 'ADMIN'
@@ -195,19 +202,19 @@ describe('UsuarioService', () => {
     expect(request.request.params.get('search')).toBe('Lopez');
     expect(request.request.params.get('rol')).toBe('USER');
     expect(request.request.params.get('eliminados')).toBe('true');
-    request.flush({ content: [], totalPages: 2 });
+    request.flush(respuestaApi({ content: [], totalPages: 2 }));
   });
 
   it('sends delete and reactivation requests without retaining full-list data', () => {
     service.eliminarUsuario(1).subscribe();
     const eliminar = httpTesting.expectOne(`${environment.apiUrl}/usuarios/1`);
     expect(eliminar.request.method).toBe('DELETE');
-    eliminar.flush(null);
+    eliminar.flush(respuestaApi(null));
 
     service.reactivarUsuario(1).subscribe();
     const reactivar = httpTesting.expectOne(`${environment.apiUrl}/usuarios/1/reactivar`);
     expect(reactivar.request.method).toBe('PUT');
-    reactivar.flush({
+    reactivar.flush(respuestaApi({
       id: 1,
       nombre: 'Ana',
       primerApellido: 'Perez',
@@ -215,6 +222,6 @@ describe('UsuarioService', () => {
       telefonos: [],
       correos: [],
       direcciones: []
-    });
+    }));
   });
 });

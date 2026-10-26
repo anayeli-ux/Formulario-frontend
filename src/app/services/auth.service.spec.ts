@@ -31,8 +31,13 @@ describe('AuthService', () => {
 
     const request = httpTesting.expectOne('http://localhost:8081/api/auth/login');
     request.flush({
-      acceso: true,
-      usuario: { id: 1, email: 'admin@test.com', rol: 'ADMIN' }
+      success: true,
+      message: 'Inicio de sesión correcto',
+      data: {
+        acceso: true,
+        usuario: { id: 1, email: 'admin@test.com', rol: 'ADMIN' }
+      },
+      errors: null
     });
 
     expect(service.usuarioActual()?.email).toBe('admin@test.com');
@@ -41,8 +46,13 @@ describe('AuthService', () => {
   it('should reuse the authenticated session without requesting the profile again', () => {
     service.login({ identificador: 'admin@test.com', password: 'secret' }).subscribe();
     httpTesting.expectOne('http://localhost:8081/api/auth/login').flush({
-      acceso: true,
-      usuario: { id: 1, email: 'admin@test.com', rol: 'ADMIN' }
+      success: true,
+      message: 'Inicio de sesión correcto',
+      data: {
+        acceso: true,
+        usuario: { id: 1, email: 'admin@test.com', rol: 'ADMIN' }
+      },
+      errors: null
     });
 
     service.obtenerSesion().subscribe(usuario => {
@@ -68,15 +78,22 @@ describe('AuthService', () => {
 
     service.obtenerSesion().subscribe(usuario => expect(usuario?.rol).toBe('ADMIN'));
     httpTesting.expectOne(`${environment.apiUrl}${environment.auth.identidad}`).flush({
-      id: 1,
-      nombre: 'Ana',
-      primerApellido: 'Perez',
-      email: 'admin@test.com',
-      rol: 'ADMIN'
+      success: true,
+      message: 'Identidad obtenida',
+      data: {
+        id: 1,
+        nombre: 'Ana',
+        primerApellido: 'Perez',
+        email: 'admin@test.com',
+        rol: 'ADMIN'
+      },
+      errors: null
     });
 
     service.obtenerPerfil().subscribe(usuario => expect(usuario).toEqual(perfil));
-    httpTesting.expectOne(`${environment.apiUrl}${environment.auth.perfil}`).flush(perfil);
+    httpTesting.expectOne(`${environment.apiUrl}${environment.auth.perfil}`).flush({
+      success: true, message: 'Perfil obtenido', data: perfil, errors: null
+    });
   });
 
   it('should update the minimal session identity and discard the full profile after editing', () => {
@@ -98,15 +115,22 @@ describe('AuthService', () => {
 
     service.obtenerSesion().subscribe();
     httpTesting.expectOne(`${environment.apiUrl}${environment.auth.identidad}`).flush({
-      id: 1,
-      nombre: 'Ana',
-      primerApellido: 'Perez',
-      email: 'admin@test.com',
-      rol: 'ADMIN'
+      success: true,
+      message: 'Identidad obtenida',
+      data: {
+        id: 1,
+        nombre: 'Ana',
+        primerApellido: 'Perez',
+        email: 'admin@test.com',
+        rol: 'ADMIN'
+      },
+      errors: null
     });
 
     service.obtenerPerfil().subscribe(usuario => expect(usuario).toEqual(perfil));
-    httpTesting.expectOne(`${environment.apiUrl}${environment.auth.perfil}`).flush(perfil);
+    httpTesting.expectOne(`${environment.apiUrl}${environment.auth.perfil}`).flush({
+      success: true, message: 'Perfil obtenido', data: perfil, errors: null
+    });
 
     service.actualizarPerfilSesion(actualizado);
 
@@ -114,7 +138,9 @@ describe('AuthService', () => {
     expect(service.usuarioActual()?.nombre).toBe('Ana Maria');
 
     service.obtenerPerfil().subscribe(usuario => expect(usuario).toEqual(actualizado));
-    httpTesting.expectOne(`${environment.apiUrl}${environment.auth.perfil}`).flush(actualizado);
+    httpTesting.expectOne(`${environment.apiUrl}${environment.auth.perfil}`).flush({
+      success: true, message: 'Perfil obtenido', data: actualizado, errors: null
+    });
   });
 
   it('should not verify the same rejected session again during a redirect', () => {

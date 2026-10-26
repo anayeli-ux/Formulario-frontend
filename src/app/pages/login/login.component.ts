@@ -88,15 +88,21 @@ export class LoginComponent implements OnInit {
       finalize(() => this.cargando.set(false))
     ).subscribe({
       next: (response) => {
-        if (response.acceso === false) {
-          this.setLoginError('Datos incorrectos. Verifica tu correo y contraseña.', 'general');
+        if (!response.success || response.data?.acceso === false) {
+          this.setLoginError(
+            response.message || 'Datos incorrectos. Verifica tu correo y contraseña.',
+            'general'
+          );
           return;
         }
 
         this.router.navigate(['/']);
       },
-      error: () => {
-        this.setLoginError('Datos incorrectos. Verifica tu correo y contraseña.', 'general');
+      error: (error) => {
+        this.setLoginError(
+          error?.error?.message || 'Datos incorrectos. Verifica tu correo y contraseña.',
+          'general'
+        );
       }
     });
   }

@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 
 import {
   Observable,
+  map,
   tap,
   switchMap,
   catchError,
@@ -15,6 +16,7 @@ import {
 import { environment } from '../../environments/environment';
 import { limpiarCacheUsuariosPersistida } from './usuario-cache.storage';
 import { Usuario } from '../models/usuario.model';
+import { ApiResponse } from '../models/api-response.model';
 
 export interface LoginResponse {
   acceso: boolean;
@@ -73,14 +75,14 @@ export class AuthService {
       identificador: string;
       password: string;
     }
-  ): Observable<LoginResponse> {
+  ): Observable<ApiResponse<LoginResponse>> {
     const datosAEnviar = {
       usuario: credenciales.identificador,
       password: credenciales.password
     };
 
     return this.http
-      .post<LoginResponse>(
+      .post<ApiResponse<LoginResponse>>(
         this.authUrl,
         datosAEnviar,
         {
@@ -91,21 +93,21 @@ export class AuthService {
         tap(response => {
           this.estadoPerfilActual.set(null);
           this.sesionVerificada = true;
-          if (response?.acceso === true) {
+          if (response.data?.acceso === true) {
             limpiarCacheUsuariosPersistida();
           }
-          this.estadoUsuarioActual.set(response?.acceso === true ? response.usuario : null);
+          this.estadoUsuarioActual.set(response.data?.acceso === true ? response.data.usuario : null);
         })
       );
   }
 
   obtenerCsrf(): Observable<void> {
-    return this.http.get<void>(
+    return this.http.get<ApiResponse<unknown>>(
       this.csrfUrl,
       {
         withCredentials: true
       }
-    );
+    ).pipe(map(() => undefined));
   }
 
   obtenerPerfil(): Observable<Usuario> {
@@ -118,10 +120,11 @@ export class AuthService {
       return this.solicitudPerfil;
     }
 
-    const solicitud = this.http.get<Usuario>(
+    const solicitud = this.http.get<ApiResponse<Usuario>>(
       this.perfilUrl,
       { withCredentials: true }
     ).pipe(
+      map(response => response.data),
       tap(usuario => {
         this.estadoPerfilActual.set(usuario);
         if (usuario.id !== undefined && usuario.rol) {
@@ -175,7 +178,8 @@ export class AuthService {
     if (identidad?.nombre) return of(identidad);
     if (this.solicitudIdentidad) return this.solicitudIdentidad;
 
-    const solicitud = this.http.get<UsuarioSesion>(this.identidadUrl, { withCredentials: true }).pipe(
+    const solicitud = this.http.get<ApiResponse<UsuarioSesion>>(this.identidadUrl, { withCredentials: true }).pipe(
+      map(response => response.data),
       tap(usuario => {
         this.estadoUsuarioActual.set(usuario);
         this.sesionVerificada = true;
@@ -204,13 +208,13 @@ export class AuthService {
   cerrarSesion(): Observable<void> {
     return this.obtenerCsrf().pipe(
       switchMap(() =>
-        this.http.post<void>(
+        this.http.post<ApiResponse<null>>(
           this.logoutUrl,
           {},
           {
             withCredentials: true
           }
-        )
+        ).pipe(map(() => undefined))
       ),
       tap(() => this.limpiarSesionLocal())
     );

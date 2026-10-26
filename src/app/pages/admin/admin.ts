@@ -683,7 +683,7 @@ export class Admin implements OnInit {
       .pipe(finalize(() => this.cargando.set(false)))
       .subscribe({
 
-        next: () => {
+        next: respuesta => {
 
           this.modalEditarAbierto.set(false);
           this.limpiarFormulario();
@@ -692,7 +692,7 @@ export class Admin implements OnInit {
           this.mostrarModal(
             'exito',
             'Usuario registrado',
-            'El usuario fue creado correctamente.'
+            respuesta.message || 'El usuario fue creado correctamente.'
           );
 
         },
@@ -813,7 +813,8 @@ export class Admin implements OnInit {
       .pipe(finalize(() => this.cargando.set(false)))
       .subscribe({
 
-        next: usuarioActualizado => {
+        next: respuesta => {
+          const usuarioActualizado = respuesta.data;
           const idUsuarioEditado = this.usuarioEditandoId();
           const esEdicionDeSesionActual = idUsuarioEditado === this.authService.usuarioActual()?.id;
 
@@ -829,7 +830,7 @@ export class Admin implements OnInit {
           this.mostrarModal(
             'exito',
             'Usuario actualizado',
-            'Los datos del usuario fueron actualizados correctamente.'
+            respuesta.message || 'Los datos del usuario fueron actualizados correctamente.'
           );
 
         },
@@ -879,13 +880,13 @@ export class Admin implements OnInit {
       .pipe(finalize(() => this.cargando.set(false)))
       .subscribe({
 
-        next: () => {
+        next: respuesta => {
           this.recargarVistaActual();
 
           this.mostrarModal(
             'exito',
             'Usuario eliminado',
-            'El usuario fue eliminado correctamente.'
+            respuesta.message || 'El usuario fue eliminado correctamente.'
           );
 
         },
@@ -938,13 +939,13 @@ export class Admin implements OnInit {
       .pipe(finalize(() => this.cargando.set(false)))
       .subscribe({
 
-        next: () => {
+        next: respuesta => {
           this.recargarVistaActual();
 
           this.mostrarModal(
             'exito',
             'Usuario reactivado',
-            'El usuario fue reactivado correctamente.'
+            respuesta.message || 'El usuario fue reactivado correctamente.'
           );
 
         },

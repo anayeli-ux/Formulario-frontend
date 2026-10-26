@@ -8,6 +8,13 @@ import { environment } from '../../../environments/environment';
 
 import { RegistroComponent } from './registro.component';
 
+const respuestaApi = <T>(data: T, message = 'Operación realizada correctamente') => ({
+  success: true,
+  message,
+  data,
+  errors: null
+});
+
 describe('RegistroComponent', () => {
   let component: RegistroComponent;
   let fixture: ComponentFixture<RegistroComponent>;
@@ -101,7 +108,7 @@ describe('RegistroComponent', () => {
     expect(stepper.selectedIndex).toBe(2);
 
     component.enviarRegistro();
-    httpTesting.expectOne(`${environment.apiUrl}${environment.auth.csrf}`).flush(null);
+    httpTesting.expectOne(`${environment.apiUrl}${environment.auth.csrf}`).flush(respuestaApi(null));
 
     const request = httpTesting.expectOne(`${environment.apiUrl}/usuarios`);
     expect(request.request.method).toBe('POST');
@@ -114,9 +121,10 @@ describe('RegistroComponent', () => {
       correos: [{ tipo: 'PRINCIPAL', valor: 'ana@example.com' }],
       password: 'Test123!'
     });
-    request.flush({});
+    request.flush(respuestaApi({}, 'Registro completado'));
 
     expect(component.modalVisible()).toBeTrue();
     expect(component.modalTipo()).toBe('exito');
+    expect(component.modalMensaje()).toContain('Registro completado');
   });
 });
